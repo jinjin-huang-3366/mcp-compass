@@ -14,7 +14,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] Add Flyway initial schema.
 - [x] Add repo agent instructions and project skills.
 - [x] Add baseline CI workflow.
-- [x] Add manual Codex task-to-PR workflow.
+- [x] Add manual single-task Codex task-to-PR workflow with email summaries.
 
 ### Registry ingestion
 - [x] Add configurable MCP Registry HTTP client.
