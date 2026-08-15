@@ -78,6 +78,8 @@ The `.agent/` directory exists only to explain the older/singular naming. Do not
 
 The `Codex task pull request` workflow implements exactly one manually supplied task, validates the result, commits it to a new branch, opens a pull request without merging it, and emails a summary. It never selects or starts the next backlog task automatically.
 
+From Codex, invoke `$mcp-task-pr-flow` with the task description to run and monitor this workflow.
+
 1. Add `OPENAI_API_KEY`, `GMAIL_ADDRESS`, and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password.
 2. Under **Settings > Actions > General**, allow GitHub Actions to create pull requests and grant workflows read/write permissions.
 3. Open **Actions > Codex task pull request > Run workflow**.

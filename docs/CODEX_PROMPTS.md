@@ -30,6 +30,13 @@ $github-pr-workflow
 Review the current diff for scope, architecture and security. Run relevant tests, identify anything not run, and draft a concise PR title/body with risks and intentional follow-ups.
 ```
 
+## Run one task through the automated PR flow
+
+```text
+$mcp-task-pr-flow
+Run the single-task PR flow for task: <task description>. Use branch task/<short-name>, target main, create and monitor the PR, confirm the email-summary step, and do not merge it or start another task.
+```
+
 ## Fix CI
 
 ```text
