@@ -7,6 +7,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 @Component
@@ -29,11 +30,14 @@ public class RegistryClient {
                 .build();
     }
 
-    public RegistryPage fetchServers(String cursor) {
+    public RegistryPage fetchServers(String cursor, Instant updatedSince) {
         UriComponentsBuilder uri = UriComponentsBuilder.fromPath("/v0.1/servers")
                 .queryParam("limit", properties.pageSize());
         if (cursor != null && !cursor.isBlank()) {
             uri.queryParam("cursor", cursor);
+        }
+        if (updatedSince != null) {
+            uri.queryParam("updated_since", updatedSince.toString());
         }
 
         String body = restClient.get()
