@@ -1,0 +1,30 @@
+# IntelliJ / JetBrains
+.idea/
+*.iml
+out/
+
+# Java
+**/target/
+
+# Node
+web/node_modules/
+web/.next/
+web/out/
+web/.env.local
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+!web/.env.local.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Generated artifacts
+generated/
+artifacts/

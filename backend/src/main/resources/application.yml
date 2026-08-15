@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: mcp-compass
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mcp_compass}
+    username: ${SPRING_DATASOURCE_USERNAME:mcp_compass}
+    password: ${SPRING_DATASOURCE_PASSWORD:mcp_compass}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+app:
+  registry:
+    base-url: https://registry.modelcontextprotocol.io
+    page-size: 100
+    connect-timeout: 5s
+    read-timeout: 20s
+    sync:
+      enabled: false
+      fixed-delay-ms: 3600000
+      max-pages-per-run: 5

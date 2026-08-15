@@ -1,0 +1,76 @@
+package dev.mcpcompass.search;
+
+import dev.mcpcompass.ranking.RankingService;
+import dev.mcpcompass.registry.McpServerEntity;
+import dev.mcpcompass.registry.McpServerRepository;
+import dev.mcpcompass.requirement.RequirementAnalysis;
+import dev.mcpcompass.requirement.RequirementAnalyzer;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+@Service
+public class McpSearchService {
+    private final RequirementAnalyzer analyzer;
+    private final McpServerRepository repository;
+    private final RankingService rankingService;
+
+    public McpSearchService(RequirementAnalyzer analyzer, McpServerRepository repository, RankingService rankingService) {
+        this.analyzer = analyzer;
+        this.repository = repository;
+        this.rankingService = rankingService;
+    }
+
+    public SearchResponse search(String requirement) {
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+        if (analysis.keywords().isEmpty()) {
+            return new SearchResponse(requirement, List.of(), List.of());
+        }
+
+        List<McpServerEntity> candidates = repository.findAll(candidateSpec(analysis.keywords()), PageRequest.of(0, 100)).getContent();
+
+        List<SearchResponse.Match> matches = candidates.stream()
+                .filter(server -> !"deleted".equalsIgnoreCase(server.getStatus()))
+                .map(server -> rankingService.rank(server, analysis))
+                .filter(ranked -> ranked.score() > 0)
+                .sorted(Comparator.comparingDouble(RankingService.RankedServer::score).reversed())
+                .limit(10)
+                .map(ranked -> new SearchResponse.Match(
+                        ranked.server().getId(),
+                        ranked.server().getRegistryName(),
+                        ranked.server().getTitle(),
+                        ranked.server().getDescription(),
+                        ranked.server().getVersion(),
+                        ranked.server().getStatus(),
+                        rounded(ranked.score()),
+                        ranked.reasons()
+                ))
+                .toList();
+
+        return new SearchResponse(requirement, analysis.keywords(), matches);
+    }
+
+    private static Specification<McpServerEntity> candidateSpec(List<String> keywords) {
+        return (root, query, cb) -> {
+            List<Predicate> matches = new ArrayList<>();
+            for (String keyword : keywords) {
+                String pattern = "%" + keyword.toLowerCase() + "%";
+                matches.add(cb.like(cb.lower(root.<String>get("registryName")), pattern));
+                matches.add(cb.like(cb.lower(cb.coalesce(root.<String>get("title"), "")), pattern));
+                matches.add(cb.like(cb.lower(cb.coalesce(root.<String>get("description"), "")), pattern));
+            }
+            Predicate textMatch = cb.or(matches.toArray(Predicate[]::new));
+            Predicate notDeleted = cb.or(cb.isNull(root.<String>get("status")), cb.notEqual(cb.lower(root.<String>get("status")), "deleted"));
+            return cb.and(textMatch, notDeleted);
+        };
+    }
+
+    private static double rounded(double value) {
+        return Math.round(value * 1000.0) / 1000.0;
+    }
+}
