@@ -21,7 +21,9 @@ Future GitHub maintenance/quality enrichment.
 Future build/protocol/security validation history.
 
 ### `registry_sync_state`
-Checkpoint and last-success metadata for incremental ingestion.
+Checkpoint and last-success metadata for incremental ingestion. A partial run retains its next cursor and
+the prior `updated_since` boundary; completing pagination clears the cursor and advances the boundary to
+the run start time so updates arriving during the run are included by the next sync.
 
 ## Identity
 Use Registry `name` as the stable public identity and an internal UUID primary key. Version history can be added separately when product requirements need it; V0.1 stores the latest seen version.
