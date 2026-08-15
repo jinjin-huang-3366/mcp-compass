@@ -1,0 +1,4 @@
+interface:
+  display_name: "MCP Task PR Flow"
+  short_description: "Dispatch and monitor one MCP Compass task PR"
+  default_prompt: "Use $mcp-task-pr-flow to run one MCP Compass task through the branch, validation, pull request, and email-summary workflow without merging."

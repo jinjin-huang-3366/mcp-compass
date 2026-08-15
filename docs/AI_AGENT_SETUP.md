@@ -14,6 +14,7 @@ Useful project skills:
 - `$mcp-registry-ingestion`
 - `$mcp-search-ranking`
 - `$mcp-generator` (V0.3+)
+- `$mcp-task-pr-flow`
 - `$github-pr-workflow`
 - `$ci-failure-triage`
 
@@ -31,7 +32,8 @@ GitHub also supports project Agent Skills in `.agents/skills`, so the same proje
 If your GitHub CLI version supports Agent Skills, useful commands include searching, previewing, and installing skills. Always preview third-party skills before installing because a skill can contain instructions/scripts with security implications.
 
 ## Optional GitHub-focused skills
-The repo includes two safe instruction-only skills:
+The repo includes these GitHub-focused instruction-only skills:
+- `mcp-task-pr-flow`
 - `github-pr-workflow`
 - `ci-failure-triage`
 
