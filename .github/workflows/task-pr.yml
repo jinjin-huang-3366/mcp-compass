@@ -22,7 +22,7 @@ on:
         type: string
 
 concurrency:
-  group: codex-task-${{ inputs.branch_name }}
+  group: codex-single-task-flow
   cancel-in-progress: false
 
 jobs:
@@ -39,6 +39,17 @@ jobs:
           ref: ${{ inputs.base_branch }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Verify required credentials
+        env:
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          [[ -n "$OPENAI_API_KEY" ]] || { echo "Missing OPENAI_API_KEY secret." >&2; exit 1; }
+          [[ -n "$GMAIL_ADDRESS" ]] || { echo "Missing GMAIL_ADDRESS secret." >&2; exit 1; }
+          [[ -n "$GMAIL_APP_PASSWORD" ]] || { echo "Missing GMAIL_APP_PASSWORD secret." >&2; exit 1; }
 
       - name: Validate branch name
         env:
@@ -73,6 +84,10 @@ jobs:
             update documentation when needed, and run relevant tests when
             possible. Do not commit, push, create a branch, or open a pull
             request; the workflow handles those operations after validation.
+
+            Work only on the task below. Do not select, start, or implement a
+            follow-up task from PLANS.md or any other backlog after completing
+            it. A later task requires a separate manual workflow dispatch.
 
             Task:
             ${{ inputs.task }}
@@ -209,3 +224,18 @@ jobs:
           BRANCH_NAME: ${{ inputs.branch_name }}
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run ci.yml --ref "$BRANCH_NAME"
+
+      - name: Email pull request summary
+        if: ${{ always() && steps.pull_request.outcome == 'success' }}
+        env:
+          BRANCH_NAME: ${{ inputs.branch_name }}
+          CODEX_SUMMARY_PATH: ${{ runner.temp }}/codex-task/codex-output.md
+          EMAIL_TO: ${{ secrets.GMAIL_ADDRESS }}
+          PR_TITLE: ${{ inputs.pr_title }}
+          PR_URL: ${{ steps.pull_request.outputs.url }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          SMTP_PORT: '465'
+          SMTP_USERNAME: ${{ secrets.GMAIL_ADDRESS }}
+          TASK_DESCRIPTION: ${{ inputs.task }}
+        run: python .github/scripts/send_pr_email.py
