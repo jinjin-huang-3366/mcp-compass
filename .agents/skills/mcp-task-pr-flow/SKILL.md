@@ -14,7 +14,7 @@ Require a concrete task description. Accept or derive these values:
 - `branch_name`: default to a short `task/<slug>` name.
 - `base_branch`: default to `main`.
 - `pr_title`: derive a concise, behavior-focused title.
-- `desk_testing`: provide complete, reproducible manual test guidance with prerequisites, ordered commands or actions, expected results, and any unperformed steps with the reason.
+- `desk_testing`: provide complete, reproducible task-specific checks with ordered commands or actions, expected results, and any unperformed steps with the reason. The workflow automatically prepends standard PostgreSQL, backend, and frontend startup, readiness, and cleanup steps.
 - `plan_item`: use the exact text of one unchecked `PLANS.md` entry when the task implements it; otherwise use an empty value.
 
 Make reasonable naming assumptions, but stop for user input when the task itself is ambiguous or the branch choice could overwrite or collide with existing work.
@@ -35,7 +35,7 @@ Treat authentication, permissions, missing email secrets, an existing branch, an
 
 1. Update the local `base_branch` reference when permitted and create `branch_name` from it.
 2. Implement only the requested task. Follow repository instructions and applicable skills, update documentation when required, and do not select another backlog item. When `plan_item` is set, leave its checkbox unchecked in the task branch so the merge workflow can mark it complete after the PR is merged.
-3. Run the narrowest relevant checks, followed by the repository checks appropriate to the change. Perform relevant desk testing when the environment permits; otherwise record each unperformed step and the reason.
+3. Run the narrowest relevant checks, followed by the repository checks appropriate to the change. Perform relevant desk testing when the environment permits; otherwise record each unperformed step and the reason. The generated handoff always includes standard PostgreSQL, backend, and frontend startup, readiness, and cleanup steps before the task-specific checks.
 4. Review the diff for scope and secrets. Stage only the intended files.
 5. Commit with the pull request title or another concise behavior-focused message and push `branch_name` without force.
 6. Prepare a concise summary of the completed changes and validation results, plus complete `desk_testing` guidance, for the pull request and email.
@@ -70,11 +70,11 @@ The repository workflow sends email only after successful pull request creation.
 After a successful workflow run:
 
 1. Find the open pull request whose head is `branch_name`.
-2. Confirm its base is `base_branch`, its commit exists, and it is not merged or configured for automatic merge. Confirm that its `Desk testing` section contains the complete guidance supplied at dispatch. When `plan_item` is set, also confirm the pull request body contains the exact hidden plan-item marker.
+2. Confirm its base is `base_branch`, its commit exists, and it is not merged or configured for automatic merge. Confirm that its `Desk testing` section contains the standard service startup/readiness/cleanup block followed by the complete task-specific guidance supplied at dispatch. When `plan_item` is set, also confirm the pull request body contains the exact hidden plan-item marker.
 3. Confirm the workflow validation steps and `Email pull request summary` step succeeded. Do not expose SMTP or repository secrets.
 4. Report the run URL, branch, commit, pull request URL, validation results, desk-testing handoff, and email-step result.
 5. Stop. Never merge the pull request or start a follow-up task without a new explicit request.
 
-Do not claim the flow succeeded when validation was not completed, the desk-testing guidance is missing or incomplete, the pull request was not created, or the email step did not succeed.
+Do not claim the flow succeeded when validation was not completed, the service startup or task-specific desk-testing guidance is missing or incomplete, the pull request was not created, or the email step did not succeed.
 
 After a linked pull request is merged manually, `.github/workflows/plan-completion.yml` marks its exact `PLANS.md` item complete. Pull requests without a valid marker are ignored.

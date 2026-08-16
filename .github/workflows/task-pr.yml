@@ -94,11 +94,12 @@ jobs:
       - name: Prepare local Codex artifacts
         env:
           CODEX_SUMMARY: ${{ inputs.summary }}
-          DESK_TESTING: ${{ inputs.desk_testing }}
+          DESK_TESTING_PATH: ${{ runner.temp }}/desk-testing.md
+          TASK_DESK_TESTING: ${{ inputs.desk_testing }}
         shell: bash
         run: |
           printf '%s\n' "$CODEX_SUMMARY" > "$RUNNER_TEMP/codex-summary.md"
-          printf '%s\n' "$DESK_TESTING" > "$RUNNER_TEMP/desk-testing.md"
+          python .github/scripts/prepare_desk_testing.py
 
       - name: Validate plan item
         if: ${{ inputs.plan_item != '' }}
