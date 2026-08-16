@@ -66,13 +66,13 @@ curl -X POST "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
 
 Start with:
 
-- `AGENTS.md` ? repository-wide instructions for Codex and other coding agents.
-- `PLANS.md` ? living implementation plan and V0.1 backlog.
-- `.agents/skills/` ? repo-scoped Agent Skills. This is the current Codex-supported location and is also supported by GitHub Copilot agent skills.
-- `.codex/config.toml` ? conservative project-level Codex settings.
-- `.github/copilot-instructions.md` ? GitHub Copilot repository instructions.
-- `.github/instructions/` ? path-specific Copilot guidance.
-- `docs/AI_AGENT_SETUP.md` ? how to use the supplied skills.
+- `AGENTS.md` — repository-wide instructions for Codex and other coding agents.
+- `PLANS.md` — living implementation plan and V0.1 backlog.
+- `.agents/skills/` — repo-scoped Agent Skills. This is the current Codex-supported location and is also supported by GitHub Copilot agent skills.
+- `.codex/config.toml` — conservative project-level Codex settings.
+- `.github/copilot-instructions.md` — GitHub Copilot repository instructions.
+- `.github/instructions/` — path-specific Copilot guidance.
+- `docs/AI_AGENT_SETUP.md` — how to use the supplied skills.
 
 The `.agent/` directory exists only to explain the older/singular naming. Do not put Codex project skills there.
 
@@ -85,7 +85,7 @@ From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates 
 1. Add `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password. No OpenAI API key is required.
 2. Under **Settings > Actions > General**, allow GitHub Actions to create pull requests and grant workflows read/write permissions.
 3. Open **Actions > Codex task pull request > Run workflow**.
-4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, the local Codex summary, complete desk-testing guidance, and?when the task matches one unchecked plan entry?the exact `PLANS.md` item text. Desk testing should include prerequisites, ordered commands or actions, expected results, and any steps that could not be run with the reason.
+4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, the local Codex summary, complete desk-testing guidance, and—when the task matches one unchecked plan entry—the exact `PLANS.md` item text. Desk testing should include prerequisites, ordered commands or actions, expected results, and any steps that could not be run with the reason.
 5. Review the generated pull request and email summary, then merge the pull request manually when it is ready.
 6. Start another workflow run only when the next task should begin.
 
