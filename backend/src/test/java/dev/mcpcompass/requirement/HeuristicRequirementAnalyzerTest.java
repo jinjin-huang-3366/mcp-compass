@@ -14,5 +14,6 @@ class HeuristicRequirementAnalyzerTest {
         assertThat(result.keywords())
                 .contains("github", "issues", "comment", "create", "pull", "requests")
                 .doesNotContain("agent", "need", "and");
+        assertThat(result.structuredRequirement()).isEqualTo(StructuredRequirement.empty());
     }
 }
