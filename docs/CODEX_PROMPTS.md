@@ -34,7 +34,7 @@ Review the current diff for scope, architecture and security. Run relevant tests
 
 ```text
 $mcp-task-pr-flow
-Run the single-task PR flow for task: <task description>. Use branch task/<short-name>, target main, create and monitor the PR, confirm the email-summary step, and do not merge it or start another task.
+Implement the single task locally: <task description>. Create branch task/<short-name> from main, commit and push only this task, then run and monitor the validation/PR/email workflow. Confirm the email-summary step, and do not merge the PR or start another task.
 ```
 
 ## Fix CI

@@ -4,20 +4,24 @@ on:
   workflow_dispatch:
     inputs:
       task:
-        description: Task instructions for Codex
+        description: Task implemented locally with Codex
         required: true
         type: string
       branch_name:
-        description: New branch name, for example task/registry-metrics
+        description: Existing pushed task branch, for example task/registry-metrics
         required: true
         type: string
       base_branch:
-        description: Branch to base the task on
+        description: Branch the pull request targets
         required: true
         default: main
         type: string
       pr_title:
-        description: Commit message and pull request title
+        description: Pull request title
+        required: true
+        type: string
+      summary:
+        description: Summary of the changes produced by local Codex
         required: true
         type: string
 
@@ -26,17 +30,19 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  generate:
-    name: Generate task patch
+  publish:
+    name: Validate and open pull request
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
+      actions: write
       contents: read
+      pull-requests: write
     steps:
-      - name: Check out base branch
+      - name: Check out task branch
         uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.base_branch }}
+          ref: ${{ inputs.branch_name }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -44,106 +50,43 @@ jobs:
         env:
           GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         shell: bash
         run: |
-          [[ -n "$OPENAI_API_KEY" ]] || { echo "Missing OPENAI_API_KEY secret." >&2; exit 1; }
           [[ -n "$GMAIL_ADDRESS" ]] || { echo "Missing GMAIL_ADDRESS secret." >&2; exit 1; }
           [[ -n "$GMAIL_APP_PASSWORD" ]] || { echo "Missing GMAIL_APP_PASSWORD secret." >&2; exit 1; }
 
-      - name: Validate branch name
+      - name: Validate task branch
         env:
           BASE_BRANCH: ${{ inputs.base_branch }}
           BRANCH_NAME: ${{ inputs.branch_name }}
         shell: bash
         run: |
+          git check-ref-format --branch "$BASE_BRANCH"
           git check-ref-format --branch "$BRANCH_NAME"
           if [[ "$BRANCH_NAME" == "$BASE_BRANCH" ]]; then
-            echo "Branch name must differ from the base branch." >&2
+            echo "Task branch must differ from the base branch." >&2
             exit 1
           fi
 
-      - name: Capture base commit
-        id: base
-        shell: bash
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          git fetch --no-tags origin \
+            "+refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH" \
+            "+refs/heads/$BRANCH_NAME:refs/remotes/origin/$BRANCH_NAME"
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$BRANCH_NAME")" ]]; then
+            echo "Checked-out commit does not match the pushed task branch." >&2
+            exit 1
+          fi
 
-      - name: Implement task with Codex
-        id: codex
-        uses: openai/codex-action@v1
-        with:
-          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
-          sandbox: workspace-write
-          safety-strategy: drop-sudo
-          output-file: ${{ runner.temp }}/codex-output.md
-          prompt: |
-            Implement the requested MCP Compass task in this repository.
+          git diff --check "origin/$BASE_BRANCH...HEAD"
+          if git diff --quiet "origin/$BASE_BRANCH...HEAD"; then
+            echo "Task branch has no changes relative to $BASE_BRANCH." >&2
+            exit 1
+          fi
 
-            Follow AGENTS.md, PLANS.md, applicable files under docs/, and any
-            relevant repository skills. Make the smallest coherent change,
-            update documentation when needed, and run relevant tests when
-            possible. Do not commit, push, create a branch, or open a pull
-            request; the workflow handles those operations after validation.
-
-            Work only on the task below. Do not select, start, or implement a
-            follow-up task from PLANS.md or any other backlog after completing
-            it. A later task requires a separate manual workflow dispatch.
-
-            Task:
-            ${{ inputs.task }}
-
-      - name: Create patch artifact
+      - name: Prepare local Codex summary
         env:
-          BASE_SHA: ${{ steps.base.outputs.sha }}
+          CODEX_SUMMARY: ${{ inputs.summary }}
         shell: bash
-        run: |
-          git reset --mixed "$BASE_SHA"
-          git add --intent-to-add --all
-          git diff --check
-          git diff --binary --full-index --no-ext-diff > "$RUNNER_TEMP/task.patch"
-          if [[ ! -s "$RUNNER_TEMP/task.patch" ]]; then
-            echo "Codex completed without producing any file changes." >&2
-            exit 1
-          fi
-
-      - name: Upload task artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: codex-task-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/task.patch
-            ${{ runner.temp }}/codex-output.md
-          if-no-files-found: error
-          retention-days: 7
-
-  publish:
-    name: Validate and open pull request
-    needs: generate
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    permissions:
-      actions: write
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Check out base branch
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ inputs.base_branch }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Download task artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: codex-task-${{ github.run_id }}
-          path: ${{ runner.temp }}/codex-task
-
-      - name: Apply generated patch
-        shell: bash
-        run: |
-          git apply --index --binary "$RUNNER_TEMP/codex-task/task.patch"
-          git diff --cached --check
+        run: printf '%s\n' "$CODEX_SUMMARY" > "$RUNNER_TEMP/codex-summary.md"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -174,28 +117,12 @@ jobs:
         working-directory: web
         run: npm run build
 
-      - name: Commit and push task branch
-        env:
-          BRANCH_NAME: ${{ inputs.branch_name }}
-          GH_TOKEN: ${{ github.token }}
-          PR_TITLE: ${{ inputs.pr_title }}
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "$BRANCH_NAME"
-          git commit -m "$PR_TITLE"
-          gh auth setup-git
-          git push --set-upstream \
-            --force-with-lease="refs/heads/$BRANCH_NAME:" \
-            origin "HEAD:refs/heads/$BRANCH_NAME"
-
       - name: Open pull request
         id: pull_request
         env:
           BASE_BRANCH: ${{ inputs.base_branch }}
           BRANCH_NAME: ${{ inputs.branch_name }}
-          CODEX_SUMMARY: ${{ runner.temp }}/codex-task/codex-output.md
+          CODEX_SUMMARY: ${{ runner.temp }}/codex-summary.md
           GH_TOKEN: ${{ github.token }}
           PR_TITLE: ${{ inputs.pr_title }}
           TASK_DESCRIPTION: ${{ inputs.task }}
@@ -203,7 +130,7 @@ jobs:
         run: |
           {
             printf '## Task\n\n%s\n\n' "$TASK_DESCRIPTION"
-            printf '## Codex summary\n\n'
+            printf '## Local Codex summary\n\n'
             cat "$CODEX_SUMMARY"
             printf '\n\n## Validation\n\n'
             printf '%s\n' '- `./mvnw -pl backend test`'
@@ -219,7 +146,7 @@ jobs:
           echo "url=$pr_url" >> "$GITHUB_OUTPUT"
           printf 'Created pull request: %s\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Start CI for the task branch
+      - name: Start baseline CI
         env:
           BRANCH_NAME: ${{ inputs.branch_name }}
           GH_TOKEN: ${{ github.token }}
@@ -229,7 +156,7 @@ jobs:
         if: ${{ always() && steps.pull_request.outcome == 'success' }}
         env:
           BRANCH_NAME: ${{ inputs.branch_name }}
-          CODEX_SUMMARY_PATH: ${{ runner.temp }}/codex-task/codex-output.md
+          CODEX_SUMMARY_PATH: ${{ runner.temp }}/codex-summary.md
           EMAIL_TO: ${{ secrets.GMAIL_ADDRESS }}
           PR_TITLE: ${{ inputs.pr_title }}
           PR_URL: ${{ steps.pull_request.outputs.url }}
