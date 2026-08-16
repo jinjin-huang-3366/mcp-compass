@@ -22,7 +22,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] Upsert basic server metadata and raw payload.
 - [x] Add local-only manual sync endpoint.
 - [x] Add cursor checkpoint persistence and incremental `updated_since` sync.
-- [ ] Add metrics for pages/items/errors and last successful sync.
+- [x] Add metrics for pages/items/errors and last successful sync.
 - [ ] Add integration test using a recorded Registry fixture.
 
 ### Requirement analysis
