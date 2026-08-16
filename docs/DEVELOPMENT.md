@@ -24,6 +24,15 @@ SPRING_PROFILES_ACTIVE=local ./mvnw -pl backend spring-boot:run
 curl -X POST "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
 ```
 
+Registry sync observability is available through Spring Boot Actuator metrics:
+
+- `mcp.registry.sync.pages` — pages persisted successfully;
+- `mcp.registry.sync.items` — Registry items persisted successfully;
+- `mcp.registry.sync.errors` — failed sync attempts;
+- `mcp.registry.sync.last.success` — Unix timestamp, in seconds, of the last fully completed sync.
+
+All four metrics carry `source=official-mcp-registry`. A page-limited run that leaves a continuation cursor does not advance the last-success value.
+
 ## Frontend
 ```bash
 cd web

@@ -21,5 +21,6 @@ class RegistrySyncStateEntityTest {
         state.pageSucceeded(null, STARTED, FINISHED);
         assertThat(state.nextCursor()).isNull();
         assertThat(state.updatedSince()).isEqualTo(STARTED);
+        assertThat(state.lastSuccessAt()).isEqualTo(FINISHED);
     }
 }

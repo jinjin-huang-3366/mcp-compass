@@ -41,6 +41,10 @@ class RegistrySyncStateEntity {
         return updatedSince;
     }
 
+    Instant lastSuccessAt() {
+        return lastSuccessAt;
+    }
+
     void pageSucceeded(String nextCursor, Instant completedThrough, Instant successAt) {
         this.nextCursor = nextCursor;
         this.lastError = null;
