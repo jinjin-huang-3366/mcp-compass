@@ -2,7 +2,6 @@ package dev.mcpcompass.registry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.Clock;
 import java.time.Instant;
@@ -12,49 +11,46 @@ public class RegistrySyncService {
     private static final Logger log = LoggerFactory.getLogger(RegistrySyncService.class);
 
     private final RegistryClient client;
-    private final McpServerRepository repository;
+    private final RegistrySyncStore store;
     private final Clock clock;
 
-    @Autowired
-    public RegistrySyncService(RegistryClient client, McpServerRepository repository) {
-        this(client, repository, Clock.systemUTC());
+    public RegistrySyncService(RegistryClient client, RegistrySyncStore store) {
+        this(client, store, Clock.systemUTC());
     }
 
-    RegistrySyncService(RegistryClient client, McpServerRepository repository, Clock clock) {
+    RegistrySyncService(RegistryClient client, RegistrySyncStore store, Clock clock) {
         this.client = client;
-        this.repository = repository;
+        this.store = store;
         this.clock = clock;
     }
 
     public SyncResult syncPages(int maxPages) {
         int pageLimit = Math.max(1, maxPages);
-        String cursor = null;
+        RegistrySyncStore.Checkpoint checkpoint = store.loadCheckpoint();
+        String cursor = checkpoint.nextCursor();
+        Instant updatedSince = checkpoint.updatedSince();
+        Instant syncStartedAt = clock.instant();
         int pages = 0;
         int servers = 0;
-        do {
-            RegistryClient.RegistryPage page = client.fetchServers(cursor);
-            persist(page);
-            pages++;
-            servers += page.servers().size();
-            cursor = page.nextCursor();
-        } while (cursor != null && !cursor.isBlank() && pages < pageLimit);
+        try {
+            do {
+                RegistryClient.RegistryPage page = client.fetchServers(cursor, updatedSince);
+                store.persistPage(page, clock.instant(), syncStartedAt);
+                pages++;
+                servers += page.servers().size();
+                cursor = page.nextCursor();
+            } while (cursor != null && !cursor.isBlank() && pages < pageLimit);
+        } catch (RuntimeException failure) {
+            try {
+                store.recordFailure(failure);
+            } catch (RuntimeException checkpointFailure) {
+                failure.addSuppressed(checkpointFailure);
+            }
+            throw failure;
+        }
 
         log.info("Registry sync completed: pages={}, servers={}, hasMore={}", pages, servers, cursor != null);
         return new SyncResult(pages, servers, cursor);
-    }
-
-    protected void persist(RegistryClient.RegistryPage page) {
-        Instant now = clock.instant();
-        for (RegistryClient.RegistryServerPayload payload : page.servers()) {
-            if (payload.name() == null || payload.name().isBlank()) {
-                log.warn("Skipping Registry server without name");
-                continue;
-            }
-            McpServerEntity entity = repository.findByRegistryName(payload.name())
-                    .orElseGet(() -> McpServerEntity.create(payload.name(), now));
-            entity.updateFrom(payload, now);
-            repository.save(entity);
-        }
     }
 
     public record SyncResult(int pages, int servers, String nextCursor) {
