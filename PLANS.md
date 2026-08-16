@@ -5,7 +5,7 @@ This is the living implementation plan. Agents should update checkboxes and note
 ## Product objective
 A developer writes what their agent needs. MCP Compass returns the best existing MCP server with a transparent capability/quality explanation. If no sufficiently strong match exists, a later milestone offers contract-first MCP generation.
 
-## V0.1 ? searchable Registry intelligence
+## V0.1 — searchable Registry intelligence
 
 ### Foundation
 - [x] Create Java 21 / Spring Boot backend module.
@@ -54,14 +54,14 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [ ] Backend tests and frontend lint/build pass in CI.
 - [ ] No user search depends synchronously on Registry availability.
 
-## V0.2 ? enrichment and better ranking
+## V0.2 — enrichment and better ranking
 - [ ] GitHub repository enrichment: activity, release age, archived status, license.
 - [ ] Inspect discoverable MCP tool schemas without unsafe arbitrary execution where possible.
 - [ ] Capability normalization and coverage scoring.
 - [ ] Explain ranking feature contributions.
 - [ ] Add basic trust/quality score.
 
-## V0.3 ? contract-first MCP generation
+## V0.3 — contract-first MCP generation
 - [ ] Accept OpenAPI file/URL as source.
 - [ ] Produce a proposed MCP tool contract before code.
 - [ ] Let developer review/edit selected endpoints/tools.
@@ -69,14 +69,14 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [ ] Compile/test generated project.
 - [ ] Export ZIP/GitHub-ready repository.
 
-## V0.4 ? sandbox validation
+## V0.4 — sandbox validation
 - [ ] Queue validation jobs.
 - [ ] Run generated/discovered MCP servers in ephemeral isolated containers.
 - [ ] Use MCP Inspector CLI for protocol validation.
 - [ ] Network allow-listing, CPU/memory/time limits, non-root execution.
 - [ ] Tool risk classification and security report.
 
-## V0.5 ? developer surfaces
+## V0.5 — developer surfaces
 - [ ] CLI: `mcp-compass find "..."`.
 - [ ] CLI: `mcp-compass generate openapi.yaml`.
 - [ ] IntelliJ/VS Code integration only after API/CLI workflows are stable.

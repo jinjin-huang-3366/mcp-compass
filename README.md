@@ -64,13 +64,13 @@ curl -X POST "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
 
 Start with:
 
-- `AGENTS.md` ? repository-wide instructions for Codex and other coding agents.
-- `PLANS.md` ? living implementation plan and V0.1 backlog.
-- `.agents/skills/` ? repo-scoped Agent Skills. This is the current Codex-supported location and is also supported by GitHub Copilot agent skills.
-- `.codex/config.toml` ? conservative project-level Codex settings.
-- `.github/copilot-instructions.md` ? GitHub Copilot repository instructions.
-- `.github/instructions/` ? path-specific Copilot guidance.
-- `docs/AI_AGENT_SETUP.md` ? how to use the supplied skills.
+- `AGENTS.md` — repository-wide instructions for Codex and other coding agents.
+- `PLANS.md` — living implementation plan and V0.1 backlog.
+- `.agents/skills/` — repo-scoped Agent Skills. This is the current Codex-supported location and is also supported by GitHub Copilot agent skills.
+- `.codex/config.toml` — conservative project-level Codex settings.
+- `.github/copilot-instructions.md` — GitHub Copilot repository instructions.
+- `.github/instructions/` — path-specific Copilot guidance.
+- `docs/AI_AGENT_SETUP.md` — how to use the supplied skills.
 
 The `.agent/` directory exists only to explain the older/singular naming. Do not put Codex project skills there.
 
