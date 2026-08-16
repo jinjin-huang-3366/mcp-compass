@@ -87,7 +87,7 @@ From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates 
 5. Review the generated pull request and email summary, then merge the pull request manually when it is ready.
 6. Start another workflow run only when the next task should begin.
 
-The local Codex session uses the developer's existing GitHub authentication to push the task branch. GitHub supplies the short-lived `GITHUB_TOKEN` used only to open the pull request; no personal access token or OpenAI API key is stored as a repository secret. The workflow checks that the task branch differs from the base and runs the backend tests plus frontend lint and build before opening the pull request.
+The local Codex session uses the developer's existing GitHub authentication to push the task branch. GitHub supplies the short-lived `GITHUB_TOKEN` used to open the pull request and start baseline CI; no personal access token or OpenAI API key is stored as a repository secret. The workflow checks that the task branch differs from the base and runs the backend tests plus frontend lint and build before opening the pull request.
 
 ## Important design constraints
 
