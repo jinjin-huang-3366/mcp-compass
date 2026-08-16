@@ -13,6 +13,10 @@
     <artifactId>backend</artifactId>
     <name>MCP Compass Backend</name>
 
+    <properties>
+        <mcp-compass.run.profiles>local</mcp-compass.run.profiles>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -56,6 +60,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <profiles>${mcp-compass.run.profiles}</profiles>
+                </configuration>
             </plugin>
         </plugins>
     </build>

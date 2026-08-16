@@ -12,16 +12,31 @@ docker compose up -d db
 ./mvnw -pl backend spring-boot:run
 ```
 
+The Maven development runner activates the `local` Spring profile automatically. On Windows PowerShell, use:
+
+```powershell
+docker compose up -d db
+.\mvnw.cmd -pl backend spring-boot:run
+```
+
+When running `McpCompassApplication` from IntelliJ, add `local` under **Active profiles** in the run configuration. The Registry sync controller is intentionally not registered without that profile.
+
 Default DB connection:
 - host: localhost:5432
 - db/user/password: `mcp_compass`
 
 Override with standard Spring environment variables if required.
 
-For the local-only Registry sync endpoint:
+For the local-only Registry sync endpoint, first confirm the startup log lists `local` as active:
 ```bash
-SPRING_PROFILES_ACTIVE=local ./mvnw -pl backend spring-boot:run
 curl -X POST "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
+```
+
+PowerShell request:
+
+```powershell
+Invoke-RestMethod -Method Post `
+  -Uri "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
 ```
 
 Registry sync observability is available through Spring Boot Actuator metrics:

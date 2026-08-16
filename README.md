@@ -44,6 +44,8 @@ MCP generation, runtime inspection, GitHub enrichment, embeddings, and security 
    ./mvnw -pl backend spring-boot:run
    ```
 
+   The Maven development runner activates the `local` Spring profile automatically. For an IntelliJ run configuration, add `local` under **Active profiles** so the local-only Registry sync endpoint is registered.
+
 6. In another terminal:
 
    ```bash
@@ -54,7 +56,7 @@ MCP generation, runtime inspection, GitHub enrichment, embeddings, and security 
 
 7. Open `http://localhost:3000`.
 
-For local Registry sync, start the backend with the `local` profile and POST to:
+For local Registry sync, confirm the startup log lists `local` as active, then POST to:
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
