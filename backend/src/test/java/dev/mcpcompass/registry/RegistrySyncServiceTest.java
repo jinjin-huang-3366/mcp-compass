@@ -2,6 +2,7 @@ package dev.mcpcompass.registry;
 
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -24,6 +25,20 @@ class RegistrySyncServiceTest {
     private final RegistrySyncMetrics metrics = new RegistrySyncMetrics(meterRegistry);
     private final RegistrySyncService service = new RegistrySyncService(
             client, store, metrics, Clock.fixed(NOW, ZoneOffset.UTC));
+
+    @Test
+    void springCreatesServiceWithDependencyConstructor() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(RegistryClient.class, () -> client);
+            context.registerBean(RegistrySyncStore.class, () -> store);
+            context.registerBean(RegistrySyncMetrics.class, () -> metrics);
+            context.register(RegistrySyncService.class);
+
+            context.refresh();
+
+            assertThat(context.getBean(RegistrySyncService.class)).isNotNull();
+        }
+    }
 
     @Test
     void resumesCursorAndRecordsCompletedSyncMetrics() {
