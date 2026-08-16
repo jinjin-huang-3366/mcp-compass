@@ -64,30 +64,30 @@ curl -X POST "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
 
 Start with:
 
-- `AGENTS.md` — repository-wide instructions for Codex and other coding agents.
-- `PLANS.md` — living implementation plan and V0.1 backlog.
-- `.agents/skills/` — repo-scoped Agent Skills. This is the current Codex-supported location and is also supported by GitHub Copilot agent skills.
-- `.codex/config.toml` — conservative project-level Codex settings.
-- `.github/copilot-instructions.md` — GitHub Copilot repository instructions.
-- `.github/instructions/` — path-specific Copilot guidance.
-- `docs/AI_AGENT_SETUP.md` — how to use the supplied skills.
+- `AGENTS.md` ? repository-wide instructions for Codex and other coding agents.
+- `PLANS.md` ? living implementation plan and V0.1 backlog.
+- `.agents/skills/` ? repo-scoped Agent Skills. This is the current Codex-supported location and is also supported by GitHub Copilot agent skills.
+- `.codex/config.toml` ? conservative project-level Codex settings.
+- `.github/copilot-instructions.md` ? GitHub Copilot repository instructions.
+- `.github/instructions/` ? path-specific Copilot guidance.
+- `docs/AI_AGENT_SETUP.md` ? how to use the supplied skills.
 
 The `.agent/` directory exists only to explain the older/singular naming. Do not put Codex project skills there.
 
 ## Automated task pull requests
 
-The `Codex task pull request` workflow implements exactly one manually supplied task, validates the result, commits it to a new branch, opens a pull request without merging it, and emails a summary. It never selects or starts the next backlog task automatically.
+The `Codex task pull request` workflow validates one task branch already implemented and pushed by the active local Codex session, opens a pull request without merging it, and emails the local Codex summary. It never calls the OpenAI API, selects another backlog task, or starts follow-up work automatically.
 
-From Codex, invoke `$mcp-task-pr-flow` with the task description to run and monitor this workflow.
+From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates a branch from the requested base, implements and validates the task locally, commits and pushes only the task changes, then dispatches and monitors this workflow.
 
-1. Add `OPENAI_API_KEY`, `GMAIL_ADDRESS`, and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password.
+1. Add `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password. No OpenAI API key is required.
 2. Under **Settings > Actions > General**, allow GitHub Actions to create pull requests and grant workflows read/write permissions.
 3. Open **Actions > Codex task pull request > Run workflow**.
-4. Enter the task instructions, a new task branch name, the base branch, and the pull request title.
+4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, and the local Codex summary.
 5. Review the generated pull request and email summary, then merge the pull request manually when it is ready.
 6. Start another workflow run only when the next task should begin.
 
-GitHub supplies the short-lived `GITHUB_TOKEN` used to push the branch and open the pull request; no personal access token is required. The workflow refuses to overwrite an existing remote branch and runs the backend tests plus frontend lint and build before publishing changes.
+The local Codex session uses the developer's existing GitHub authentication to push the task branch. GitHub supplies the short-lived `GITHUB_TOKEN` used only to open the pull request; no personal access token or OpenAI API key is stored as a repository secret. The workflow checks that the task branch differs from the base and runs the backend tests plus frontend lint and build before opening the pull request.
 
 ## Important design constraints
 

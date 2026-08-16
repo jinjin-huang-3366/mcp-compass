@@ -1,11 +1,11 @@
 ---
 name: mcp-task-pr-flow
-description: Dispatch and monitor the repository's manually triggered Codex task pull request workflow for exactly one MCP Compass task. Use when the user invokes $mcp-task-pr-flow, asks to run or start the single-task PR flow, or wants task instructions sent through .github/workflows/task-pr.yml with validation, branch and commit creation, a pull request, and an email summary without merging.
+description: Implement and publish exactly one MCP Compass task using the active local Codex session, then dispatch and monitor .github/workflows/task-pr.yml for validation, pull request creation, and an email summary without merging. Use when the user invokes $mcp-task-pr-flow, asks to run or start the single-task PR flow, or wants a task implemented locally and sent through the repository's validation and PR workflow without OpenAI API usage in GitHub Actions.
 ---
 
 # MCP task PR flow
 
-Run exactly one task through `.github/workflows/task-pr.yml`. Treat that workflow as the executable source of truth; do not implement the task locally or duplicate its branch, commit, push, PR, or email steps.
+Implement exactly one task with the active local Codex session, push its branch, and then run `.github/workflows/task-pr.yml`. Treat the workflow as the executable source of truth for remote validation, pull request creation, and email. Do not start a follow-up task or merge the pull request.
 
 ## Collect inputs
 
@@ -19,25 +19,36 @@ Make reasonable naming assumptions, but stop for user input when the task itself
 
 ## Preflight
 
-1. Read `/AGENTS.md`, `PLANS.md`, `.github/workflows/task-pr.yml`, and the automated task-PR section of `README.md`.
-2. Confirm the repository remote is the intended MCP Compass repository and the workflow exists on the selected base branch.
-3. Confirm GitHub CLI authentication and permission to dispatch Actions workflows. Prefer an available GitHub connector only when it supports the same dispatch and monitoring operations.
-4. Verify that repository secrets named `OPENAI_API_KEY`, `GMAIL_ADDRESS`, and `GMAIL_APP_PASSWORD` exist without reading or printing their values.
-5. Validate `branch_name` with `git check-ref-format --branch` and confirm the remote branch does not already exist. Never overwrite an existing branch.
-6. Note that the current workflow sends mail to the address stored in `GMAIL_ADDRESS`. Do not claim that it is a particular address because secret values cannot be inspected.
-7. Do not include unrelated local working-tree changes; the remote workflow starts from `base_branch`.
+1. Read `/AGENTS.md`, `PLANS.md`, the relevant documents and repository skills, `.github/workflows/task-pr.yml`, and the automated task-PR section of `README.md`.
+2. Confirm the repository remote is the intended MCP Compass repository and the workflow exists on `base_branch`.
+3. Confirm GitHub CLI authentication and permission to push a branch and dispatch Actions workflows. Prefer an available GitHub connector when it supports the required operation.
+4. Verify that repository secrets named `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` exist without reading or printing their values. No OpenAI credential is required by this flow.
+5. Require a clean understanding of the local working tree. Never include unrelated local changes.
+6. Validate `branch_name` with `git check-ref-format --branch` and confirm the branch does not already exist locally or remotely. Never overwrite an existing branch.
+7. Note that the workflow sends mail to the address stored in `GMAIL_ADDRESS`. Do not claim that it is a particular address because secret values cannot be inspected.
 
-Treat authentication, permissions, missing secrets, an existing branch, or an unavailable workflow as intervention-required errors. Stop before dispatch and report the exact blocker.
+Treat authentication, permissions, missing email secrets, an existing branch, an unavailable workflow, or unrelated changes that cannot be isolated as intervention-required errors.
+
+## Implement locally
+
+1. Update the local `base_branch` reference when permitted and create `branch_name` from it.
+2. Implement only the requested task. Follow repository instructions and applicable skills, update documentation when required, and do not select another backlog item.
+3. Run the narrowest relevant checks, followed by the repository checks appropriate to the change.
+4. Review the diff for scope and secrets. Stage only the intended files.
+5. Commit with the pull request title or another concise behavior-focused message and push `branch_name` without force.
+6. Prepare a concise summary of the completed changes and validation results for the pull request and email.
+
+If the environment cannot write the local Git index but an authenticated GitHub API or CLI can safely create the branch and commit the exact validated files, use that as a fallback. Never update the base branch or overwrite an existing task branch.
 
 ## Dispatch once
 
-Dispatch the workflow once with the collected inputs:
+Dispatch the workflow once using the pushed task branch so the workflow definition and source both come from that branch:
 
 ```text
-gh workflow run task-pr.yml --ref <base-branch> -f task=<task-description> -f branch_name=<branch-name> -f base_branch=<base-branch> -f pr_title=<pr-title>
+gh workflow run task-pr.yml --ref <branch-name> -f task=<task-description> -f branch_name=<branch-name> -f base_branch=<base-branch> -f pr_title=<pr-title> -f summary=<local-codex-summary>
 ```
 
-Record the returned run URL or identify the newly created `workflow_dispatch` run using `gh run list`. Correlate it by workflow, actor, base ref, and creation time. Never dispatch a second run merely because the first run is queued or slow.
+Record the returned run URL or identify the newly created `workflow_dispatch` run using `gh run list`. Correlate it by workflow, actor, branch ref, and creation time. Never dispatch a second run merely because the first run is queued or slow.
 
 ## Monitor
 
@@ -46,20 +57,20 @@ Poll the run with `gh run view <run-id> --json status,conclusion,url,jobs`. Prov
 On failure:
 
 1. Collect read-only diagnostics with `gh run view <run-id> --log-failed`.
-2. Determine which stage completed, including whether a branch, commit, PR, or email may already exist.
+2. Determine whether validation, pull request creation, or email completed. The local branch and commit already exist before dispatch.
 3. Stop without retrying, merging, starting another task, or making compensating repository changes.
 4. Report the first causal error and the intervention required.
 
-Treat API quota or rate-limit errors as intervention-required failures. An exact 99.9% quota threshold is enforceable only when the runtime exposes a reliable percentage metric; never estimate it from context or token counts. If such a metric is available and reaches 99.9%, cancel the active run, stop, and use an authorized email capability to send the current status. If no metric or email capability is available, state that limitation explicitly. The repository workflow itself currently sends email only after successful PR creation.
+The repository workflow sends email only after successful pull request creation. Do not retry the workflow automatically when validation or email fails.
 
 ## Verify completion
 
 After a successful workflow run:
 
-1. Find the open PR whose head is `branch_name`.
+1. Find the open pull request whose head is `branch_name`.
 2. Confirm its base is `base_branch`, its commit exists, and it is not merged or configured for automatic merge.
-3. Confirm the workflow's `Email pull request summary` step succeeded. Do not expose SMTP or repository secrets.
-4. Report the run URL, branch, commit, PR URL, validation results, and email-step result.
-5. Stop. Never merge the PR or start a follow-up task without a new explicit request.
+3. Confirm the workflow validation steps and `Email pull request summary` step succeeded. Do not expose SMTP or repository secrets.
+4. Report the run URL, branch, commit, pull request URL, validation results, and email-step result.
+5. Stop. Never merge the pull request or start a follow-up task without a new explicit request.
 
-Do not claim the flow succeeded when it was only dispatched, when validation was not completed, or when email delivery was not attempted successfully.
+Do not claim the flow succeeded when validation was not completed, the pull request was not created, or the email step did not succeed.
