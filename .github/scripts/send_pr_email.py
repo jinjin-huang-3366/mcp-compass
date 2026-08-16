@@ -47,6 +47,7 @@ Branch
 
 Validation
 ----------
+- Workflow automation tests passed.
 - Backend tests passed.
 - Frontend lint passed.
 - Frontend production build passed.

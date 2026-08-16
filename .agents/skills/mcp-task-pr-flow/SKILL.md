@@ -1,6 +1,6 @@
 ---
 name: mcp-task-pr-flow
-description: Implement and publish exactly one MCP Compass task using the active local Codex session, then dispatch and monitor .github/workflows/task-pr.yml for validation, pull request creation, and an email summary without merging. Use when the user invokes $mcp-task-pr-flow, asks to run or start the single-task PR flow, or wants a task implemented locally and sent through the repository's validation and PR workflow without OpenAI API usage in GitHub Actions.
+description: Implement and publish exactly one MCP Compass task using the active local Codex session, then dispatch and monitor .github/workflows/task-pr.yml for validation, pull request creation, an email summary, and linked PLANS.md completion after a later manual merge. Use when the user invokes $mcp-task-pr-flow, asks to run or start the single-task PR flow, or wants a task implemented locally and sent through the repository's validation and PR workflow without OpenAI API usage in GitHub Actions.
 ---
 
 # MCP task PR flow
@@ -14,6 +14,7 @@ Require a concrete task description. Accept or derive these values:
 - `branch_name`: default to a short `task/<slug>` name.
 - `base_branch`: default to `main`.
 - `pr_title`: derive a concise, behavior-focused title.
+- `plan_item`: use the exact text of one unchecked `PLANS.md` entry when the task implements it; otherwise use an empty value.
 
 Make reasonable naming assumptions, but stop for user input when the task itself is ambiguous or the branch choice could overwrite or collide with existing work.
 
@@ -32,7 +33,7 @@ Treat authentication, permissions, missing email secrets, an existing branch, an
 ## Implement locally
 
 1. Update the local `base_branch` reference when permitted and create `branch_name` from it.
-2. Implement only the requested task. Follow repository instructions and applicable skills, update documentation when required, and do not select another backlog item.
+2. Implement only the requested task. Follow repository instructions and applicable skills, update documentation when required, and do not select another backlog item. When `plan_item` is set, leave its checkbox unchecked in the task branch so the merge workflow can mark it complete after the PR is merged.
 3. Run the narrowest relevant checks, followed by the repository checks appropriate to the change.
 4. Review the diff for scope and secrets. Stage only the intended files.
 5. Commit with the pull request title or another concise behavior-focused message and push `branch_name` without force.
@@ -45,7 +46,7 @@ If the environment cannot write the local Git index but an authenticated GitHub 
 Dispatch the workflow once using the pushed task branch so the workflow definition and source both come from that branch:
 
 ```text
-gh workflow run task-pr.yml --ref <branch-name> -f task=<task-description> -f branch_name=<branch-name> -f base_branch=<base-branch> -f pr_title=<pr-title> -f summary=<local-codex-summary>
+gh workflow run task-pr.yml --ref <branch-name> -f task=<task-description> -f branch_name=<branch-name> -f base_branch=<base-branch> -f pr_title=<pr-title> -f summary=<local-codex-summary> -f plan_item=<exact-plan-item-or-empty>
 ```
 
 Record the returned run URL or identify the newly created `workflow_dispatch` run using `gh run list`. Correlate it by workflow, actor, branch ref, and creation time. Never dispatch a second run merely because the first run is queued or slow.
@@ -68,9 +69,11 @@ The repository workflow sends email only after successful pull request creation.
 After a successful workflow run:
 
 1. Find the open pull request whose head is `branch_name`.
-2. Confirm its base is `base_branch`, its commit exists, and it is not merged or configured for automatic merge.
+2. Confirm its base is `base_branch`, its commit exists, and it is not merged or configured for automatic merge. When `plan_item` is set, also confirm the pull request body contains the exact hidden plan-item marker.
 3. Confirm the workflow validation steps and `Email pull request summary` step succeeded. Do not expose SMTP or repository secrets.
 4. Report the run URL, branch, commit, pull request URL, validation results, and email-step result.
 5. Stop. Never merge the pull request or start a follow-up task without a new explicit request.
 
 Do not claim the flow succeeded when validation was not completed, the pull request was not created, or the email step did not succeed.
+
+After a linked pull request is merged manually, `.github/workflows/plan-completion.yml` marks its exact `PLANS.md` item complete. Pull requests without a valid marker are ignored.

@@ -10,6 +10,13 @@ permissions:
   contents: read
 
 jobs:
+  automation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Workflow automation tests
+        run: python -m unittest discover -s .github/scripts -p 'test_*.py'
+
   backend:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,45 @@
+name: Mark merged plan item complete
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: plan-completion-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
+
+jobs:
+  mark-complete:
+    if: ${{ github.event.pull_request.merged == true }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out merged base branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Mark linked plan item complete
+        id: plan
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: python .github/scripts/mark_plan_item_complete.py
+
+      - name: Commit completed plan item
+        if: ${{ steps.plan.outputs.changed == 'true' }}
+        env:
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- PLANS.md
+          git diff --cached --check
+          git commit -m "Mark merged plan item complete"
+          gh auth setup-git
+          git push origin "HEAD:$BASE_BRANCH"

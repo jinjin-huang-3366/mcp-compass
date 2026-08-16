@@ -34,7 +34,7 @@ Review the current diff for scope, architecture and security. Run relevant tests
 
 ```text
 $mcp-task-pr-flow
-Implement the single task locally: <task description>. Create branch task/<short-name> from main, commit and push only this task, then run and monitor the validation/PR/email workflow. Confirm the email-summary step, and do not merge the PR or start another task.
+Implement the single task locally: <task description>. Create branch task/<short-name> from main, commit and push only this task, then run and monitor the validation/PR/email workflow. If it matches one unchecked PLANS.md entry, pass that exact item for automatic completion after merge. Confirm the email-summary step, and do not merge the PR or start another task.
 ```
 
 ## Fix CI
