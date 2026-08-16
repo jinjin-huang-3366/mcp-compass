@@ -23,12 +23,14 @@ class RegistrySyncStore {
     @Transactional(readOnly = true)
     Checkpoint loadCheckpoint() {
         return stateRepository.findById(SOURCE)
-                .map(state -> new Checkpoint(state.nextCursor(), state.updatedSince()))
-                .orElseGet(() -> new Checkpoint(null, null));
+                .map(state -> new Checkpoint(
+                        state.nextCursor(), state.updatedSince(), state.lastSuccessAt()))
+                .orElseGet(() -> new Checkpoint(null, null, null));
     }
 
     @Transactional
-    void persistPage(RegistryClient.RegistryPage page, Instant seenAt, Instant syncStartedAt) {
+    int persistPage(RegistryClient.RegistryPage page, Instant seenAt, Instant syncStartedAt) {
+        int persistedItems = 0;
         for (RegistryClient.RegistryServerPayload payload : page.servers()) {
             if (payload.name() == null || payload.name().isBlank()) {
                 log.warn("Skipping Registry server without name");
@@ -38,6 +40,7 @@ class RegistrySyncStore {
                     .orElseGet(() -> McpServerEntity.create(payload.name(), seenAt));
             entity.updateFrom(payload, seenAt);
             serverRepository.save(entity);
+            persistedItems++;
         }
 
         String nextCursor = normalize(page.nextCursor());
@@ -45,6 +48,7 @@ class RegistrySyncStore {
                 .orElseGet(() -> new RegistrySyncStateEntity(SOURCE));
         state.pageSucceeded(nextCursor, syncStartedAt, seenAt);
         stateRepository.save(state);
+        return persistedItems;
     }
 
     @Transactional
@@ -59,6 +63,6 @@ class RegistrySyncStore {
         return cursor == null || cursor.isBlank() ? null : cursor;
     }
 
-    record Checkpoint(String nextCursor, Instant updatedSince) {
+    record Checkpoint(String nextCursor, Instant updatedSince, Instant lastSuccessAt) {
     }
 }
