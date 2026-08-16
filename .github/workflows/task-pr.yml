@@ -24,6 +24,11 @@ on:
         description: Summary of the changes produced by local Codex
         required: true
         type: string
+      plan_item:
+        description: Exact unchecked PLANS.md item to complete after merge, or blank
+        required: false
+        default: ''
+        type: string
 
 concurrency:
   group: codex-single-task-flow
@@ -88,6 +93,15 @@ jobs:
         shell: bash
         run: printf '%s\n' "$CODEX_SUMMARY" > "$RUNNER_TEMP/codex-summary.md"
 
+      - name: Validate plan item
+        if: ${{ inputs.plan_item != '' }}
+        env:
+          PLAN_ITEM: ${{ inputs.plan_item }}
+        run: python .github/scripts/mark_plan_item_complete.py --check-item "$PLAN_ITEM"
+
+      - name: Test workflow automation
+        run: python -m unittest discover -s .github/scripts -p 'test_*.py'
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
@@ -124,6 +138,7 @@ jobs:
           BRANCH_NAME: ${{ inputs.branch_name }}
           CODEX_SUMMARY: ${{ runner.temp }}/codex-summary.md
           GH_TOKEN: ${{ github.token }}
+          PLAN_ITEM: ${{ inputs.plan_item }}
           PR_TITLE: ${{ inputs.pr_title }}
           TASK_DESCRIPTION: ${{ inputs.task }}
         shell: bash
@@ -135,6 +150,11 @@ jobs:
             printf '\n\n## Validation\n\n'
             printf '%s\n' '- `./mvnw -pl backend test`'
             printf '%s\n' '- `cd web && npm ci && npm run lint && npm run build`'
+            printf '%s\n' '- `python -m unittest discover -s .github/scripts -p '"'"'test_*.py'"'"'`'
+            if [[ -n "$PLAN_ITEM" ]]; then
+              printf '\n## Plan tracking\n\nMark `%s` complete after merge.\n' "$PLAN_ITEM"
+              printf '\n<!-- mcp-compass-plan-item: %s -->\n' "$PLAN_ITEM"
+            fi
             printf '\nThis pull request was created automatically but must be merged manually.\n'
           } > "$RUNNER_TEMP/pr-body.md"
 

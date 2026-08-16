@@ -83,11 +83,13 @@ From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates 
 1. Add `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password. No OpenAI API key is required.
 2. Under **Settings > Actions > General**, allow GitHub Actions to create pull requests and grant workflows read/write permissions.
 3. Open **Actions > Codex task pull request > Run workflow**.
-4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, and the local Codex summary.
+4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, the local Codex summary, and—when the task matches one unchecked plan entry—the exact `PLANS.md` item text.
 5. Review the generated pull request and email summary, then merge the pull request manually when it is ready.
 6. Start another workflow run only when the next task should begin.
 
 The local Codex session uses the developer's existing GitHub authentication to push the task branch. GitHub supplies the short-lived `GITHUB_TOKEN` used to open the pull request and start baseline CI; no personal access token or OpenAI API key is stored as a repository secret. The workflow checks that the task branch differs from the base and runs the backend tests plus frontend lint and build before opening the pull request.
+
+When an exact plan item is supplied, the task workflow validates that it is currently unchecked and adds a machine-readable marker to the pull request. After that pull request is merged, `Mark merged plan item complete` changes only the matching `- [ ]` entry to `- [x]` on the base branch. Pull requests without the marker are ignored, and ambiguous or unknown items fail without modifying the plan.
 
 ## Important design constraints
 

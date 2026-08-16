@@ -79,6 +79,7 @@ docker compose down
 - Make the smallest coherent change that advances the current milestone.
 - Do not implement later roadmap features unless required by the current task.
 - Update `PLANS.md` when completing or materially changing a planned task.
+- When `$mcp-task-pr-flow` links a PR to an exact `plan_item`, leave that checkbox unchecked in the task branch; the merge workflow marks it complete after the PR is merged.
 - Add/update an ADR under `docs/DECISIONS/` for major architecture changes.
 - Before finishing, run the relevant tests/builds and report what was not run.
 

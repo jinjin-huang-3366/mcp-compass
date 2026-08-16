@@ -1,4 +1,4 @@
 interface:
   display_name: "MCP Task PR Flow"
   short_description: "Implement and publish one MCP Compass task PR"
-  default_prompt: "Use $mcp-task-pr-flow to implement one MCP Compass task locally, then validate it and open a pull request with an email summary without merging."
+  default_prompt: "Use $mcp-task-pr-flow to implement one planned MCP Compass task locally, open a validated pull request with an email summary, and link its exact PLANS.md item for completion after merge."
