@@ -10,6 +10,8 @@ import java.util.Optional;
 
 @Component
 public class RegistryPayloadMapper {
+    private static final String OFFICIAL_METADATA = "io.modelcontextprotocol.registry/official";
+
     private final ObjectMapper objectMapper;
 
     public RegistryPayloadMapper(ObjectMapper objectMapper) {
@@ -26,7 +28,11 @@ public class RegistryPayloadMapper {
             List<RegistryClient.RegistryServerPayload> servers = new ArrayList<>();
             for (JsonNode item : root.path("servers")) {
                 JsonNode server = item.has("server") ? item.path("server") : item;
-                String status = text(item, "status").or(() -> text(server, "status")).orElse("active");
+                JsonNode officialMetadata = item.path("_meta").path(OFFICIAL_METADATA);
+                String status = text(item, "status")
+                        .or(() -> text(officialMetadata, "status"))
+                        .or(() -> text(server, "status"))
+                        .orElse("active");
                 servers.add(new RegistryClient.RegistryServerPayload(
                         text(server, "name").orElse(null),
                         text(server, "title").orElse(null),
