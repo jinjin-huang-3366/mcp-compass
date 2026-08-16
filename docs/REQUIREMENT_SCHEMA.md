@@ -43,3 +43,25 @@ Example:
 
 The heuristic analyzer leaves the structured fields empty because it only extracts lexical search
 keywords. A later analyzer can populate the same result contract without changing search callers.
+
+## Runtime LLM analyzer
+
+The OpenAI-backed analyzer is disabled by default. When enabled, it sends the user's requirement to
+the configured OpenAI Responses API and requests strict JSON-schema output matching version 1.0.
+Deterministic keywords are still extracted locally. If the provider request or structured response
+fails validation, MCP Compass logs the failure type without the requirement text and returns the
+heuristic analysis instead.
+
+Enable it locally with environment variables before starting the backend:
+
+~~~powershell
+$env:MCP_COMPASS_LLM_ENABLED = "true"
+$env:OPENAI_API_KEY = "<your OpenAI API key>"
+$env:OPENAI_MODEL = "gpt-5.6-luna"
+.\mvnw.cmd -pl backend spring-boot:run
+~~~
+
+OPENAI_BASE_URL can point to a different OpenAI Responses API endpoint. Never commit the API key.
+Enabling the analyzer sends search requirements to that endpoint and consumes model tokens. The task
+workflow and automated tests do not enable the analyzer or use a real API key; client tests use a
+local fake HTTP server.
