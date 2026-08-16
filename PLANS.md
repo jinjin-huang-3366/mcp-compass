@@ -30,7 +30,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **REG-04** — Add local-only manual sync endpoint. _(Depends on: REG-03)_
 - [x] **REG-05** — Add cursor checkpoint persistence and incremental `updated_since` sync. _(Depends on: REG-03)_
 - [x] **REG-06** — Add metrics for pages/items/errors and last successful sync. _(Depends on: REG-05)_
-- [ ] **REG-07** — Add integration test using a recorded Registry fixture. _(Depends on: REG-05)_
+- [x] **REG-07** — Add integration test using a recorded Registry fixture. _(Depends on: REG-05)_
 
 ### Requirement analysis
 - [x] **REQ-01** — Add deterministic heuristic analyzer for initial searchable keywords. _(Depends on: FND-01)_
