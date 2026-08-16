@@ -34,7 +34,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 
 ### Requirement analysis
 - [x] **REQ-01** — Add deterministic heuristic analyzer for initial searchable keywords. _(Depends on: FND-01)_
-- [ ] **REQ-02** — Define versioned structured requirement schema: domain, service, required capabilities, forbidden capabilities, constraints. _(Depends on: FND-01)_
+- [x] **REQ-02** — Define versioned structured requirement schema: domain, service, required capabilities, forbidden capabilities, constraints. _(Depends on: FND-01)_
 - [ ] **REQ-03** — Add an LLM-backed analyzer behind the same interface. _(Depends on: REQ-02)_
 - [ ] **REQ-04** — Add golden tests for at least 20 developer requirements. _(Depends on: REQ-02, REQ-03)_
 
