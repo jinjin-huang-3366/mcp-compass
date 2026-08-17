@@ -10,6 +10,11 @@ import java.util.Locale;
 
 @Component
 public class RankingService {
+    private static final double LEXICAL_WEIGHT = 0.85;
+    private static final double ACTIVE_MAINTENANCE_WEIGHT = 0.05;
+    private static final double OFFICIAL_PROVENANCE_WEIGHT = 0.03;
+    private static final double PUBLIC_REPOSITORY_WEIGHT = 0.02;
+    private static final double INSTALLABILITY_WEIGHT = 0.05;
 
     public RankedServer rank(McpServerEntity server, RequirementAnalysis requirement) {
         String name = lower(server.getRegistryName());
@@ -33,13 +38,43 @@ public class RankingService {
             }
         }
 
+        double lexicalScore = Math.min(1.0, Math.max(0.0, points / maxPoints));
         if ("deprecated".equalsIgnoreCase(server.getStatus())) {
-            points *= 0.5;
+            lexicalScore *= 0.5;
             reasons.add("deprecated status penalty");
+        } else if ("active".equalsIgnoreCase(server.getStatus())) {
+            reasons.add("active Registry status");
         }
 
-        double score = Math.min(1.0, Math.max(0.0, points / maxPoints));
+        double featureScore = 0.0;
+        if ("active".equalsIgnoreCase(server.getStatus())) {
+            featureScore += ACTIVE_MAINTENANCE_WEIGHT;
+        }
+        if (server.hasOfficialRegistryProvenance()) {
+            featureScore += OFFICIAL_PROVENANCE_WEIGHT;
+            reasons.add("official Registry provenance");
+        }
+        if (isPublicRepository(server.getRepositoryUrl())) {
+            featureScore += PUBLIC_REPOSITORY_WEIGHT;
+            reasons.add("public source repository declared");
+        }
+        if (server.getPackageCount() > 0 || server.getRemoteCount() > 0) {
+            featureScore += INSTALLABILITY_WEIGHT;
+            if (server.getPackageCount() > 0) {
+                reasons.add("installable package metadata available");
+            }
+            if (server.getRemoteCount() > 0) {
+                reasons.add("remote endpoint metadata available");
+            }
+        }
+
+        double score = Math.min(1.0, Math.max(0.0, lexicalScore * LEXICAL_WEIGHT + featureScore));
         return new RankedServer(server, score, List.copyOf(reasons));
+    }
+
+    private static boolean isPublicRepository(String repositoryUrl) {
+        return repositoryUrl != null
+                && (repositoryUrl.startsWith("https://") || repositoryUrl.startsWith("http://"));
     }
 
     private static String lower(String value) {

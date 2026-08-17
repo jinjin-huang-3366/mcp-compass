@@ -61,6 +61,39 @@ class RegistryPayloadMapperTest {
     }
 
     @Test
+    void mapsRankingMetadataAndIgnoresIncompleteInstallOptions() {
+        String body = """
+                {
+                  "servers": [{
+                    "server": {
+                      "name": "io.example/installable",
+                      "version": "1.0.0",
+                      "repository": {"url": "https://github.com/example/installable"},
+                      "packages": [
+                        {"registryType": "npm", "identifier": "@example/installable"},
+                        {"registryType": "pypi"}
+                      ],
+                      "remotes": [
+                        {"type": "streamable-http", "url": "https://example.com/mcp"},
+                        {"url": "https://example.com/incomplete"}
+                      ]
+                    },
+                    "_meta": {
+                      "io.modelcontextprotocol.registry/official": {"status": "active"}
+                    }
+                  }]
+                }
+                """;
+
+        RegistryClient.RegistryServerPayload server = mapper.map(body).servers().getFirst();
+
+        assertThat(server.officialRegistryProvenance()).isTrue();
+        assertThat(server.repositoryUrl()).isEqualTo("https://github.com/example/installable");
+        assertThat(server.packageCount()).isEqualTo(1);
+        assertThat(server.remoteCount()).isEqualTo(1);
+    }
+
+    @Test
     void mapsDeclaredCapabilitiesAndToolMetadataDefensively() {
         String body = """
                 {

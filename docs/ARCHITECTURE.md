@@ -45,7 +45,8 @@ Generated or third-party MCP code must run in an isolated worker/container with 
 ## Search pipeline evolution
 
 ### V0.1
-heuristic keywords -> DB candidate filter -> deterministic lexical score.
+heuristic keywords -> DB candidate filter -> deterministic lexical score with bounded Registry
+maintenance, provenance, and installability signals.
 
 ### V0.2
 structured requirement -> lexical/vector retrieval -> capability coverage -> quality/trust/installability score -> bounded reranking.
