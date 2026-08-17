@@ -65,3 +65,11 @@ OPENAI_BASE_URL can point to a different OpenAI Responses API endpoint. Never co
 Enabling the analyzer sends search requirements to that endpoint and consumes model tokens. The task
 workflow and automated tests do not enable the analyzer or use a real API key; client tests use a
 local fake HTTP server.
+
+## Golden requirement corpus
+
+`backend/src/test/resources/fixtures/requirements/structured-requirement-golden-v1.json` contains
+the versioned, reviewable expectations for representative developer requirements. The golden test
+passes each case through the OpenAI client and requirement analyzer using a local fake HTTP server,
+so CI checks request wiring, strict-response parsing, schema validation, and analyzer integration
+without making provider calls or requiring an API key.
