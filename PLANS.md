@@ -41,7 +41,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 ### Search and ranking
 - [x] **SRCH-01** — Retrieve candidates from local database using requirement keywords. _(Depends on: REG-03, REQ-01)_
 - [x] **SRCH-02** — Add deterministic text-overlap ranking and reasons. _(Depends on: SRCH-01)_
-- [ ] **SRCH-03** — Add normalized capability tables populated from server/tool metadata. _(Depends on: REG-03, REQ-02)_
+- [x] **SRCH-03** — Add normalized capability tables populated from server/tool metadata. _(Depends on: REG-03, REQ-02)_
 - [ ] **SRCH-04** — Add capability coverage as the dominant ranking factor. _(Depends on: SRCH-02, SRCH-03)_
 - [ ] **SRCH-05** — Add maintenance/trust/installability features. _(Depends on: SRCH-02)_
 - [ ] **SRCH-06** — Add vector retrieval only after a baseline benchmark exists. _(Depends on: FND-03, SRCH-07)_
