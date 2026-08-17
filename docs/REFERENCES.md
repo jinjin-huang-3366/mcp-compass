@@ -11,6 +11,8 @@ Checked when this starter was generated (2026-08-10).
 - MCP Registry about: https://modelcontextprotocol.io/registry/about
 - MCP specification: https://modelcontextprotocol.io/specification/2026-07-28
 - MCP Inspector: https://modelcontextprotocol.io/docs/2026-07-28/tools/inspector
+- OpenAI Responses API: https://developers.openai.com/api/docs/guides/migrate-to-responses
+- OpenAI Structured Outputs: https://developers.openai.com/api/docs/guides/structured-outputs
 - Spring Boot: https://spring.io/projects/spring-boot
 - Next.js docs: https://nextjs.org/docs
 - pgvector: https://github.com/pgvector/pgvector
