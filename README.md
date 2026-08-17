@@ -82,6 +82,8 @@ The `Codex task pull request` workflow validates one task branch already impleme
 
 From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates a branch from the requested base, implements and validates the task locally, commits and pushes only the task changes, then dispatches and monitors this workflow.
 
+For concurrent delivery, use the canonical [parallel delivery groups](PLANS.md#parallel-delivery-groups) as scheduling context and start one isolated `$mcp-task-pr-flow` session per ready task ID. A group is not a multi-task workflow run: every task keeps its own branch, workflow run, and pull request.
+
 1. Add `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password. No OpenAI API key is required.
 2. Under **Settings > Actions > General**, allow GitHub Actions to create pull requests and grant workflows read/write permissions.
 3. Open **Actions > Codex task pull request > Run workflow**.
