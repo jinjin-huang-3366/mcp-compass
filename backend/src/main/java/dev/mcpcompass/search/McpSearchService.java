@@ -1,5 +1,6 @@
 package dev.mcpcompass.search;
 
+import dev.mcpcompass.capability.CapabilityMetadataStore;
 import dev.mcpcompass.ranking.RankingService;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
@@ -13,17 +14,27 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class McpSearchService {
     private final RequirementAnalyzer analyzer;
     private final McpServerRepository repository;
     private final RankingService rankingService;
+    private final CapabilityMetadataStore capabilityStore;
 
-    public McpSearchService(RequirementAnalyzer analyzer, McpServerRepository repository, RankingService rankingService) {
+    public McpSearchService(
+            RequirementAnalyzer analyzer,
+            McpServerRepository repository,
+            RankingService rankingService,
+            CapabilityMetadataStore capabilityStore
+    ) {
         this.analyzer = analyzer;
         this.repository = repository;
         this.rankingService = rankingService;
+        this.capabilityStore = capabilityStore;
     }
 
     public SearchResponse search(String requirement) {
@@ -33,10 +44,17 @@ public class McpSearchService {
         }
 
         List<McpServerEntity> candidates = repository.findAll(candidateSpec(analysis.keywords()), PageRequest.of(0, 100)).getContent();
+        Map<UUID, Set<String>> capabilitiesByServer = capabilityStore.findCapabilityNamesByServerIds(
+                candidates.stream().map(McpServerEntity::getId).toList()
+        );
 
         List<SearchResponse.Match> matches = candidates.stream()
                 .filter(server -> !"deleted".equalsIgnoreCase(server.getStatus()))
-                .map(server -> rankingService.rank(server, analysis))
+                .map(server -> rankingService.rank(
+                        server,
+                        analysis,
+                        capabilitiesByServer.getOrDefault(server.getId(), Set.of())
+                ))
                 .filter(ranked -> ranked.score() > 0)
                 .sorted(Comparator.comparingDouble(RankingService.RankedServer::score).reversed())
                 .limit(10)
@@ -48,6 +66,9 @@ public class McpSearchService {
                         ranked.server().getVersion(),
                         ranked.server().getStatus(),
                         rounded(ranked.score()),
+                        ranked.capabilityCoverage() == null ? null : rounded(ranked.capabilityCoverage()),
+                        ranked.matchedCapabilities(),
+                        ranked.missingCapabilities(),
                         ranked.reasons()
                 ))
                 .toList();

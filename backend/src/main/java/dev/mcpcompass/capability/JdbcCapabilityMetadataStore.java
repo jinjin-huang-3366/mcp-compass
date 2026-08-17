@@ -6,9 +6,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -81,6 +84,34 @@ class JdbcCapabilityMetadataStore implements CapabilityMetadataStore {
                         .addValue("source", capability.source()));
             }
         }
+    }
+
+    @Override
+    public Map<UUID, Set<String>> findCapabilityNamesByServerIds(Collection<UUID> serverIds) {
+        Objects.requireNonNull(serverIds, "serverIds must not be null");
+        if (serverIds.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<UUID, Set<String>> capabilitiesByServer = jdbc.query("""
+                SELECT server_capability.server_id, capability.canonical_name
+                FROM mcp_server_capability server_capability
+                JOIN capability ON capability.id = server_capability.capability_id
+                WHERE server_capability.server_id IN (:serverIds)
+                ORDER BY server_capability.server_id, capability.canonical_name
+                """, new MapSqlParameterSource("serverIds", serverIds), resultSet -> {
+            Map<UUID, Set<String>> result = new HashMap<>();
+            while (resultSet.next()) {
+                result.computeIfAbsent(
+                        resultSet.getObject("server_id", UUID.class),
+                        ignored -> new LinkedHashSet<>()
+                ).add(resultSet.getString("canonical_name"));
+            }
+            return result;
+        });
+
+        capabilitiesByServer.replaceAll((serverId, capabilityNames) -> Set.copyOf(capabilityNames));
+        return Map.copyOf(capabilitiesByServer);
     }
 
     private UUID capabilityId(
