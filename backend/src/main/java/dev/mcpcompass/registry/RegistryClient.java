@@ -66,8 +66,39 @@ public class RegistryClient {
             String description,
             String version,
             String status,
-            String rawMetadata
+            String rawMetadata,
+            List<RegistryToolPayload> tools,
+            List<RegistryCapabilityPayload> capabilities
     ) {
+        public RegistryServerPayload {
+            tools = tools == null ? List.of() : List.copyOf(tools);
+            capabilities = capabilities == null ? List.of() : List.copyOf(capabilities);
+        }
+
+        public RegistryServerPayload(
+                String name,
+                String title,
+                String description,
+                String version,
+                String status,
+                String rawMetadata
+        ) {
+            this(name, title, description, version, status, rawMetadata, List.of(), List.of());
+        }
+    }
+
+    public record RegistryToolPayload(
+            String name,
+            String description,
+            String inputSchema,
+            List<RegistryCapabilityPayload> capabilities
+    ) {
+        public RegistryToolPayload {
+            capabilities = capabilities == null ? List.of() : List.copyOf(capabilities);
+        }
+    }
+
+    public record RegistryCapabilityPayload(String name, String description) {
     }
 
     public static class RegistryClientException extends RuntimeException {

@@ -3,6 +3,8 @@ package dev.mcpcompass.registry;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RegistryPayloadMapperTest {
@@ -56,5 +58,58 @@ class RegistryPayloadMapperTest {
             assertThat(server.name()).isEqualTo("io.example/wrapped");
             assertThat(server.status()).isEqualTo("deprecated");
         });
+    }
+
+    @Test
+    void mapsDeclaredCapabilitiesAndToolMetadataDefensively() {
+        String body = """
+                {
+                  "servers": [{
+                    "server": {
+                      "name": "io.example/github",
+                      "title": "GitHub",
+                      "description": "Repository tools",
+                      "version": "1.0.0",
+                      "capabilities": [
+                        "github.issue.read",
+                        {"name": "github.repository.search", "description": "Search repositories"}
+                      ],
+                      "tools": [{
+                        "name": "create_pull_request",
+                        "description": "Create a pull request",
+                        "inputSchema": {"type": "object"},
+                        "capabilities": ["github.pull-request.create"]
+                      }],
+                      "_meta": {
+                        "io.modelcontextprotocol.registry/publisher-provided": {
+                          "capabilities": [{"canonicalName": "github.user.read"}],
+                          "tools": [{
+                            "name": "list_issues",
+                            "input_schema": {"type": "object", "properties": {}}
+                          }]
+                        }
+                      }
+                    }
+                  }],
+                  "metadata": {}
+                }
+                """;
+
+        RegistryClient.RegistryServerPayload server = mapper.map(body).servers().getFirst();
+
+        assertThat(server.capabilities())
+                .extracting(RegistryClient.RegistryCapabilityPayload::name)
+                .containsExactly(
+                        "github.issue.read",
+                        "github.repository.search",
+                        "github.user.read"
+                );
+        assertThat(server.tools()).extracting(RegistryClient.RegistryToolPayload::name)
+                .containsExactly("create_pull_request", "list_issues");
+        assertThat(server.tools().getFirst().inputSchema()).isEqualTo("{\"type\":\"object\"}");
+        assertThat(server.tools().getFirst().capabilities())
+                .extracting(RegistryClient.RegistryCapabilityPayload::name)
+                .containsExactly("github.pull-request.create");
+        assertThat(server.tools().get(1).capabilities()).isEqualTo(List.of());
     }
 }

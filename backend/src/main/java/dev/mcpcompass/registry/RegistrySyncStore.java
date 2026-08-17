@@ -1,5 +1,7 @@
 package dev.mcpcompass.registry;
 
+import dev.mcpcompass.capability.CapabilityMetadataNormalizer;
+import dev.mcpcompass.capability.CapabilityMetadataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,10 +16,19 @@ class RegistrySyncStore {
 
     private final McpServerRepository serverRepository;
     private final RegistrySyncStateRepository stateRepository;
+    private final CapabilityMetadataNormalizer capabilityNormalizer;
+    private final CapabilityMetadataStore capabilityStore;
 
-    RegistrySyncStore(McpServerRepository serverRepository, RegistrySyncStateRepository stateRepository) {
+    RegistrySyncStore(
+            McpServerRepository serverRepository,
+            RegistrySyncStateRepository stateRepository,
+            CapabilityMetadataNormalizer capabilityNormalizer,
+            CapabilityMetadataStore capabilityStore
+    ) {
         this.serverRepository = serverRepository;
         this.stateRepository = stateRepository;
+        this.capabilityNormalizer = capabilityNormalizer;
+        this.capabilityStore = capabilityStore;
     }
 
     @Transactional(readOnly = true)
@@ -39,7 +50,11 @@ class RegistrySyncStore {
             McpServerEntity entity = serverRepository.findByRegistryName(payload.name())
                     .orElseGet(() -> McpServerEntity.create(payload.name(), seenAt));
             entity.updateFrom(payload, seenAt);
-            serverRepository.save(entity);
+            McpServerEntity persistedServer = serverRepository.saveAndFlush(entity);
+            capabilityStore.replaceForServer(
+                    persistedServer.getId(),
+                    capabilityNormalizer.normalize(payload)
+            );
             persistedItems++;
         }
 
