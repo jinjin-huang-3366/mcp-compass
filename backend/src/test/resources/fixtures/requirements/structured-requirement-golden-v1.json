@@ -1,0 +1,331 @@
+{
+  "schemaVersion": "1.0",
+  "cases": [
+    {
+      "id": "github-issues-and-pull-requests",
+      "requirement": "Read GitHub issues and create pull requests using OAuth 2, but never delete repositories.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "source-control",
+        "service": "github",
+        "requiredCapabilities": ["github.issue.read", "github.pull-request.create"],
+        "forbiddenCapabilities": ["github.repository.delete"],
+        "constraints": [
+          {"name": "authentication", "operator": "EQUALS", "value": "oauth2"}
+        ]
+      }
+    },
+    {
+      "id": "slack-channel-messaging",
+      "requirement": "List Slack channels, read message history, and send messages only in the engineering workspace; do not delete messages.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "team-communication",
+        "service": "slack",
+        "requiredCapabilities": ["slack.channel.list", "slack.message.read", "slack.message.send"],
+        "forbiddenCapabilities": ["slack.message.delete"],
+        "constraints": [
+          {"name": "workspace", "operator": "EQUALS", "value": "engineering"}
+        ]
+      }
+    },
+    {
+      "id": "postgresql-read-only",
+      "requirement": "Query PostgreSQL tables over TLS in read-only mode. Inserts, updates, and deletes must not be available.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "database",
+        "service": "postgresql",
+        "requiredCapabilities": ["postgresql.query.select"],
+        "forbiddenCapabilities": ["postgresql.row.insert", "postgresql.row.update", "postgresql.row.delete"],
+        "constraints": [
+          {"name": "transport-security", "operator": "EQUALS", "value": "tls"}
+        ]
+      }
+    },
+    {
+      "id": "jira-cloud-issue-management",
+      "requirement": "For Jira Cloud, search, create, and update issues, but never delete an issue.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "issue-tracking",
+        "service": "jira",
+        "requiredCapabilities": ["jira.issue.search", "jira.issue.create", "jira.issue.update"],
+        "forbiddenCapabilities": ["jira.issue.delete"],
+        "constraints": [
+          {"name": "deployment", "operator": "EQUALS", "value": "cloud"}
+        ]
+      }
+    },
+    {
+      "id": "s3-object-reader",
+      "requirement": "List buckets and download objects from Amazon S3 in eu-west-2. Object deletion must be prohibited.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "object-storage",
+        "service": "amazon-s3",
+        "requiredCapabilities": ["s3.bucket.list", "s3.object.read"],
+        "forbiddenCapabilities": ["s3.object.delete"],
+        "constraints": [
+          {"name": "region", "operator": "EQUALS", "value": "eu-west-2"}
+        ]
+      }
+    },
+    {
+      "id": "stripe-invoice-creation",
+      "requirement": "Read Stripe customers and create GBP invoices, without issuing refunds.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "payments",
+        "service": "stripe",
+        "requiredCapabilities": ["stripe.customer.read", "stripe.invoice.create"],
+        "forbiddenCapabilities": ["stripe.refund.create"],
+        "constraints": [
+          {"name": "currency", "operator": "EQUALS", "value": "gbp"}
+        ]
+      }
+    },
+    {
+      "id": "kubernetes-production-observer",
+      "requirement": "List Kubernetes pods and read their logs in the production namespace. Do not exec into or delete pods.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "container-orchestration",
+        "service": "kubernetes",
+        "requiredCapabilities": ["kubernetes.pod.list", "kubernetes.pod.log.read"],
+        "forbiddenCapabilities": ["kubernetes.pod.exec", "kubernetes.pod.delete"],
+        "constraints": [
+          {"name": "namespace", "operator": "EQUALS", "value": "production"}
+        ]
+      }
+    },
+    {
+      "id": "google-drive-reader",
+      "requirement": "Search and read files in Google Drive, but do not share or delete them.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "document-storage",
+        "service": "google-drive",
+        "requiredCapabilities": ["google-drive.file.search", "google-drive.file.read"],
+        "forbiddenCapabilities": ["google-drive.file.share", "google-drive.file.delete"],
+        "constraints": []
+      }
+    },
+    {
+      "id": "notion-knowledge-reader",
+      "requirement": "Search and read Notion pages as a read-only knowledge source; page updates and archival are forbidden.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "knowledge-management",
+        "service": "notion",
+        "requiredCapabilities": ["notion.page.search", "notion.page.read"],
+        "forbiddenCapabilities": ["notion.page.update", "notion.page.archive"],
+        "constraints": []
+      }
+    },
+    {
+      "id": "gitlab-merge-request-review",
+      "requirement": "Read GitLab merge requests and add review comments for projects containing platform, but do not merge them.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "source-control",
+        "service": "gitlab",
+        "requiredCapabilities": ["gitlab.merge-request.read", "gitlab.merge-request.comment.create"],
+        "forbiddenCapabilities": ["gitlab.merge-request.merge"],
+        "constraints": [
+          {"name": "project", "operator": "CONTAINS", "value": "platform"}
+        ]
+      }
+    },
+    {
+      "id": "linear-issue-creation",
+      "requirement": "Using OAuth 2, read and create Linear issues without deleting any issue.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "issue-tracking",
+        "service": "linear",
+        "requiredCapabilities": ["linear.issue.read", "linear.issue.create"],
+        "forbiddenCapabilities": ["linear.issue.delete"],
+        "constraints": [
+          {"name": "authentication", "operator": "EQUALS", "value": "oauth2"}
+        ]
+      }
+    },
+    {
+      "id": "sentry-non-production-reader",
+      "requirement": "Read Sentry issues and releases while excluding the production environment. Do not resolve or delete issues.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "error-monitoring",
+        "service": "sentry",
+        "requiredCapabilities": ["sentry.issue.read", "sentry.release.read"],
+        "forbiddenCapabilities": ["sentry.issue.resolve", "sentry.issue.delete"],
+        "constraints": [
+          {"name": "environment", "operator": "NOT_EQUALS", "value": "production"}
+        ]
+      }
+    },
+    {
+      "id": "datadog-monitor-management",
+      "requirement": "Query Datadog metrics over at most the last 24 hours and create monitors, but never delete monitors.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "observability",
+        "service": "datadog",
+        "requiredCapabilities": ["datadog.metric.query", "datadog.monitor.create"],
+        "forbiddenCapabilities": ["datadog.monitor.delete"],
+        "constraints": [
+          {"name": "query-window-hours", "operator": "AT_MOST", "value": "24"}
+        ]
+      }
+    },
+    {
+      "id": "twilio-sms-only",
+      "requirement": "Send no more than 100 SMS messages per day with Twilio. Voice calls must not be supported.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "communications",
+        "service": "twilio",
+        "requiredCapabilities": ["twilio.sms.send"],
+        "forbiddenCapabilities": ["twilio.voice.call.create"],
+        "constraints": [
+          {"name": "daily-message-count", "operator": "AT_MOST", "value": "100"}
+        ]
+      }
+    },
+    {
+      "id": "shopify-orders-without-customer-data",
+      "requirement": "Read Shopify orders and products, but never access customer personal data.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "commerce",
+        "service": "shopify",
+        "requiredCapabilities": ["shopify.order.read", "shopify.product.read"],
+        "forbiddenCapabilities": ["shopify.customer.personal-data.read"],
+        "constraints": []
+      }
+    },
+    {
+      "id": "local-markdown-reader",
+      "requirement": "List and read local Markdown files under paths containing /docs; file writes and deletion are forbidden.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "filesystem",
+        "service": "",
+        "requiredCapabilities": ["filesystem.file.list", "filesystem.file.read"],
+        "forbiddenCapabilities": ["filesystem.file.write", "filesystem.file.delete"],
+        "constraints": [
+          {"name": "path", "operator": "CONTAINS", "value": "/docs"}
+        ]
+      }
+    },
+    {
+      "id": "safe-browser-research",
+      "requirement": "Navigate web pages and take screenshots, but never submit forms, download files, or make purchases.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "browser-automation",
+        "service": "",
+        "requiredCapabilities": ["browser.page.navigate", "browser.page.screenshot"],
+        "forbiddenCapabilities": ["browser.form.submit", "browser.file.download", "browser.purchase.create"],
+        "constraints": []
+      }
+    },
+    {
+      "id": "sqlite-small-read-only-database",
+      "requirement": "Run read-only SQLite queries against databases no larger than 500 MB; schema and row writes are prohibited.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "database",
+        "service": "sqlite",
+        "requiredCapabilities": ["sqlite.query.select"],
+        "forbiddenCapabilities": ["sqlite.schema.write", "sqlite.row.write"],
+        "constraints": [
+          {"name": "database-size-mb", "operator": "AT_MOST", "value": "500"}
+        ]
+      }
+    },
+    {
+      "id": "gmail-mailbox-assistant",
+      "requirement": "Read and send Gmail messages with attachments up to 10 MB, but never delete email.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "email",
+        "service": "gmail",
+        "requiredCapabilities": ["gmail.message.read", "gmail.message.send", "gmail.attachment.send"],
+        "forbiddenCapabilities": ["gmail.message.delete"],
+        "constraints": [
+          {"name": "attachment-size-mb", "operator": "AT_MOST", "value": "10"}
+        ]
+      }
+    },
+    {
+      "id": "google-calendar-without-invites",
+      "requirement": "List and create Google Calendar events in the Europe/London time zone, without inviting attendees or deleting events.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "calendar",
+        "service": "google-calendar",
+        "requiredCapabilities": ["google-calendar.event.list", "google-calendar.event.create"],
+        "forbiddenCapabilities": ["google-calendar.attendee.invite", "google-calendar.event.delete"],
+        "constraints": [
+          {"name": "time-zone", "operator": "EQUALS", "value": "Europe/London"}
+        ]
+      }
+    },
+    {
+      "id": "generic-weather-forecast",
+      "requirement": "Get current weather and a forecast of at least seven days. No named weather provider is required.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "weather",
+        "service": "",
+        "requiredCapabilities": ["weather.current.read", "weather.forecast.read"],
+        "forbiddenCapabilities": [],
+        "constraints": [
+          {"name": "forecast-days", "operator": "AT_LEAST", "value": "7"}
+        ]
+      }
+    },
+    {
+      "id": "docker-hub-registry-reader",
+      "requirement": "List Docker Hub repositories and tags and pull image manifests, but do not push or delete images.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "container-registry",
+        "service": "docker-hub",
+        "requiredCapabilities": ["docker-hub.repository.list", "docker-hub.tag.list", "docker-hub.manifest.read"],
+        "forbiddenCapabilities": ["docker-hub.image.push", "docker-hub.image.delete"],
+        "constraints": []
+      }
+    },
+    {
+      "id": "github-actions-failure-rerun",
+      "requirement": "List GitHub Actions workflows and rerun failed jobs in repository mcp-compass, but never cancel runs or delete workflow artifacts.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "continuous-integration",
+        "service": "github-actions",
+        "requiredCapabilities": ["github-actions.workflow.list", "github-actions.job.rerun"],
+        "forbiddenCapabilities": ["github-actions.run.cancel", "github-actions.artifact.delete"],
+        "constraints": [
+          {"name": "repository", "operator": "EQUALS", "value": "mcp-compass"}
+        ]
+      }
+    },
+    {
+      "id": "generic-read-only-rest-api",
+      "requirement": "Call a REST API using bearer authentication, but permit only GET endpoints and prohibit POST, PUT, PATCH, and DELETE.",
+      "expected": {
+        "schemaVersion": "1.0",
+        "domain": "http-api",
+        "service": "",
+        "requiredCapabilities": ["http.get"],
+        "forbiddenCapabilities": ["http.post", "http.put", "http.patch", "http.delete"],
+        "constraints": [
+          {"name": "authentication", "operator": "CONTAINS", "value": "bearer"}
+        ]
+      }
+    }
+  ]
+}
