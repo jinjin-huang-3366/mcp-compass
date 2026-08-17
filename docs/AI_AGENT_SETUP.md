@@ -24,6 +24,22 @@ $mcp-compass-development
 Implement the next unchecked V0.1 item in PLANS.md. Read only the relevant docs first, make a small coherent change, test it, and update PLANS.md.
 ```
 
+### Parallel task delivery
+
+`PLANS.md` contains the canonical **Parallel delivery groups** index. A group identifies dependency-independent tasks that may be developed at the same time, but `$mcp-task-pr-flow` deliberately remains a single-task workflow. Use one isolated Codex session, branch, workflow run, and pull request for each task ID.
+
+For example, to work through `PG-01` concurrently, start separate sessions with prompts such as:
+
+```text
+Use $mcp-task-pr-flow for SRCH-04 from PG-01.
+```
+
+```text
+Use $mcp-task-pr-flow for API-05 from PG-01.
+```
+
+Before starting each task, confirm its own dependencies are checked on the latest `main`. Group membership describes dependency safety, not guaranteed merge-conflict safety; coordinate parallel tasks that touch the same module. If one-command fan-out is needed later, add a dedicated batch-orchestration skill rather than weakening the one-task/one-PR guarantees of `$mcp-task-pr-flow`.
+
 ## GitHub Copilot
 This repo contains `.github/copilot-instructions.md` and path-specific `.github/instructions/*.instructions.md`.
 
