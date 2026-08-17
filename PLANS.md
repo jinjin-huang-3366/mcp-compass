@@ -35,7 +35,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-16 — add CLI surfaces** | `DX-01`, `DX-02` | `VAL-05` and, for `DX-02`, `GEN-06` |
 | **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` |
 
-To deliver a group, use its ID as scheduling context and invoke the skill once per task, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` Run additional ready task IDs in separate Codex sessions if parallel PRs are desired. Do not ask one `$mcp-task-pr-flow` invocation to implement an entire group; use a separate batch-orchestration skill if one-command fan-out is needed later.
+To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
 ## Product objective
 A developer writes what their agent needs. MCP Compass returns the best existing MCP server with a transparent capability/quality explanation. If no sufficiently strong match exists, a later milestone offers contract-first MCP generation.

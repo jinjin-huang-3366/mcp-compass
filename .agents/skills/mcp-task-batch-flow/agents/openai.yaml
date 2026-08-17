@@ -1,0 +1,4 @@
+interface:
+  display_name: "MCP Task Batch Flow"
+  short_description: "Fan out a task group into independent PRs"
+  default_prompt: "Use $mcp-task-batch-flow to deliver PG-01 as independent task pull requests."
