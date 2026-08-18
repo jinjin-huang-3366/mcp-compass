@@ -3,6 +3,7 @@ package dev.mcpcompass.ranking;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.RegistryClient;
 import dev.mcpcompass.requirement.RequirementAnalysis;
+import dev.mcpcompass.requirement.StructuredRequirement;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -32,6 +33,78 @@ class RankingServiceTest {
 
         assertThat(rankingService.rank(active, requirement).score())
                 .isGreaterThan(rankingService.rank(deprecated, requirement).score());
+    }
+
+    @Test
+    void capabilityCoverageDominatesTextOverlap() {
+        RequirementAnalysis requirement = structuredRequirement(
+                List.of("github", "issues"),
+                List.of("github.issue.read", "github.issue.comment.create")
+        );
+        McpServerEntity perfectTextOnly = featureRichServer(
+                "github-issues",
+                "GitHub Issues",
+                "github issues",
+                "active"
+        );
+        McpServerEntity fullCapabilityCoverage = server(
+                "io.example/capable",
+                "Developer tools",
+                "",
+                "active"
+        );
+
+        RankingService.RankedServer textOnlyRank = rankingService.rank(perfectTextOnly, requirement, List.of());
+        RankingService.RankedServer capabilityRank = rankingService.rank(
+                fullCapabilityCoverage,
+                requirement,
+                List.of("github.issue.read", "github.issue.comment.create")
+        );
+
+        assertThat(capabilityRank.score()).isGreaterThan(textOnlyRank.score());
+        assertThat(capabilityRank.capabilityCoverage()).isEqualTo(1.0);
+        assertThat(textOnlyRank.capabilityCoverage()).isEqualTo(0.0);
+    }
+
+    @Test
+    void reportsMatchedAndMissingCapabilitiesInRequirementOrder() {
+        RequirementAnalysis requirement = structuredRequirement(
+                List.of("github"),
+                List.of("github.issue.read", "github.pull-request.create")
+        );
+        McpServerEntity server = server("io.example/github", "GitHub MCP", "", "active");
+
+        RankingService.RankedServer ranked = rankingService.rank(
+                server,
+                requirement,
+                List.of("GITHUB.ISSUE.READ", "unrelated.capability")
+        );
+
+        assertThat(ranked.capabilityCoverage()).isEqualTo(0.5);
+        assertThat(ranked.matchedCapabilities()).containsExactly("github.issue.read");
+        assertThat(ranked.missingCapabilities()).containsExactly("github.pull-request.create");
+        assertThat(ranked.reasons()).contains("capability coverage 1/2");
+    }
+
+    @Test
+    void fallsBackToSecondaryScoreWhenRequirementHasNoCapabilities() {
+        RequirementAnalysis requirement = new RequirementAnalysis("github", List.of("github"));
+        McpServerEntity server = server("io.example/github", "GitHub MCP", "", "active");
+
+        RankingService.RankedServer ranked = rankingService.rank(server, requirement, List.of("github.issue.read"));
+
+        assertThat(ranked.score()).isEqualTo(0.9);
+        assertThat(ranked.capabilityCoverage()).isNull();
+        assertThat(ranked.matchedCapabilities()).isEmpty();
+        assertThat(ranked.missingCapabilities()).isEmpty();
+    }
+
+    private static RequirementAnalysis structuredRequirement(List<String> keywords, List<String> capabilities) {
+        return new RequirementAnalysis(
+                "github requirement",
+                keywords,
+                new StructuredRequirement("1.0", "source-control", "github", capabilities, List.of(), List.of())
+        );
     }
 
     @Test

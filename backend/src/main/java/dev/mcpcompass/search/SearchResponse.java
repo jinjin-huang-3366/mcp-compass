@@ -16,6 +16,9 @@ public record SearchResponse(
             String version,
             String status,
             double score,
+            Double capabilityCoverage,
+            List<String> matchedCapabilities,
+            List<String> missingCapabilities,
             List<String> reasons
     ) {
     }
