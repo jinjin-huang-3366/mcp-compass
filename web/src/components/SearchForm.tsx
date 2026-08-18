@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { searchMcps, SearchResponse } from "@/lib/api";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
@@ -62,6 +63,9 @@ export function SearchForm() {
                 <p>{match.description || "No description provided."}</p>
                 <div className="meta">Version {match.version || "unknown"} · {match.status || "active"}</div>
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
+                <Link className="detailLink" href={`/mcp/${match.id}`}>
+                  View MCP details
+                </Link>
               </article>
             ))
           )}
