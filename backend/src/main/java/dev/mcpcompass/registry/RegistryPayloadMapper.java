@@ -41,6 +41,10 @@ public class RegistryPayloadMapper {
                         text(server, "version").orElse(null),
                         status,
                         objectMapper.writeValueAsString(item),
+                        officialMetadata.isObject() && !officialMetadata.isEmpty(),
+                        text(server.path("repository"), "url").orElse(null),
+                        installOptionCount(server.path("packages"), "registryType", "identifier"),
+                        installOptionCount(server.path("remotes"), "type", "url"),
                         tools(server),
                         serverCapabilities(server)
                 ));
@@ -57,6 +61,20 @@ public class RegistryPayloadMapper {
         return value.isString() && !value.stringValue().isBlank()
                 ? Optional.of(value.stringValue())
                 : Optional.empty();
+    }
+
+    private static int installOptionCount(JsonNode values, String typeField, String locationField) {
+        if (!values.isArray()) {
+            return 0;
+        }
+
+        int count = 0;
+        for (JsonNode value : values) {
+            if (text(value, typeField).isPresent() && text(value, locationField).isPresent()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private List<RegistryClient.RegistryToolPayload> tools(JsonNode server) throws Exception {
