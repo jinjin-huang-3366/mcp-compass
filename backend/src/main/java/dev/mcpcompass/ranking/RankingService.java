@@ -14,7 +14,12 @@ import java.util.Set;
 @Component
 public class RankingService {
     private static final double CAPABILITY_WEIGHT = 0.8;
-    private static final double TEXT_WEIGHT = 0.2;
+    private static final double SECONDARY_WEIGHT = 0.2;
+    private static final double LEXICAL_WEIGHT = 0.85;
+    private static final double ACTIVE_MAINTENANCE_WEIGHT = 0.05;
+    private static final double OFFICIAL_PROVENANCE_WEIGHT = 0.03;
+    private static final double PUBLIC_REPOSITORY_WEIGHT = 0.02;
+    private static final double INSTALLABILITY_WEIGHT = 0.05;
 
     public RankedServer rank(McpServerEntity server, RequirementAnalysis requirement) {
         return rank(server, requirement, Set.of());
@@ -46,11 +51,40 @@ public class RankingService {
             }
         }
 
-        double textScore = Math.min(1.0, Math.max(0.0, points / maxPoints));
+        double lexicalScore = Math.min(1.0, Math.max(0.0, points / maxPoints));
+        if ("deprecated".equalsIgnoreCase(server.getStatus())) {
+            reasons.add("deprecated status penalty");
+        } else if ("active".equalsIgnoreCase(server.getStatus())) {
+            reasons.add("active Registry status");
+        }
+
+        double featureScore = 0.0;
+        if ("active".equalsIgnoreCase(server.getStatus())) {
+            featureScore += ACTIVE_MAINTENANCE_WEIGHT;
+        }
+        if (server.hasOfficialRegistryProvenance()) {
+            featureScore += OFFICIAL_PROVENANCE_WEIGHT;
+            reasons.add("official Registry provenance");
+        }
+        if (isPublicRepository(server.getRepositoryUrl())) {
+            featureScore += PUBLIC_REPOSITORY_WEIGHT;
+            reasons.add("public source repository declared");
+        }
+        if (server.getPackageCount() > 0 || server.getRemoteCount() > 0) {
+            featureScore += INSTALLABILITY_WEIGHT;
+            if (server.getPackageCount() > 0) {
+                reasons.add("installable package metadata available");
+            }
+            if (server.getRemoteCount() > 0) {
+                reasons.add("remote endpoint metadata available");
+            }
+        }
+
+        double secondaryScore = Math.min(1.0, Math.max(0.0, lexicalScore * LEXICAL_WEIGHT + featureScore));
         CapabilityCoverage capabilityCoverage = capabilityCoverage(requirement, serverCapabilities);
-        double score = textScore;
+        double score = secondaryScore;
         if (capabilityCoverage.score() != null) {
-            score = CAPABILITY_WEIGHT * capabilityCoverage.score() + TEXT_WEIGHT * textScore;
+            score = CAPABILITY_WEIGHT * capabilityCoverage.score() + SECONDARY_WEIGHT * secondaryScore;
             reasons.add(0, "capability coverage %d/%d".formatted(
                     capabilityCoverage.matched().size(),
                     capabilityCoverage.matched().size() + capabilityCoverage.missing().size()
@@ -59,7 +93,6 @@ public class RankingService {
 
         if ("deprecated".equalsIgnoreCase(server.getStatus())) {
             score *= 0.5;
-            reasons.add("deprecated status penalty");
         }
 
         return new RankedServer(
@@ -101,6 +134,11 @@ public class RankingService {
 
     private static String canonicalCapability(String value) {
         return value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private static boolean isPublicRepository(String repositoryUrl) {
+        return repositoryUrl != null
+                && (repositoryUrl.startsWith("https://") || repositoryUrl.startsWith("http://"));
     }
 
     private static String lower(String value) {
