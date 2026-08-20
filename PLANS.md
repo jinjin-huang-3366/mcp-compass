@@ -84,7 +84,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [ ] **API-06** — Add pagination and shareable search query URLs. _(Depends on: API-03)_
 
 ### V0.1 exit criteria
-- [ ] **EXIT-01** — A fresh local environment can ingest at least one Registry page and search it end-to-end. _(Depends on: REG-05, API-01, API-03)_
+- [x] **EXIT-01** — A fresh local environment can ingest at least one Registry page and search it end-to-end. _(Depends on: REG-05, API-01, API-03)_
 - [ ] **EXIT-02** — Ten manually selected requirements return sensible top-3 results. _(Depends on: SRCH-07)_
 - [ ] **EXIT-03** — Backend tests and frontend lint/build pass in CI. _(Depends on: FND-06)_
 - [ ] **EXIT-04** — No user search depends synchronously on Registry availability. _(Depends on: REG-03, SRCH-01)_
