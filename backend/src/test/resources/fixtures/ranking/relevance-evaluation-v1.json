@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "1.0",
+  "datasetId": "lexical-relevance-v1",
+  "strongMatchThreshold": 0.25,
+  "servers": [
+    {"id":"github","registryName":"io.github/github-mcp","title":"GitHub Issues and Pull Requests","description":"Read GitHub repositories and issues, add comments, and create pull requests.","status":"active"},
+    {"id":"github-actions","registryName":"io.github/github-actions-mcp","title":"GitHub Actions CI","description":"List workflows and rerun failed jobs.","status":"active"},
+    {"id":"gitlab","registryName":"io.gitlab/gitlab-mcp","title":"GitLab Merge Requests","description":"Read merge requests, review changes, and add comments.","status":"active"},
+    {"id":"slack","registryName":"com.slack/slack-mcp","title":"Slack Channels and Messages","description":"List channels, read message history, and send workspace messages.","status":"active"},
+    {"id":"discord","registryName":"com.discord/discord-mcp","title":"Discord Channels","description":"Read and send Discord channel messages.","status":"active"},
+    {"id":"postgres-readonly","registryName":"org.postgresql/readonly-mcp","title":"PostgreSQL Read Only","description":"Query PostgreSQL tables over TLS without database writes.","status":"active"},
+    {"id":"postgres-admin","registryName":"org.postgresql/admin-mcp","title":"PostgreSQL Tables TLS Admin","description":"Query tables and perform inserts, updates, and deletes.","status":"active"},
+    {"id":"sqlite","registryName":"org.sqlite/sqlite-mcp","title":"SQLite Read Only Queries","description":"Inspect local SQLite databases without schema or row writes.","status":"active"},
+    {"id":"jira","registryName":"com.atlassian/jira-mcp","title":"Jira Cloud Issues","description":"Search, create, and update Jira issues.","status":"active"},
+    {"id":"linear","registryName":"app.linear/linear-mcp","title":"Linear Issues","description":"Read and create Linear issues with OAuth.","status":"active"},
+    {"id":"s3","registryName":"com.amazon/s3-mcp","title":"Amazon S3 Objects","description":"List buckets and download objects by AWS region.","status":"active"},
+    {"id":"filesystem","registryName":"local/filesystem-mcp","title":"Local Filesystem Reader","description":"List and read local files including Markdown documents.","status":"active"},
+    {"id":"stripe","registryName":"com.stripe/stripe-mcp","title":"Stripe Customers and Invoices","description":"Read customers and create payment invoices.","status":"active"},
+    {"id":"shopify","registryName":"com.shopify/shopify-mcp","title":"Shopify Orders and Products","description":"Read commerce orders, products, and customer records.","status":"active"},
+    {"id":"kubernetes","registryName":"io.kubernetes/kubernetes-mcp","title":"Kubernetes Pods and Logs","description":"List pods and read namespace logs without cluster mutation.","status":"active"},
+    {"id":"docker","registryName":"com.docker/docker-mcp","title":"Docker Images and Containers","description":"Inspect containers, registries, images, and manifests.","status":"active"},
+    {"id":"google-drive","registryName":"com.google/drive-mcp","title":"Google Drive Files","description":"Search and read files stored in Google Drive.","status":"active"},
+    {"id":"notion","registryName":"com.notion/notion-mcp","title":"Notion Pages","description":"Search and read Notion workspace pages.","status":"active"},
+    {"id":"gmail","registryName":"com.google/gmail-mcp","title":"Gmail Messages and Attachments","description":"Read and send Gmail messages with attachments.","status":"active"},
+    {"id":"calendar","registryName":"com.google/calendar-mcp","title":"Google Calendar Events","description":"List and create calendar events by time zone.","status":"active"},
+    {"id":"sentry","registryName":"io.sentry/sentry-mcp","title":"Sentry Issues and Releases","description":"Read error-monitoring issues, environments, and releases.","status":"active"},
+    {"id":"datadog","registryName":"com.datadog/datadog-mcp","title":"Datadog Metrics and Monitors","description":"Query metrics and create observability monitors.","status":"active"},
+    {"id":"browser","registryName":"dev.browser/browser-mcp","title":"Browser Navigation and Screenshots","description":"Navigate web pages and capture screenshots without form submission.","status":"active"},
+    {"id":"weather","registryName":"dev.weather/weather-mcp","title":"Weather Forecast","description":"Read current weather and multi-day forecasts.","status":"active"},
+    {"id":"twilio","registryName":"com.twilio/sms-mcp","title":"Twilio SMS","description":"Send rate-limited SMS messages without voice calling.","status":"active"},
+    {"id":"twilio-communications","registryName":"com.twilio/communications-mcp","title":"Twilio SMS and Voice Calls","description":"Send SMS messages and create voice calls.","status":"active"},
+    {"id":"http","registryName":"dev.http/rest-mcp","title":"REST API Client","description":"Call HTTP GET, POST, PUT, PATCH, and DELETE endpoints.","status":"active"}
+  ],
+  "queries": [
+    {
+      "id":"github-issues-pull-requests","requirement":"Read GitHub issues, comment on them, and create pull requests.","domain":"source-control","service":"github",
+      "requiredCapabilities":["github.issue.read","github.issue.comment.create","github.pull-request.create"],"forbiddenCapabilities":[],"constraints":[],
+      "acceptableServerIds":["github"],"clearlyBadServerIds":["gitlab"],"candidateServerIds":["github","gitlab","github-actions","linear"],"expectNoStrongMatch":false,
+      "notes":"The GitHub server directly covers all requested repository collaboration operations."
+    },
+    {
+      "id":"slack-channel-messaging","requirement":"List Slack channels, read message history, and send messages without deleting them.","domain":"team-communication","service":"slack",
+      "requiredCapabilities":["slack.channel.list","slack.message.read","slack.message.send"],"forbiddenCapabilities":["slack.message.delete"],"constraints":[],
+      "acceptableServerIds":["slack"],"clearlyBadServerIds":["discord"],"candidateServerIds":["slack","discord","notion","gmail"],"expectNoStrongMatch":false,
+      "notes":"Discord is lexically similar but cannot operate on Slack workspaces."
+    },
+    {
+      "id":"postgresql-read-only","requirement":"Query PostgreSQL tables over TLS in read-only mode; inserts, updates, and deletes must not be available.","domain":"database","service":"postgresql",
+      "requiredCapabilities":["postgresql.query.select"],"forbiddenCapabilities":["postgresql.row.insert","postgresql.row.update","postgresql.row.delete"],"constraints":[{"name":"transport-security","operator":"EQUALS","value":"tls"}],
+      "acceptableServerIds":["postgres-readonly"],"clearlyBadServerIds":["postgres-admin"],"candidateServerIds":["postgres-readonly","postgres-admin","sqlite","http"],"expectNoStrongMatch":false,
+      "notes":"The admin server is clearly bad because it advertises every forbidden write operation; this exposes the lexical baseline's inability to enforce constraints."
+    },
+    {
+      "id":"jira-cloud-issues","requirement":"Search, create, and update Jira Cloud issues, but never delete an issue.","domain":"issue-tracking","service":"jira",
+      "requiredCapabilities":["jira.issue.search","jira.issue.create","jira.issue.update"],"forbiddenCapabilities":["jira.issue.delete"],"constraints":[{"name":"deployment","operator":"EQUALS","value":"cloud"}],
+      "acceptableServerIds":["jira"],"clearlyBadServerIds":["linear"],"candidateServerIds":["jira","linear","github","notion"],"expectNoStrongMatch":false,
+      "notes":"The labelled match is service-specific even though several candidates manage issues."
+    },
+    {
+      "id":"amazon-s3-reader","requirement":"List Amazon S3 buckets and download objects in eu-west-2 without deleting objects.","domain":"object-storage","service":"amazon-s3",
+      "requiredCapabilities":["s3.bucket.list","s3.object.read"],"forbiddenCapabilities":["s3.object.delete"],"constraints":[{"name":"region","operator":"EQUALS","value":"eu-west-2"}],
+      "acceptableServerIds":["s3"],"clearlyBadServerIds":["filesystem"],"candidateServerIds":["s3","filesystem","google-drive","docker"],"expectNoStrongMatch":false,
+      "notes":"A local filesystem reader cannot access S3 even though both expose file-like reads."
+    },
+    {
+      "id":"stripe-invoices","requirement":"Read Stripe customers and create GBP invoices without issuing refunds.","domain":"payments","service":"stripe",
+      "requiredCapabilities":["stripe.customer.read","stripe.invoice.create"],"forbiddenCapabilities":["stripe.refund.create"],"constraints":[{"name":"currency","operator":"EQUALS","value":"gbp"}],
+      "acceptableServerIds":["stripe"],"clearlyBadServerIds":["shopify"],"candidateServerIds":["stripe","shopify","gmail","http"],"expectNoStrongMatch":false,
+      "notes":"Shopify is a commerce integration but does not manage Stripe invoices."
+    },
+    {
+      "id":"kubernetes-pod-observer","requirement":"List Kubernetes pods and read production namespace logs; never exec into or delete pods.","domain":"container-orchestration","service":"kubernetes",
+      "requiredCapabilities":["kubernetes.pod.list","kubernetes.pod.log.read"],"forbiddenCapabilities":["kubernetes.pod.exec","kubernetes.pod.delete"],"constraints":[{"name":"namespace","operator":"EQUALS","value":"production"}],
+      "acceptableServerIds":["kubernetes"],"clearlyBadServerIds":["docker"],"candidateServerIds":["kubernetes","docker","sentry","filesystem"],"expectNoStrongMatch":false,
+      "notes":"Container inspection is not a substitute for Kubernetes pod and namespace access."
+    },
+    {
+      "id":"google-drive-reader","requirement":"Search and read files in Google Drive, but do not share or delete them.","domain":"document-storage","service":"google-drive",
+      "requiredCapabilities":["google-drive.file.search","google-drive.file.read"],"forbiddenCapabilities":["google-drive.file.share","google-drive.file.delete"],"constraints":[],
+      "acceptableServerIds":["google-drive"],"clearlyBadServerIds":["notion"],"candidateServerIds":["google-drive","notion","filesystem","gmail"],"expectNoStrongMatch":false,
+      "notes":"Notion contains pages rather than Google Drive files."
+    },
+    {
+      "id":"notion-knowledge-reader","requirement":"Search and read Notion pages as a read-only knowledge source.","domain":"knowledge-management","service":"notion",
+      "requiredCapabilities":["notion.page.search","notion.page.read"],"forbiddenCapabilities":["notion.page.update"],"constraints":[],
+      "acceptableServerIds":["notion"],"clearlyBadServerIds":["google-drive"],"candidateServerIds":["notion","google-drive","filesystem","slack"],"expectNoStrongMatch":false,
+      "notes":"The service label disambiguates Notion from other document sources."
+    },
+    {
+      "id":"gitlab-merge-request-review","requirement":"Read GitLab merge requests and add review comments without merging them.","domain":"source-control","service":"gitlab",
+      "requiredCapabilities":["gitlab.merge-request.read","gitlab.merge-request.comment.create"],"forbiddenCapabilities":["gitlab.merge-request.merge"],"constraints":[],
+      "acceptableServerIds":["gitlab"],"clearlyBadServerIds":["github"],"candidateServerIds":["gitlab","github","github-actions","jira"],"expectNoStrongMatch":false,
+      "notes":"GitHub pull requests are not GitLab merge requests."
+    },
+    {
+      "id":"linear-issue-creation","requirement":"Use OAuth to read and create Linear issues without deleting any issue.","domain":"issue-tracking","service":"linear",
+      "requiredCapabilities":["linear.issue.read","linear.issue.create"],"forbiddenCapabilities":["linear.issue.delete"],"constraints":[{"name":"authentication","operator":"EQUALS","value":"oauth2"}],
+      "acceptableServerIds":["linear"],"clearlyBadServerIds":["jira"],"candidateServerIds":["linear","jira","github","notion"],"expectNoStrongMatch":false,
+      "notes":"Jira and GitHub have issue tools but do not operate on Linear."
+    },
+    {
+      "id":"sentry-release-reader","requirement":"Read Sentry issues and releases outside the production environment without resolving issues.","domain":"error-monitoring","service":"sentry",
+      "requiredCapabilities":["sentry.issue.read","sentry.release.read"],"forbiddenCapabilities":["sentry.issue.resolve"],"constraints":[{"name":"environment","operator":"NOT_EQUALS","value":"production"}],
+      "acceptableServerIds":["sentry"],"clearlyBadServerIds":["datadog"],"candidateServerIds":["sentry","datadog","github-actions","kubernetes"],"expectNoStrongMatch":false,
+      "notes":"Datadog is adjacent observability tooling but is not a Sentry issue source."
+    },
+    {
+      "id":"datadog-monitor-management","requirement":"Query Datadog metrics over the last 24 hours and create monitors without deleting them.","domain":"observability","service":"datadog",
+      "requiredCapabilities":["datadog.metric.query","datadog.monitor.create"],"forbiddenCapabilities":["datadog.monitor.delete"],"constraints":[{"name":"query-window-hours","operator":"AT_MOST","value":"24"}],
+      "acceptableServerIds":["datadog"],"clearlyBadServerIds":["sentry"],"candidateServerIds":["datadog","sentry","kubernetes","github-actions"],"expectNoStrongMatch":false,
+      "notes":"Sentry cannot query Datadog metrics or create Datadog monitors."
+    },
+    {
+      "id":"twilio-sms-only","requirement":"Send at most 100 SMS messages per day with Twilio; voice calls must not be supported.","domain":"communications","service":"twilio",
+      "requiredCapabilities":["twilio.sms.send"],"forbiddenCapabilities":["twilio.voice.call.create"],"constraints":[{"name":"daily-message-count","operator":"AT_MOST","value":"100"}],
+      "acceptableServerIds":["twilio"],"clearlyBadServerIds":["twilio-communications"],"candidateServerIds":["twilio","twilio-communications","slack","gmail"],"expectNoStrongMatch":false,
+      "notes":"The general Twilio server advertises the explicitly forbidden voice capability."
+    },
+    {
+      "id":"local-markdown-reader","requirement":"List and read local Markdown files under /docs without writing or deleting files.","domain":"filesystem","service":"",
+      "requiredCapabilities":["filesystem.file.list","filesystem.file.read"],"forbiddenCapabilities":["filesystem.file.write","filesystem.file.delete"],"constraints":[{"name":"path","operator":"CONTAINS","value":"/docs"}],
+      "acceptableServerIds":["filesystem"],"clearlyBadServerIds":["google-drive"],"candidateServerIds":["filesystem","google-drive","notion","http"],"expectNoStrongMatch":false,
+      "notes":"Cloud document stores cannot access a local /docs path."
+    },
+    {
+      "id":"safe-browser-research","requirement":"Navigate web pages and take screenshots without submitting forms or downloading files.","domain":"browser-automation","service":"",
+      "requiredCapabilities":["browser.page.navigate","browser.page.screenshot"],"forbiddenCapabilities":["browser.form.submit","browser.file.download"],"constraints":[],
+      "acceptableServerIds":["browser"],"clearlyBadServerIds":["http"],"candidateServerIds":["browser","http","filesystem","google-drive"],"expectNoStrongMatch":false,
+      "notes":"A raw HTTP client cannot render pages or take browser screenshots."
+    },
+    {
+      "id":"sqlite-read-only","requirement":"Run read-only SQLite queries on a local database without schema or row writes.","domain":"database","service":"sqlite",
+      "requiredCapabilities":["sqlite.query.select"],"forbiddenCapabilities":["sqlite.schema.write","sqlite.row.write"],"constraints":[],
+      "acceptableServerIds":["sqlite"],"clearlyBadServerIds":["postgres-admin"],"candidateServerIds":["sqlite","postgres-admin","postgres-readonly","filesystem"],"expectNoStrongMatch":false,
+      "notes":"PostgreSQL tools cannot query a SQLite database."
+    },
+    {
+      "id":"gmail-mail-assistant","requirement":"Read and send Gmail messages with attachments, but never delete email.","domain":"email","service":"gmail",
+      "requiredCapabilities":["gmail.message.read","gmail.message.send","gmail.attachment.send"],"forbiddenCapabilities":["gmail.message.delete"],"constraints":[],
+      "acceptableServerIds":["gmail"],"clearlyBadServerIds":["slack"],"candidateServerIds":["gmail","slack","google-drive","calendar"],"expectNoStrongMatch":false,
+      "notes":"Slack messages are not email and cannot operate on Gmail mailboxes."
+    },
+    {
+      "id":"salesforce-crm-gap","requirement":"Sync Salesforce opportunities and contacts into a CRM dashboard.","domain":"customer-relationship-management","service":"salesforce",
+      "requiredCapabilities":["salesforce.opportunity.read","salesforce.contact.read"],"forbiddenCapabilities":[],"constraints":[],
+      "acceptableServerIds":[],"clearlyBadServerIds":["stripe","notion"],"candidateServerIds":["stripe","notion","shopify","jira"],"expectNoStrongMatch":true,
+      "notes":"The candidate set contains no Salesforce integration; the ranker should return no positive lexical match."
+    },
+    {
+      "id":"audio-transcription-gap","requirement":"Transcribe podcast audio with speaker diarization and timestamped captions.","domain":"speech-to-text","service":"",
+      "requiredCapabilities":["audio.transcribe","audio.speaker.diarize","caption.timestamp.create"],"forbiddenCapabilities":[],"constraints":[],
+      "acceptableServerIds":[],"clearlyBadServerIds":["twilio","browser"],"candidateServerIds":["twilio","browser","gmail","weather"],"expectNoStrongMatch":true,
+      "notes":"None of the candidates offers speech-to-text or diarization."
+    }
+  ]
+}

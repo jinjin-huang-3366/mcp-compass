@@ -70,21 +70,21 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **SRCH-01** — Retrieve candidates from local database using requirement keywords. _(Depends on: REG-03, REQ-01)_
 - [x] **SRCH-02** — Add deterministic text-overlap ranking and reasons. _(Depends on: SRCH-01)_
 - [x] **SRCH-03** — Add normalized capability tables populated from server/tool metadata. _(Depends on: REG-03, REQ-02)_
-- [ ] **SRCH-04** — Add capability coverage as the dominant ranking factor. _(Depends on: SRCH-02, SRCH-03)_
-- [ ] **SRCH-05** — Add maintenance/trust/installability features. _(Depends on: SRCH-02)_
+- [x] **SRCH-04** — Add capability coverage as the dominant ranking factor. _(Depends on: SRCH-02, SRCH-03)_
+- [x] **SRCH-05** — Add maintenance/trust/installability features. _(Depends on: SRCH-02)_
 - [ ] **SRCH-06** — Add vector retrieval only after a baseline benchmark exists. _(Depends on: FND-03, SRCH-07)_
-- [ ] **SRCH-07** — Build a small relevance evaluation dataset and ranking report. _(Depends on: REQ-02, SRCH-02)_
+- [x] **SRCH-07** — Build a small relevance evaluation dataset and ranking report. _(Depends on: REQ-02, SRCH-02)_
 
 ### API/UI
 - [x] **API-01** — Add `POST /api/v1/mcp/search`. _(Depends on: SRCH-02)_
 - [x] **API-02** — Add `GET /api/v1/mcp/{id}`. _(Depends on: REG-03)_
 - [x] **API-03** — Add simple developer search UI. _(Depends on: FND-02, API-01)_
 - [ ] **API-04** — Render capability coverage and missing capability explanations. _(Depends on: SRCH-04, API-03)_
-- [ ] **API-05** — Add MCP detail page. _(Depends on: FND-02, API-02)_
+- [x] **API-05** — Add MCP detail page. _(Depends on: FND-02, API-02)_
 - [ ] **API-06** — Add pagination and shareable search query URLs. _(Depends on: API-03)_
 
 ### V0.1 exit criteria
-- [ ] **EXIT-01** — A fresh local environment can ingest at least one Registry page and search it end-to-end. _(Depends on: REG-05, API-01, API-03)_
+- [x] **EXIT-01** — A fresh local environment can ingest at least one Registry page and search it end-to-end. _(Depends on: REG-05, API-01, API-03)_
 - [ ] **EXIT-02** — Ten manually selected requirements return sensible top-3 results. _(Depends on: SRCH-07)_
 - [ ] **EXIT-03** — Backend tests and frontend lint/build pass in CI. _(Depends on: FND-06)_
 - [ ] **EXIT-04** — No user search depends synchronously on Registry availability. _(Depends on: REG-03, SRCH-01)_

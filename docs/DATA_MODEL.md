@@ -3,7 +3,7 @@
 ## V0.1 tables
 
 ### `mcp_server`
-Normalized latest server metadata for search/recommendation. Keeps `raw_metadata` for forward compatibility while Registry schemas are evolving.
+Normalized latest server metadata for search/recommendation. Keeps `raw_metadata` for forward compatibility while Registry schemas are evolving. Also records official Registry provenance, a declared source repository, and counts of usable package and remote install options as bounded secondary ranking signals. Repository activity and deeper trust data remain future enrichment.
 
 ### `mcp_tool`
 Normalized tool metadata associated with a server. Registry ingestion populates rows when a server

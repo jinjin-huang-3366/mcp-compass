@@ -75,6 +75,38 @@ independent quality jobs:
 
 The commands in the Tests section mirror these CI gates and should pass before a branch is published.
 
+`RegistrySearchAcceptanceTest` starts a fresh pgvector PostgreSQL container, serves a fixture-backed active
+Registry page from a local stub, calls the local sync HTTP endpoint, and then searches the persisted server
+through the public HTTP API. Docker must be running for this acceptance test; it is skipped when Docker is
+unavailable so the remaining unit tests can still run.
+
+Run only this acceptance path with:
+
+```bash
+./mvnw -pl backend -Dtest=RegistrySearchAcceptanceTest test
+```
+
+## Fresh-environment Registry search smoke test
+
+1. Reset and start PostgreSQL with `docker compose down -v` followed by `docker compose up -d db`.
+2. Start the backend with the `local` profile as described above and wait for the health endpoint to report
+   `UP`.
+3. Call `POST /api/v1/dev/registry/sync?maxPages=1` and confirm the response reports `pages: 1` and at least
+   one persisted server.
+4. Inspect a persisted name or title with:
+
+   ```bash
+   docker compose exec -T db psql -U mcp_compass -d mcp_compass -c \
+     "SELECT registry_name, title FROM mcp_server ORDER BY registry_name LIMIT 5;"
+   ```
+
+5. Search for a distinctive word from one of those rows with `POST /api/v1/mcp/search`; confirm that the
+   response includes the same Registry server with a positive score and human-readable reasons.
+6. Start the frontend, enter the same search term, and confirm that the persisted server appears in the UI.
+
+The Registry is contacted only by step 3. Both the API and UI searches in steps 5-6 use the local PostgreSQL
+data populated by that sync.
+
 ## Reset database
 ```bash
 docker compose down -v
