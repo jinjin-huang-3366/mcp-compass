@@ -87,7 +87,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **EXIT-01** — A fresh local environment can ingest at least one Registry page and search it end-to-end. _(Depends on: REG-05, API-01, API-03)_
 - [ ] **EXIT-02** — Ten manually selected requirements return sensible top-3 results. _(Depends on: SRCH-07)_
 - [x] **EXIT-03** — Backend tests and frontend lint/build pass in CI. _(Depends on: FND-06)_
-- [ ] **EXIT-04** — No user search depends synchronously on Registry availability. _(Depends on: REG-03, SRCH-01)_
+- [x] **EXIT-04** — No user search depends synchronously on Registry availability. _(Depends on: REG-03, SRCH-01)_
 
 ## V0.2 — enrichment and better ranking
 - [ ] **ENR-01** — GitHub repository enrichment: activity, release age, archived status, license. _(Depends on: EXIT-01, EXIT-02, EXIT-03, EXIT-04)_
