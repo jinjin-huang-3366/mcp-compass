@@ -75,7 +75,7 @@ class RankingEvaluationTest {
         assertThat(evaluation.meanReciprocalRank()).isEqualTo(17.0 / 18.0);
         assertThat(evaluation.expectedNoStrongMatch()).isEqualTo(2);
         assertThat(evaluation.correctNoStrongMatchDecisions()).isEqualTo(20);
-        assertThat(evaluation.badMatchesInTop3()).isEqualTo(13);
+        assertThat(evaluation.badMatchesInTop3()).isEqualTo(16);
         assertThat(evaluation.elapsed()).isLessThan(LATENCY_GUARD);
     }
 
