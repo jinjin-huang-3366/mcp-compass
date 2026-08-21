@@ -59,8 +59,21 @@ npm run dev
 ## Tests
 ```bash
 ./mvnw -pl backend test
-cd web && npm run lint && npm run build
+cd web && npm ci && npm run lint && npm run build
+python -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs for every pull request, pushes to `main`, and manual dispatches. It has three
+independent quality jobs:
+
+- `backend` uses Java 21 and runs `./mvnw -pl backend test`;
+- `web` uses Node.js 22, installs exactly from `package-lock.json` with `npm ci`, then runs lint and the
+  production build;
+- `automation` tests the repository's workflow-support scripts, including the CI contract itself.
+
+The commands in the Tests section mirror these CI gates and should pass before a branch is published.
 
 `RegistrySearchAcceptanceTest` starts a fresh pgvector PostgreSQL container, serves a fixture-backed active
 Registry page from a local stub, calls the local sync HTTP endpoint, and then searches the persisted server

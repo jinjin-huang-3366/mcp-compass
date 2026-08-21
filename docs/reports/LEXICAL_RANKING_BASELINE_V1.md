@@ -20,8 +20,14 @@ must not be hidden by changing labels to agree with the implementation.
 | Mean reciprocal rank | 0.9444 |
 | Queries expected to say no strong match | 2/20 (10.0%) |
 | Correct strong/no-strong-match decisions at score 0.25 | 20/20 (100.0%) |
-| Queries with a clearly bad match in the top 3 | 13/20 (65.0%) |
+| Queries with a clearly bad match in the top 3 | 16/20 (80.0%) |
 | In-memory analysis/ranking latency guard | less than 2 seconds for all 20 queries |
+
+The current run includes the V0.1 maintenance/status secondary feature, while this fixture does not supply
+normalized capability metadata to `RankingService`. Active status can therefore give otherwise zero-overlap
+candidates a positive score and bring them into a top three. This integration moved the clearly bad top-three
+count from the original lexical result of 13/20 to 16/20; the regression remains visible rather than being
+hidden by relabelling the fixture.
 
 ## Interpretation
 
