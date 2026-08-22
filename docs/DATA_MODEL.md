@@ -5,6 +5,10 @@
 ### `mcp_server`
 Normalized latest server metadata for search/recommendation. Keeps `raw_metadata` for forward compatibility while Registry schemas are evolving. Also records official Registry provenance, a declared source repository, and counts of usable package and remote install options as bounded secondary ranking signals. Repository activity and deeper trust data remain future enrichment.
 
+Optional vector retrieval adds a 384-dimensional `search_embedding` and its `search_embedding_model`. The model
+identifier prevents comparisons between incompatible embedding spaces. A cosine HNSW index excludes null vectors,
+so servers remain lexically searchable while embeddings are disabled, unavailable, or still being refreshed.
+
 ### `mcp_tool`
 Normalized tool metadata associated with a server. Registry ingestion populates rows when a server
 declares tools directly or through publisher-provided extension metadata. Standard Registry entries
@@ -44,4 +48,7 @@ the run start time so updates arriving during the run are included by the next s
 Use Registry `name` as the stable public identity and an internal UUID primary key. Version history can be added separately when product requirements need it; V0.1 stores the latest seen version.
 
 ## Search
-V0.1 uses trigram-friendly normalized textual fields. pgvector is enabled in infrastructure for future embeddings but vector dimensions/model choice are deliberately deferred until an evaluation baseline exists.
+V0.1 uses trigram-friendly normalized textual fields by default. After the versioned lexical baseline was checked in,
+SRCH-06 added opt-in hybrid retrieval using 384-dimensional OpenAI embeddings and pgvector cosine distance. Registry
+sync writes embeddings after persisted metadata commits; existing rows gain vectors on their next sync. The embedding
+model is configurable, but it must support the fixed 384-dimension database contract.

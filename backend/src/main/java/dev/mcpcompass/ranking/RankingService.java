@@ -30,6 +30,15 @@ public class RankingService {
             RequirementAnalysis requirement,
             Collection<String> serverCapabilities
     ) {
+        return rank(server, requirement, serverCapabilities, null);
+    }
+
+    public RankedServer rank(
+            McpServerEntity server,
+            RequirementAnalysis requirement,
+            Collection<String> serverCapabilities,
+            Double vectorSimilarity
+    ) {
         String name = lower(server.getRegistryName());
         String title = lower(server.getTitle());
         String description = lower(server.getDescription());
@@ -80,7 +89,16 @@ public class RankingService {
             }
         }
 
-        double secondaryScore = Math.min(1.0, Math.max(0.0, lexicalScore * LEXICAL_WEIGHT + featureScore));
+        double retrievalScore = lexicalScore;
+        if (vectorSimilarity != null) {
+            double boundedSimilarity = Math.min(1.0, Math.max(0.0, vectorSimilarity));
+            retrievalScore = Math.max(retrievalScore, boundedSimilarity);
+            reasons.add("semantic similarity %d%%".formatted(Math.round(boundedSimilarity * 100.0)));
+        }
+        double secondaryScore = Math.min(
+                1.0,
+                Math.max(0.0, retrievalScore * LEXICAL_WEIGHT + featureScore)
+        );
         CapabilityCoverage capabilityCoverage = capabilityCoverage(requirement, serverCapabilities);
         double score = secondaryScore;
         if (capabilityCoverage.score() != null) {

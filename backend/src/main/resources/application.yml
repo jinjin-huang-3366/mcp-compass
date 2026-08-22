@@ -19,6 +19,16 @@ management:
         include: health,info,metrics
 
 app:
+  search:
+    vector:
+      enabled: ${MCP_COMPASS_VECTOR_ENABLED:false}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      api-key: ${OPENAI_API_KEY:}
+      model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+      connect-timeout: 5s
+      read-timeout: 30s
+      candidate-limit: 100
+      min-similarity: 0.35
   requirement:
     llm:
       enabled: ${MCP_COMPASS_LLM_ENABLED:false}

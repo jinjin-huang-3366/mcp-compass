@@ -135,6 +135,22 @@ class RankingServiceTest {
                 .isGreaterThan(rankingService.rank(descriptionMatch, requirement).score());
     }
 
+    @Test
+    void boundedVectorSimilarityCanRetrieveAndExplainAParaphrasedCandidate() {
+        RequirementAnalysis requirement = new RequirementAnalysis("manage source control tickets", List.of("tickets"));
+        McpServerEntity server = server(
+                "io.example/github",
+                "GitHub Issues",
+                "Read repository issues",
+                "active"
+        );
+
+        RankingService.RankedServer ranked = rankingService.rank(server, requirement, List.of(), 0.78);
+
+        assertThat(ranked.score()).isCloseTo(0.713, org.assertj.core.data.Offset.offset(0.000001));
+        assertThat(ranked.reasons()).contains("semantic similarity 78%");
+    }
+
     private static McpServerEntity server(String name, String title, String description, String status) {
         McpServerEntity entity = McpServerEntity.create(name, Instant.parse("2026-08-10T00:00:00Z"));
         entity.updateFrom(new RegistryClient.RegistryServerPayload(name, title, description, "1.0.0", status, "{}"), Instant.parse("2026-08-10T00:00:00Z"));

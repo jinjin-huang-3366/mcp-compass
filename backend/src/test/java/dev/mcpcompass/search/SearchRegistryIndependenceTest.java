@@ -1,6 +1,7 @@
 package dev.mcpcompass.search;
 
 import dev.mcpcompass.capability.CapabilityMetadataStore;
+import dev.mcpcompass.embedding.ServerEmbeddingService;
 import dev.mcpcompass.ranking.RankingService;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
@@ -46,6 +47,7 @@ class SearchRegistryIndependenceTest {
         RequirementAnalyzer analyzer = mock(RequirementAnalyzer.class);
         McpServerRepository repository = mock(McpServerRepository.class);
         CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
+        ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
         McpServerEntity persistedServer = mock(McpServerEntity.class);
         UUID serverId = UUID.fromString("16e45463-617c-4371-8104-3a942c169e2d");
         RequirementAnalysis analysis = new RequirementAnalysis("github issues", List.of("github", "issues"));
@@ -62,11 +64,13 @@ class SearchRegistryIndependenceTest {
                 any(Pageable.class)
         )).thenReturn(new PageImpl<>(List.of(persistedServer)));
         when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
+        when(embeddingService.findNearestServers(analysis.originalRequirement())).thenReturn(List.of());
         McpSearchService service = new McpSearchService(
                 analyzer,
                 repository,
                 new RankingService(),
-                capabilityStore
+                capabilityStore,
+                embeddingService
         );
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new McpSearchController(service)).build();
 

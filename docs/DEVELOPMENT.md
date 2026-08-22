@@ -39,6 +39,20 @@ Invoke-RestMethod -Method Post `
   -Uri "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
 ```
 
+### Optional vector retrieval
+
+Lexical retrieval is the default and needs no external credential. To test hybrid retrieval against the checked-in
+baseline, set `MCP_COMPASS_VECTOR_ENABLED=true` and `OPENAI_API_KEY`; `OPENAI_EMBEDDING_MODEL` defaults to
+`text-embedding-3-small`. The configured model must accept the requested 384 dimensions. Restart the backend, run a
+Registry sync to populate or refresh server embeddings, then issue the same search request with vector retrieval off
+and on. Confirm relevant top results improve without regressing the baseline metrics, and record provider cost and
+latency before proposing a default-on change. The candidate set is bounded at 100 and candidates below cosine
+similarity `0.35` are excluded by default.
+
+Embedding requests are batched once per Registry page and happen after metadata persistence. An embedding provider or
+pgvector query failure logs only the exception type and falls back to lexical search; it does not make Registry data or
+user search unavailable.
+
 Registry sync observability is available through Spring Boot Actuator metrics:
 
 - `mcp.registry.sync.pages` — pages persisted successfully;

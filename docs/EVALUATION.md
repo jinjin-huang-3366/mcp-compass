@@ -43,3 +43,12 @@ is available.
 
 ## Rule
 Do not introduce embeddings/LLM reranking because they sound better. Add them only when the evaluation set shows a specific baseline failure and the new approach improves it without unacceptable cost/latency/regression.
+
+## Vector retrieval gate
+
+SRCH-06 adds the hybrid retrieval mechanism only after `lexical-relevance-v1` and its report exist. It remains disabled
+by default because the current labels identify constraint/capability ranking failures rather than proving a particular
+embedding provider improves relevance. Before enabling vector retrieval by default, record a provider/model-specific
+comparison against this fixture (plus a seeded database latency benchmark), including top-1, top-3, MRR, no-strong-match
+accuracy, bad matches in the top three, embedding cost, and end-to-end latency. Do not compare vectors from different
+models; stored rows are filtered by the configured model identifier.

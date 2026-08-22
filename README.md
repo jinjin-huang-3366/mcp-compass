@@ -15,7 +15,8 @@ This repository is a working **V0.1 starter**. It intentionally focuses on the f
 5. rank and explain matches;
 6. expose the result through a REST API and a simple Next.js UI.
 
-MCP generation, runtime inspection, GitHub enrichment, embeddings, and security sandboxing are planned but not prematurely implemented.
+MCP generation, runtime inspection, GitHub enrichment, and security sandboxing remain planned. Vector candidate
+retrieval is available as an opt-in, benchmark-gated extension to the default lexical search path.
 
 ## Stack
 
@@ -102,6 +103,11 @@ When an exact plan item is supplied, the task workflow validates that it is curr
 - Do not execute untrusted MCP code in the main backend process.
 - The public Registry is an ingestion source, not a synchronous dependency for end-user searches.
 - LLMs should perform semantic tasks; deterministic code should perform scoring, validation, persistence, and policy enforcement.
+
+Vector retrieval remains disabled by default. When enabled, Registry sync batches server name/title/description
+embeddings into PostgreSQL and search merges cosine-nearest candidates with lexical candidates. Provider or vector
+query failures fall back to lexical retrieval. See `docs/DEVELOPMENT.md` for configuration and
+`docs/reports/LEXICAL_RANKING_BASELINE_V1.md` for the baseline that must be preserved when evaluating a provider.
 
 ## Documentation
 
