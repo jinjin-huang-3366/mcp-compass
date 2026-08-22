@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { searchMcps, SearchResponse } from "@/lib/api";
+import { CapabilityCoverage } from "@/components/CapabilityCoverage";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
 const PAGE_SIZE = 10;
@@ -151,6 +152,11 @@ export function SearchForm() {
                 <div className="meta">
                   Version {match.version || "unknown"} {"\u00b7"} {match.status || "active"}
                 </div>
+                <CapabilityCoverage
+                  coverage={match.capabilityCoverage}
+                  matchedCapabilities={match.matchedCapabilities}
+                  missingCapabilities={match.missingCapabilities}
+                />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
                 <Link className="detailLink" href={`/mcp/${match.id}`}>
                   View MCP details
