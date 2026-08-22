@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { SearchForm } from "@/components/SearchForm";
 
 export default function Home() {
@@ -11,7 +12,9 @@ export default function Home() {
           and explain why they fit.
         </p>
       </section>
-      <SearchForm />
+      <Suspense fallback={<div className="searchCard">Loading search...</div>}>
+        <SearchForm />
+      </Suspense>
       <footer>
         V0.1: Registry discovery and ranking. MCP generation comes after search quality is proven.
       </footer>

@@ -21,7 +21,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -62,8 +61,13 @@ class SearchRegistryIndependenceTest {
                 org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
                 any(Pageable.class)
         )).thenReturn(new PageImpl<>(List.of(persistedServer)));
-        when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
-        McpSearchService service = new McpSearchService(analyzer, repository, new RankingService(), capabilityStore);
+        when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
+        McpSearchService service = new McpSearchService(
+                analyzer,
+                repository,
+                new RankingService(),
+                capabilityStore
+        );
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new McpSearchController(service)).build();
 
         mockMvc.perform(post("/api/v1/mcp/search")

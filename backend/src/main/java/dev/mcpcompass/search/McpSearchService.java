@@ -20,6 +20,8 @@ import java.util.UUID;
 
 @Service
 public class McpSearchService {
+    private static final int MAX_CANDIDATES = 100;
+
     private final RequirementAnalyzer analyzer;
     private final McpServerRepository repository;
     private final RankingService rankingService;
@@ -37,18 +39,25 @@ public class McpSearchService {
         this.capabilityStore = capabilityStore;
     }
 
-    public SearchResponse search(String requirement) {
-        RequirementAnalysis analysis = analyzer.analyze(requirement);
-        if (analysis.keywords().isEmpty()) {
-            return new SearchResponse(requirement, List.of(), List.of());
+    public SearchResponse search(String requirement, int page, int pageSize) {
+        if (page < 1 || pageSize < 1) {
+            throw new IllegalArgumentException("Page and page size must be positive");
         }
 
-        List<McpServerEntity> candidates = repository.findAll(candidateSpec(analysis.keywords()), PageRequest.of(0, 100)).getContent();
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+        if (analysis.keywords().isEmpty()) {
+            return new SearchResponse(requirement, List.of(), page, pageSize, 0, 0, List.of());
+        }
+
+        List<McpServerEntity> candidates = repository.findAll(
+                candidateSpec(analysis.keywords()),
+                PageRequest.of(0, MAX_CANDIDATES)
+        ).getContent();
         Map<UUID, Set<String>> capabilitiesByServer = capabilityStore.findCapabilityNamesByServerIds(
                 candidates.stream().map(McpServerEntity::getId).toList()
         );
 
-        List<SearchResponse.Match> matches = candidates.stream()
+        List<RankingService.RankedServer> rankedMatches = candidates.stream()
                 .filter(server -> !"deleted".equalsIgnoreCase(server.getStatus()))
                 .map(server -> rankingService.rank(
                         server,
@@ -56,8 +65,17 @@ public class McpSearchService {
                         capabilitiesByServer.getOrDefault(server.getId(), Set.of())
                 ))
                 .filter(ranked -> ranked.score() > 0)
-                .sorted(Comparator.comparingDouble(RankingService.RankedServer::score).reversed())
-                .limit(10)
+                .sorted(Comparator.comparingDouble(RankingService.RankedServer::score)
+                        .reversed()
+                        .thenComparing(ranked -> ranked.server().getRegistryName()))
+                .toList();
+
+        int totalMatches = rankedMatches.size();
+        int totalPages = totalMatches == 0 ? 0 : (totalMatches + pageSize - 1) / pageSize;
+        int fromIndex = (int) Math.min((long) (page - 1) * pageSize, totalMatches);
+        int toIndex = Math.min(fromIndex + pageSize, totalMatches);
+
+        List<SearchResponse.Match> matches = rankedMatches.subList(fromIndex, toIndex).stream()
                 .map(ranked -> new SearchResponse.Match(
                         ranked.server().getId(),
                         ranked.server().getRegistryName(),
@@ -73,7 +91,15 @@ public class McpSearchService {
                 ))
                 .toList();
 
-        return new SearchResponse(requirement, analysis.keywords(), matches);
+        return new SearchResponse(
+                requirement,
+                analysis.keywords(),
+                page,
+                pageSize,
+                totalMatches,
+                totalPages,
+                matches
+        );
     }
 
     private static Specification<McpServerEntity> candidateSpec(List<String> keywords) {
