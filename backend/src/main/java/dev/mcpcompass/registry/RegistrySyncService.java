@@ -1,5 +1,6 @@
 package dev.mcpcompass.registry;
 
+import dev.mcpcompass.embedding.ServerEmbeddingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,26 +16,30 @@ public class RegistrySyncService {
     private final RegistryClient client;
     private final RegistrySyncStore store;
     private final RegistrySyncMetrics metrics;
+    private final ServerEmbeddingService embeddingService;
     private final Clock clock;
 
     @Autowired
     public RegistrySyncService(
             RegistryClient client,
             RegistrySyncStore store,
-            RegistrySyncMetrics metrics
+            RegistrySyncMetrics metrics,
+            ServerEmbeddingService embeddingService
     ) {
-        this(client, store, metrics, Clock.systemUTC());
+        this(client, store, metrics, embeddingService, Clock.systemUTC());
     }
 
     RegistrySyncService(
             RegistryClient client,
             RegistrySyncStore store,
             RegistrySyncMetrics metrics,
+            ServerEmbeddingService embeddingService,
             Clock clock
     ) {
         this.client = client;
         this.store = store;
         this.metrics = metrics;
+        this.embeddingService = embeddingService;
         this.clock = clock;
     }
 
@@ -53,6 +58,7 @@ public class RegistrySyncService {
             do {
                 RegistryClient.RegistryPage page = client.fetchServers(cursor, updatedSince);
                 int persistedItems = store.persistPage(page, clock.instant(), syncStartedAt);
+                embeddingService.indexServers(page.servers());
                 pages++;
                 servers += page.servers().size();
                 metrics.recordPage(persistedItems);

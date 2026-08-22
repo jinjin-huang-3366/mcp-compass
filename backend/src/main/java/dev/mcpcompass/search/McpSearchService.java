@@ -1,6 +1,7 @@
 package dev.mcpcompass.search;
 
 import dev.mcpcompass.capability.CapabilityMetadataStore;
+import dev.mcpcompass.embedding.ServerEmbeddingService;
 import dev.mcpcompass.ranking.RankingService;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -24,36 +26,36 @@ public class McpSearchService {
     private final McpServerRepository repository;
     private final RankingService rankingService;
     private final CapabilityMetadataStore capabilityStore;
+    private final ServerEmbeddingService embeddingService;
 
     public McpSearchService(
             RequirementAnalyzer analyzer,
             McpServerRepository repository,
             RankingService rankingService,
-            CapabilityMetadataStore capabilityStore
+            CapabilityMetadataStore capabilityStore,
+            ServerEmbeddingService embeddingService
     ) {
         this.analyzer = analyzer;
         this.repository = repository;
         this.rankingService = rankingService;
         this.capabilityStore = capabilityStore;
+        this.embeddingService = embeddingService;
     }
 
     public SearchResponse search(String requirement) {
         RequirementAnalysis analysis = analyzer.analyze(requirement);
-        if (analysis.keywords().isEmpty()) {
-            return new SearchResponse(requirement, List.of(), List.of());
-        }
-
-        List<McpServerEntity> candidates = repository.findAll(candidateSpec(analysis.keywords()), PageRequest.of(0, 100)).getContent();
+        List<RetrievedCandidate> candidates = candidates(requirement, analysis.keywords());
         Map<UUID, Set<String>> capabilitiesByServer = capabilityStore.findCapabilityNamesByServerIds(
-                candidates.stream().map(McpServerEntity::getId).toList()
+                candidates.stream().map(candidate -> candidate.server().getId()).toList()
         );
 
         List<SearchResponse.Match> matches = candidates.stream()
-                .filter(server -> !"deleted".equalsIgnoreCase(server.getStatus()))
-                .map(server -> rankingService.rank(
-                        server,
+                .filter(candidate -> !"deleted".equalsIgnoreCase(candidate.server().getStatus()))
+                .map(candidate -> rankingService.rank(
+                        candidate.server(),
                         analysis,
-                        capabilitiesByServer.getOrDefault(server.getId(), Set.of())
+                        capabilitiesByServer.getOrDefault(candidate.server().getId(), Set.of()),
+                        candidate.vectorSimilarity()
                 ))
                 .filter(ranked -> ranked.score() > 0)
                 .sorted(Comparator.comparingDouble(RankingService.RankedServer::score).reversed())
@@ -74,6 +76,39 @@ public class McpSearchService {
                 .toList();
 
         return new SearchResponse(requirement, analysis.keywords(), matches);
+    }
+
+    private List<RetrievedCandidate> candidates(String requirement, List<String> keywords) {
+        Map<UUID, RetrievedCandidate> candidatesById = new LinkedHashMap<>();
+        if (!keywords.isEmpty()) {
+            repository.findAll(candidateSpec(keywords), PageRequest.of(0, 100)).getContent()
+                    .forEach(server -> candidatesById.put(
+                            server.getId(),
+                            new RetrievedCandidate(server, null)
+                    ));
+        }
+
+        List<ServerEmbeddingService.ServerEmbeddingMatch> vectorMatches =
+                embeddingService.findNearestServers(requirement);
+        List<UUID> vectorIds = vectorMatches.stream()
+                .map(ServerEmbeddingService.ServerEmbeddingMatch::serverId)
+                .toList();
+        Map<UUID, McpServerEntity> vectorCandidatesById = new java.util.HashMap<>();
+        repository.findAllById(vectorIds)
+                .forEach(server -> vectorCandidatesById.put(server.getId(), server));
+        vectorMatches.forEach(match -> {
+            McpServerEntity server = vectorCandidatesById.get(match.serverId());
+            if (server != null) {
+                candidatesById.put(
+                        match.serverId(),
+                        new RetrievedCandidate(server, match.similarity())
+                );
+            }
+        });
+        return List.copyOf(candidatesById.values());
+    }
+
+    private record RetrievedCandidate(McpServerEntity server, Double vectorSimilarity) {
     }
 
     private static Specification<McpServerEntity> candidateSpec(List<String> keywords) {

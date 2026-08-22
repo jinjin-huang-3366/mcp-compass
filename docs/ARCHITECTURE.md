@@ -45,11 +45,13 @@ Generated or third-party MCP code must run in an isolated worker/container with 
 ## Search pipeline evolution
 
 ### V0.1
-heuristic keywords -> DB candidate filter -> deterministic lexical score with bounded Registry
-maintenance, provenance, and installability signals.
+heuristic keywords -> local lexical candidate filter plus optional pgvector candidate retrieval -> deterministic
+ranking with capability coverage and bounded Registry maintenance, provenance, and installability signals. Vector
+retrieval is disabled by default, records the embedding model with every vector, and falls back to lexical candidates
+when the configured provider or vector query is unavailable.
 
 ### V0.2
-structured requirement -> lexical/vector retrieval -> capability coverage -> quality/trust/installability score -> bounded reranking.
+structured requirement -> hybrid retrieval -> capability coverage -> quality/trust/installability score -> bounded reranking.
 
 Target weighting direction (not a fixed contract): capability coverage should dominate; semantic similarity, maintenance, trust, docs/installability are secondary.
 

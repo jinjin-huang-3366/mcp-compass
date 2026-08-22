@@ -1,5 +1,6 @@
 package dev.mcpcompass.registry;
 
+import dev.mcpcompass.embedding.ServerEmbeddingService;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -23,8 +24,9 @@ class RegistrySyncServiceTest {
     private final RegistrySyncStore store = mock(RegistrySyncStore.class);
     private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
     private final RegistrySyncMetrics metrics = new RegistrySyncMetrics(meterRegistry);
+    private final ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
     private final RegistrySyncService service = new RegistrySyncService(
-            client, store, metrics, Clock.fixed(NOW, ZoneOffset.UTC));
+            client, store, metrics, embeddingService, Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
     void springCreatesServiceWithDependencyConstructor() {
@@ -32,6 +34,7 @@ class RegistrySyncServiceTest {
             context.registerBean(RegistryClient.class, () -> client);
             context.registerBean(RegistrySyncStore.class, () -> store);
             context.registerBean(RegistrySyncMetrics.class, () -> metrics);
+            context.registerBean(ServerEmbeddingService.class, () -> embeddingService);
             context.register(RegistrySyncService.class);
 
             context.refresh();
@@ -54,11 +57,13 @@ class RegistrySyncServiceTest {
         RegistrySyncService.SyncResult result = service.syncPages(2);
 
         assertThat(result).isEqualTo(new RegistrySyncService.SyncResult(2, 2, null));
-        var ordered = inOrder(client, store);
+        var ordered = inOrder(client, store, embeddingService);
         ordered.verify(client).fetchServers("cursor-1", PREVIOUS_SYNC);
         ordered.verify(store).persistPage(first, NOW, NOW);
+        ordered.verify(embeddingService).indexServers(first.servers());
         ordered.verify(client).fetchServers("cursor-2", PREVIOUS_SYNC);
         ordered.verify(store).persistPage(second, NOW, NOW);
+        ordered.verify(embeddingService).indexServers(second.servers());
         assertThat(counter(RegistrySyncMetrics.PAGES)).isEqualTo(2);
         assertThat(counter(RegistrySyncMetrics.ITEMS)).isEqualTo(2);
         assertThat(counter(RegistrySyncMetrics.ERRORS)).isZero();

@@ -16,5 +16,6 @@ Checked when this starter was generated (2026-08-10).
 - Spring Boot: https://spring.io/projects/spring-boot
 - Next.js docs: https://nextjs.org/docs
 - pgvector: https://github.com/pgvector/pgvector
+- OpenAI embeddings API: https://developers.openai.com/api/reference/resources/embeddings/methods/create
 - React versions: https://react.dev/versions
 - React npm package: https://www.npmjs.com/package/react
