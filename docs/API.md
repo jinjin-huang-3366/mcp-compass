@@ -9,15 +9,25 @@ Base path: `/api/v1`
 Request:
 ```json
 {
-  "requirement": "Read GitHub issues, comment on them and create pull requests"
+  "requirement": "Read GitHub issues, comment on them and create pull requests",
+  "page": 1,
+  "pageSize": 10
 }
 ```
+
+`page` is one-based and defaults to `1`. `pageSize` defaults to `10` and is limited to `25`.
+The web UI mirrors the requirement and current page in `q` and `page` URL parameters so a search
+can be bookmarked or shared. Page one omits the optional `page` parameter.
 
 Response shape:
 ```json
 {
   "requirement": "...",
   "keywords": ["github", "issues", "comment", "pull", "requests"],
+  "page": 1,
+  "pageSize": 10,
+  "totalMatches": 18,
+  "totalPages": 2,
   "matches": [
     {
       "id": "uuid",

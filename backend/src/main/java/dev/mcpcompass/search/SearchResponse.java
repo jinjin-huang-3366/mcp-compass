@@ -6,6 +6,10 @@ import java.util.UUID;
 public record SearchResponse(
         String requirement,
         List<String> keywords,
+        int page,
+        int pageSize,
+        int totalMatches,
+        int totalPages,
         List<Match> matches
 ) {
     public record Match(

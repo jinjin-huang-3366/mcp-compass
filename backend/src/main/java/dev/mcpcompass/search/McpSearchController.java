@@ -17,6 +17,10 @@ public class McpSearchController {
 
     @PostMapping("/search")
     public SearchResponse search(@Valid @RequestBody SearchRequest request) {
-        return searchService.search(request.requirement());
+        return searchService.search(
+                request.requirement(),
+                request.effectivePage(),
+                request.effectivePageSize()
+        );
     }
 }

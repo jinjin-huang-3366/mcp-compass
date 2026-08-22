@@ -31,6 +31,11 @@ The checked-in baseline report is `docs/reports/LEXICAL_RANKING_BASELINE_V1.md`.
 ./mvnw -pl backend -Dtest=RankingEvaluationTest test
 ```
 
+The V0.1 top-three exit acceptance review is recorded in
+`docs/reports/V01_TOP3_ACCEPTANCE.md`. It fixes ten manually selected requirements from the versioned fixture
+and requires every one to return a human-labelled acceptable server within its first three ranked results.
+The same `RankingEvaluationTest` command reproduces that 10/10 acceptance check.
+
 The unit test uses a generous two-second guard for the in-memory fixture. This catches gross regressions
 without treating workstation-dependent nanosecond timings as a stable benchmark. Database retrieval latency
 is out of scope for this fixture and should be measured separately when a repeatable seeded database benchmark

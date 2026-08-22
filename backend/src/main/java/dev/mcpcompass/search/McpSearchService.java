@@ -22,6 +22,8 @@ import java.util.UUID;
 
 @Service
 public class McpSearchService {
+    private static final int MAX_CANDIDATES = 100;
+
     private final RequirementAnalyzer analyzer;
     private final McpServerRepository repository;
     private final RankingService rankingService;
@@ -42,14 +44,18 @@ public class McpSearchService {
         this.embeddingService = embeddingService;
     }
 
-    public SearchResponse search(String requirement) {
+    public SearchResponse search(String requirement, int page, int pageSize) {
+        if (page < 1 || pageSize < 1) {
+            throw new IllegalArgumentException("Page and page size must be positive");
+        }
+
         RequirementAnalysis analysis = analyzer.analyze(requirement);
         List<RetrievedCandidate> candidates = candidates(requirement, analysis.keywords());
         Map<UUID, Set<String>> capabilitiesByServer = capabilityStore.findCapabilityNamesByServerIds(
                 candidates.stream().map(candidate -> candidate.server().getId()).toList()
         );
 
-        List<SearchResponse.Match> matches = candidates.stream()
+        List<RankingService.RankedServer> rankedMatches = candidates.stream()
                 .filter(candidate -> !"deleted".equalsIgnoreCase(candidate.server().getStatus()))
                 .map(candidate -> rankingService.rank(
                         candidate.server(),
@@ -58,8 +64,17 @@ public class McpSearchService {
                         candidate.vectorSimilarity()
                 ))
                 .filter(ranked -> ranked.score() > 0)
-                .sorted(Comparator.comparingDouble(RankingService.RankedServer::score).reversed())
-                .limit(10)
+                .sorted(Comparator.comparingDouble(RankingService.RankedServer::score)
+                        .reversed()
+                        .thenComparing(ranked -> ranked.server().getRegistryName()))
+                .toList();
+
+        int totalMatches = rankedMatches.size();
+        int totalPages = totalMatches == 0 ? 0 : (totalMatches + pageSize - 1) / pageSize;
+        int fromIndex = (int) Math.min((long) (page - 1) * pageSize, totalMatches);
+        int toIndex = Math.min(fromIndex + pageSize, totalMatches);
+
+        List<SearchResponse.Match> matches = rankedMatches.subList(fromIndex, toIndex).stream()
                 .map(ranked -> new SearchResponse.Match(
                         ranked.server().getId(),
                         ranked.server().getRegistryName(),
@@ -75,13 +90,21 @@ public class McpSearchService {
                 ))
                 .toList();
 
-        return new SearchResponse(requirement, analysis.keywords(), matches);
+        return new SearchResponse(
+                requirement,
+                analysis.keywords(),
+                page,
+                pageSize,
+                totalMatches,
+                totalPages,
+                matches
+        );
     }
 
     private List<RetrievedCandidate> candidates(String requirement, List<String> keywords) {
         Map<UUID, RetrievedCandidate> candidatesById = new LinkedHashMap<>();
         if (!keywords.isEmpty()) {
-            repository.findAll(candidateSpec(keywords), PageRequest.of(0, 100)).getContent()
+            repository.findAll(candidateSpec(keywords), PageRequest.of(0, MAX_CANDIDATES)).getContent()
                     .forEach(server -> candidatesById.put(
                             server.getId(),
                             new RetrievedCandidate(server, null)
