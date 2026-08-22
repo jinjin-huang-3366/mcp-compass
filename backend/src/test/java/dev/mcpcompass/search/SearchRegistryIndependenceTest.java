@@ -61,7 +61,13 @@ class SearchRegistryIndependenceTest {
                 org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
                 any(Pageable.class)
         )).thenReturn(new PageImpl<>(List.of(persistedServer)));
-        McpSearchService service = new McpSearchService(analyzer, repository, new RankingService(), capabilityStore);
+        when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
+        McpSearchService service = new McpSearchService(
+                analyzer,
+                repository,
+                new RankingService(),
+                capabilityStore
+        );
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new McpSearchController(service)).build();
 
         mockMvc.perform(post("/api/v1/mcp/search")
