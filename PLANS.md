@@ -79,7 +79,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **API-01** — Add `POST /api/v1/mcp/search`. _(Depends on: SRCH-02)_
 - [x] **API-02** — Add `GET /api/v1/mcp/{id}`. _(Depends on: REG-03)_
 - [x] **API-03** — Add simple developer search UI. _(Depends on: FND-02, API-01)_
-- [ ] **API-04** — Render capability coverage and missing capability explanations. _(Depends on: SRCH-04, API-03)_
+- [x] **API-04** — Render capability coverage and missing capability explanations. _(Depends on: SRCH-04, API-03)_
 - [x] **API-05** — Add MCP detail page. _(Depends on: FND-02, API-02)_
 - [x] **API-06** — Add pagination and shareable search query URLs. _(Depends on: API-03)_
 
