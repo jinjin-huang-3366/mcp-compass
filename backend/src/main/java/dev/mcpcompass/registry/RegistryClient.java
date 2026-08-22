@@ -67,10 +67,16 @@ public class RegistryClient {
             String version,
             String status,
             String rawMetadata,
+            boolean officialRegistryProvenance,
+            String repositoryUrl,
+            int packageCount,
+            int remoteCount,
             List<RegistryToolPayload> tools,
             List<RegistryCapabilityPayload> capabilities
     ) {
         public RegistryServerPayload {
+            packageCount = Math.max(0, packageCount);
+            remoteCount = Math.max(0, remoteCount);
             tools = tools == null ? List.of() : List.copyOf(tools);
             capabilities = capabilities == null ? List.of() : List.copyOf(capabilities);
         }
@@ -81,9 +87,22 @@ public class RegistryClient {
                 String description,
                 String version,
                 String status,
+                String rawMetadata,
+                List<RegistryToolPayload> tools,
+                List<RegistryCapabilityPayload> capabilities
+        ) {
+            this(name, title, description, version, status, rawMetadata, false, null, 0, 0, tools, capabilities);
+        }
+
+        public RegistryServerPayload(
+                String name,
+                String title,
+                String description,
+                String version,
+                String status,
                 String rawMetadata
         ) {
-            this(name, title, description, version, status, rawMetadata, List.of(), List.of());
+            this(name, title, description, version, status, rawMetadata, false, null, 0, 0, List.of(), List.of());
         }
     }
 

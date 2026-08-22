@@ -1,0 +1,30 @@
+{
+  "servers": [
+    {
+      "server": {
+        "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+        "name": "io.github.modelcontextprotocol/github",
+        "description": "Repository tools to read GitHub issues, add comments, and create pull requests.",
+        "title": "GitHub MCP Server",
+        "version": "1.2.3",
+        "remotes": [
+          {
+            "type": "streamable-http",
+            "url": "https://example.invalid/github-mcp"
+          }
+        ]
+      },
+      "_meta": {
+        "io.modelcontextprotocol.registry/official": {
+          "status": "active",
+          "publishedAt": "2026-08-01T12:00:00Z",
+          "updatedAt": "2026-08-17T12:00:00Z",
+          "isLatest": true
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "count": 1
+  }
+}

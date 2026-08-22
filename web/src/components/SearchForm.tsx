@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { searchMcps, SearchResponse } from "@/lib/api";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
@@ -151,6 +152,9 @@ export function SearchForm() {
                   Version {match.version || "unknown"} {"\u00b7"} {match.status || "active"}
                 </div>
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
+                <Link className="detailLink" href={`/mcp/${match.id}`}>
+                  View MCP details
+                </Link>
               </article>
             ))
           )}
