@@ -1,5 +1,6 @@
 package dev.mcpcompass.search;
 
+import dev.mcpcompass.capability.CapabilityMetadataStore;
 import dev.mcpcompass.ranking.RankingService;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
@@ -44,6 +45,7 @@ class SearchRegistryIndependenceTest {
     void userSearchReturnsPersistedCandidatesWithoutRegistryRequestComponents() throws Exception {
         RequirementAnalyzer analyzer = mock(RequirementAnalyzer.class);
         McpServerRepository repository = mock(McpServerRepository.class);
+        CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
         McpServerEntity persistedServer = mock(McpServerEntity.class);
         UUID serverId = UUID.fromString("16e45463-617c-4371-8104-3a942c169e2d");
         RequirementAnalysis analysis = new RequirementAnalysis("github issues", List.of("github", "issues"));
@@ -59,7 +61,7 @@ class SearchRegistryIndependenceTest {
                 org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
                 any(Pageable.class)
         )).thenReturn(new PageImpl<>(List.of(persistedServer)));
-        McpSearchService service = new McpSearchService(analyzer, repository, new RankingService());
+        McpSearchService service = new McpSearchService(analyzer, repository, new RankingService(), capabilityStore);
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new McpSearchController(service)).build();
 
         mockMvc.perform(post("/api/v1/mcp/search")
@@ -70,7 +72,7 @@ class SearchRegistryIndependenceTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.matches[0].id").value(serverId.toString()))
                 .andExpect(jsonPath("$.matches[0].registryName").value("io.example/github"))
-                .andExpect(jsonPath("$.matches[0].score").value(1.0));
+                .andExpect(jsonPath("$.matches[0].score").value(0.9));
         verify(repository).findAll(
                 org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
                 any(Pageable.class)
