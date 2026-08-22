@@ -85,6 +85,9 @@ jobs:
             exit 1
           fi
 
+          python .github/scripts/require_current_base.py \
+            --base-ref "origin/$BASE_BRANCH" \
+            --head-ref HEAD
           git diff --check "origin/$BASE_BRANCH...HEAD"
           if git diff --quiet "origin/$BASE_BRANCH...HEAD"; then
             echo "Task branch has no changes relative to $BASE_BRANCH." >&2
@@ -138,6 +141,17 @@ jobs:
       - name: Build web application
         working-directory: web
         run: npm run build
+
+      - name: Recheck branch against latest base
+        env:
+          BASE_BRANCH: ${{ inputs.base_branch }}
+        shell: bash
+        run: |
+          git fetch --no-tags origin \
+            "+refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH"
+          python .github/scripts/require_current_base.py \
+            --base-ref "origin/$BASE_BRANCH" \
+            --head-ref HEAD
 
       - name: Open pull request
         id: pull_request
