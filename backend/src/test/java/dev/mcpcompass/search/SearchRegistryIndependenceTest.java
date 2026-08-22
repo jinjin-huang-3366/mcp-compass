@@ -45,6 +45,7 @@ class SearchRegistryIndependenceTest {
     void userSearchReturnsPersistedCandidatesWithoutRegistryRequestComponents() throws Exception {
         RequirementAnalyzer analyzer = mock(RequirementAnalyzer.class);
         McpServerRepository repository = mock(McpServerRepository.class);
+        CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
         McpServerEntity persistedServer = mock(McpServerEntity.class);
         UUID serverId = UUID.fromString("16e45463-617c-4371-8104-3a942c169e2d");
         RequirementAnalysis analysis = new RequirementAnalysis("github issues", List.of("github", "issues"));
@@ -60,7 +61,6 @@ class SearchRegistryIndependenceTest {
                 org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
                 any(Pageable.class)
         )).thenReturn(new PageImpl<>(List.of(persistedServer)));
-        CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
         when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
         McpSearchService service = new McpSearchService(
                 analyzer,

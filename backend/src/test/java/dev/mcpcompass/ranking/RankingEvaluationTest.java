@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,18 @@ class RankingEvaluationTest {
     private static final String FIXTURE = "/fixtures/ranking/relevance-evaluation-v1.json";
     private static final Instant FIXED_TIME = Instant.parse("2026-08-18T00:00:00Z");
     private static final Duration LATENCY_GUARD = Duration.ofSeconds(2);
+    private static final List<String> TOP3_ACCEPTANCE_QUERY_IDS = List.of(
+            "github-issues-pull-requests",
+            "slack-channel-messaging",
+            "postgresql-read-only",
+            "jira-cloud-issues",
+            "amazon-s3-reader",
+            "kubernetes-pod-observer",
+            "google-drive-reader",
+            "sentry-release-reader",
+            "twilio-sms-only",
+            "gmail-mail-assistant"
+    );
 
     private final HeuristicRequirementAnalyzer analyzer = new HeuristicRequirementAnalyzer();
     private final RankingService rankingService = new RankingService();
@@ -79,9 +92,32 @@ class RankingEvaluationTest {
         assertThat(evaluation.elapsed()).isLessThan(LATENCY_GUARD);
     }
 
+    @Test
+    void tenManuallySelectedRequirementsHaveAnAcceptableTopThreeResult() throws IOException {
+        Dataset dataset = dataset();
+        Map<String, QueryLabel> queries = new LinkedHashMap<>();
+        dataset.queries().forEach(query -> queries.put(query.id(), query));
+        Map<String, McpServerEntity> servers = servers(dataset);
+
+        assertThat(TOP3_ACCEPTANCE_QUERY_IDS).hasSize(10).doesNotHaveDuplicates();
+        assertThat(queries.keySet()).containsAll(TOP3_ACCEPTANCE_QUERY_IDS);
+
+        TOP3_ACCEPTANCE_QUERY_IDS.forEach(queryId -> {
+            QueryLabel query = queries.get(queryId);
+            List<RankedLabel> ranked = rank(query, servers);
+            int acceptableRank = firstRank(ranked, query.acceptableServerIds());
+
+            System.out.println("EXIT-02 top-3 for %s: %s".formatted(queryId, ranked.stream().limit(3).toList()));
+            assertThat(query.acceptableServerIds()).as(queryId + " labelled acceptable servers").isNotEmpty();
+            assertThat(ranked).as(queryId + " ranked results").isNotEmpty();
+            assertThat(acceptableRank).as(queryId + " acceptable result rank").isBetween(1, 3);
+            assertThat(ranked.getFirst().score()).as(queryId + " strong-match score")
+                    .isGreaterThanOrEqualTo(dataset.strongMatchThreshold());
+        });
+    }
+
     private Evaluation evaluate(Dataset dataset) {
-        Map<String, McpServerEntity> servers = new HashMap<>();
-        dataset.servers().forEach(label -> servers.put(label.id(), server(label)));
+        Map<String, McpServerEntity> servers = servers(dataset);
 
         int labelledQueries = 0;
         int top1Acceptable = 0;
@@ -93,15 +129,7 @@ class RankingEvaluationTest {
         long started = System.nanoTime();
 
         for (QueryLabel query : dataset.queries()) {
-            RequirementAnalysis analysis = analyzer.analyze(query.requirement());
-            List<RankedLabel> ranked = query.candidateServerIds().stream()
-                    .map(id -> new RankedLabel(id, rankingService.rank(servers.get(id), analysis).score()))
-                    .filter(result -> result.score() > 0.0)
-                    .sorted((left, right) -> {
-                        int scoreOrder = Double.compare(right.score(), left.score());
-                        return scoreOrder != 0 ? scoreOrder : left.id().compareTo(right.id());
-                    })
-                    .toList();
+            List<RankedLabel> ranked = rank(query, servers);
 
             if (!query.acceptableServerIds().isEmpty()) {
                 labelledQueries++;
@@ -140,6 +168,24 @@ class RankingEvaluationTest {
                 badMatchesInTop3,
                 Duration.ofNanos(System.nanoTime() - started)
         );
+    }
+
+    private List<RankedLabel> rank(QueryLabel query, Map<String, McpServerEntity> servers) {
+        RequirementAnalysis analysis = analyzer.analyze(query.requirement());
+        return query.candidateServerIds().stream()
+                .map(id -> new RankedLabel(id, rankingService.rank(servers.get(id), analysis).score()))
+                .filter(result -> result.score() > 0.0)
+                .sorted((left, right) -> {
+                    int scoreOrder = Double.compare(right.score(), left.score());
+                    return scoreOrder != 0 ? scoreOrder : left.id().compareTo(right.id());
+                })
+                .toList();
+    }
+
+    private static Map<String, McpServerEntity> servers(Dataset dataset) {
+        Map<String, McpServerEntity> servers = new HashMap<>();
+        dataset.servers().forEach(label -> servers.put(label.id(), server(label)));
+        return servers;
     }
 
     private static int firstRank(List<RankedLabel> ranked, List<String> acceptableServerIds) {
