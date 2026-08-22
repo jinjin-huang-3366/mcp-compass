@@ -72,7 +72,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **SRCH-03** — Add normalized capability tables populated from server/tool metadata. _(Depends on: REG-03, REQ-02)_
 - [x] **SRCH-04** — Add capability coverage as the dominant ranking factor. _(Depends on: SRCH-02, SRCH-03)_
 - [x] **SRCH-05** — Add maintenance/trust/installability features. _(Depends on: SRCH-02)_
-- [ ] **SRCH-06** — Add vector retrieval only after a baseline benchmark exists. _(Depends on: FND-03, SRCH-07)_
+- [x] **SRCH-06** — Add vector retrieval only after a baseline benchmark exists. _(Depends on: FND-03, SRCH-07)_
 - [x] **SRCH-07** — Build a small relevance evaluation dataset and ranking report. _(Depends on: REQ-02, SRCH-02)_
 
 ### API/UI
