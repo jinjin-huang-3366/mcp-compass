@@ -81,7 +81,7 @@ The `.agent/` directory exists only to explain the older/singular naming. Do not
 
 The `Codex task pull request` workflow validates one task branch already implemented and pushed by the active local Codex session, opens a pull request without merging it, and emails the local Codex summary. It never calls the OpenAI API, selects another backlog task, or starts follow-up work automatically.
 
-From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates a branch from the requested base, implements and validates the task locally, commits and pushes only the task changes, then dispatches and monitors this workflow.
+From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates a branch from the requested base, implements the task, synchronizes with the latest base, validates the combined result, commits and pushes only the intended changes, then dispatches and monitors this workflow.
 
 For concurrent delivery, use the canonical [parallel delivery groups](PLANS.md#parallel-delivery-groups). Invoke `$mcp-task-batch-flow` with one `PG-*` ID to coordinate the whole ready group, or start one isolated `$mcp-task-pr-flow` session per task ID. The batch skill still gives every task its own branch, workflow run, email, plan marker, and pull request.
 
@@ -92,7 +92,9 @@ For concurrent delivery, use the canonical [parallel delivery groups](PLANS.md#p
 5. Review the generated pull request and email summary, then merge the pull request manually when it is ready.
 6. Start another workflow run only when the next task should begin.
 
-The local Codex session uses the developer's existing GitHub authentication to push the task branch. GitHub supplies the short-lived `GITHUB_TOKEN` used to open the pull request and start baseline CI; no personal access token or OpenAI API key is stored as a repository secret. The workflow checks that the task branch differs from the base, runs the backend tests plus frontend lint and build, and copies the complete desk-testing guidance into both the pull request and email summary. It automatically prepends steps to start PostgreSQL, the backend, and the frontend; check both services are ready; and stop them after testing.
+The local Codex session uses the developer's existing GitHub authentication to push the task branch. GitHub supplies the short-lived `GITHUB_TOKEN` used to open the pull request and start baseline CI; no personal access token or OpenAI API key is stored as a repository secret. The workflow checks that the task branch differs from the base and contains the latest fetched base commit both before validation and immediately before pull request creation. It runs the backend tests plus frontend lint and build, and copies the complete desk-testing guidance into both the pull request and email summary. Codex completes the handoff only after GitHub reports the final pull request head mergeable against the current base and CI passes on that head. It automatically prepends steps to start PostgreSQL, the backend, and the frontend; check both services are ready; and stop them after testing.
+
+Conflict freedom is verified at handoff, not guaranteed forever. If the base changes later—for example, after another batch PR merges—the affected task branch must be synchronized and revalidated again before manual merge.
 
 When an exact plan item is supplied, the task workflow validates that it is currently unchecked and adds a machine-readable marker to the pull request. After that pull request is merged, `Mark merged plan item complete` changes only the matching `- [ ]` entry to `- [x]` on the base branch. Pull requests without the marker are ignored, and ambiguous or unknown items fail without modifying the plan.
 

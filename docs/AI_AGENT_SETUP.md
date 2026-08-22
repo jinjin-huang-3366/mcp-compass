@@ -45,7 +45,7 @@ Use $mcp-task-pr-flow for SRCH-04 from PG-01.
 Use $mcp-task-pr-flow for API-05 from PG-01.
 ```
 
-The batch skill confirms every task's dependencies against the latest `main` before creating any branch. Group membership describes dependency safety, not guaranteed merge-conflict safety; review each PR independently and coordinate tasks that touch the same module.
+The batch skill confirms every task's dependencies against the latest `main` before creating any branch. Each child then synchronizes with the latest base before dispatch, and the coordinator requires GitHub mergeability plus passing CI on the final PR head. Group membership describes dependency safety, not permanent merge-conflict safety: merging one sibling can advance `main`, so re-synchronize any affected open PR before its manual merge.
 
 ## GitHub Copilot
 This repo contains `.github/copilot-instructions.md` and path-specific `.github/instructions/*.instructions.md`.

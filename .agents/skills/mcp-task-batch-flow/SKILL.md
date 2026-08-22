@@ -1,6 +1,6 @@
 ---
 name: mcp-task-batch-flow
-description: Deliver one MCP Compass PLANS.md parallel group as multiple independent task branches and pull requests by orchestrating isolated subagents that each follow mcp-task-pr-flow. Use when the user invokes $mcp-task-batch-flow, asks to execute a PG-* group, or wants one command to fan out dependency-independent plan tasks into separate validated PRs and email summaries without merging them.
+description: Deliver one MCP Compass PLANS.md parallel group as multiple independent, conflict-checked task branches and pull requests by orchestrating isolated subagents that each follow mcp-task-pr-flow. Use when the user invokes $mcp-task-batch-flow, asks to execute a PG-* group, or wants one command to fan out dependency-independent plan tasks into separate validated PRs and email summaries without merging them.
 ---
 
 # MCP task batch flow
@@ -31,7 +31,7 @@ Complete these checks before starting any child:
 2. Confirm GitHub authentication and permissions plus the existence of `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` without reading their values.
 3. Assign deterministic branches `task/<lowercase-task-id>`, for example `task/srch-04`.
 4. Validate every branch with `git check-ref-format --branch` and confirm no assigned branch or open PR already exists locally or remotely. Never overwrite or force-push.
-5. Create one isolated clone or worktree per actionable task from the same base commit. Never let children share a working tree or inherit another task's changes.
+5. Create one isolated clone or worktree per actionable task from the same base commit. Never let children share a working tree or inherit another task's changes. The pinned commit is the common starting point, not permission to publish a stale branch: every child must synchronize with the latest base through `$mcp-task-pr-flow` before dispatch.
 6. Present the resolved task list, skipped completed tasks, base commit, branches, and concurrency limit in the working plan.
 
 Treat any failed preflight as batch-blocking. Do not create a partial set of branches when the failure is discoverable in advance.
@@ -47,6 +47,7 @@ Treat any failed preflight as batch-blocking. Do not create a partial set of bra
 3. Require each child to read the applicable repository skills and documents itself. Do not pre-decide task implementation details in the coordinator.
 4. As a child reaches a terminal state, launch the next queued task until the group is exhausted or a child fails.
 5. Expect `.github/workflows/task-pr.yml` runs to queue because the repository uses the `codex-single-task-flow` concurrency group. A queued run is not a reason to redispatch it.
+6. Before accepting a child's result, require its final pull request head to contain the latest base, be reported `MERGEABLE` by GitHub, and have passing baseline CI on that exact head. If the base advanced, return the task to that child for the single post-creation synchronization allowed by `$mcp-task-pr-flow`.
 
 Each child must leave its canonical checkbox unchecked in its task branch. The merge workflow completes that one exact item only after manual merge.
 
@@ -68,10 +69,13 @@ For every successful child, independently verify:
 - branch and commit match the task PR;
 - base branch is correct;
 - PR is open, unmerged, and has no auto-merge;
+- the latest base commit is an ancestor of the final PR head and GitHub reports it `MERGEABLE`;
 - PR body contains complete desk testing and the exact hidden plan marker;
-- task workflow validation, baseline CI, and email step succeeded.
+- task workflow validation, final-head baseline CI, and email step succeeded.
 
 Return a compact table with one row per group member: task, status, branch, PR, workflow, and CI. List completed tasks skipped by the resolver and tasks not started after a failure. Stop without merging or starting a later group.
+
+The checks guarantee that every PR is conflict-free against the base at batch handoff. Because the PRs remain independent and unmerged, a later base update—including merging a sibling PR—can invalidate that state; re-run the single-task synchronization for any affected PR immediately before its manual merge.
 
 ## Example
 
