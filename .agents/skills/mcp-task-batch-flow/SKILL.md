@@ -44,6 +44,7 @@ Treat any failed preflight as batch-blocking. Do not create a partial set of bra
    - isolated checkout path and pinned base commit;
    - task ID, canonical task text, and deterministic branch;
    - explicit instruction to use `$mcp-task-pr-flow` for exactly that task;
+   - instruction to include one concrete before/after, request/response, or user-visible example in the pull request and email;
    - instruction to return branch, commit, task workflow URL, PR URL, baseline CI result, email result, and any failure.
 3. Require each child to read the applicable repository skills and documents itself. Do not pre-decide task implementation details in the coordinator.
 4. As a child reaches a terminal state, launch the next queued task until the group is exhausted or a child fails.
@@ -58,10 +59,10 @@ The `Status` column in the parallel delivery table is derived from those canonic
 
 When any child fails:
 
-1. Stop launching new tasks.
-2. Let already-running children reach a safe terminal state; do not interrupt a publish or workflow operation solely because a sibling failed.
-3. Do not retry workflows, reuse branches, merge PRs, or make compensating changes.
-4. Report successful PRs, failed tasks, untouched queued tasks, and the first causal error for each failure.
+1. Let that child apply the single-task flow's bounded retry policy: at most two retries after its initial attempt, with diagnosis and an in-scope correction or confirmed transient cause before each retry. The coordinator must not spawn a duplicate child or independently redispatch the same branch.
+2. While a child is retrying, do not launch new queued tasks. Let already-running siblings reach a safe terminal state; do not interrupt a publish or workflow operation solely because of the retry.
+3. If the child succeeds within three total attempts, continue the queue. If it reaches a terminal failure, stop launching tasks and do not merge, force-push, or make coordinator-side compensating changes.
+4. Report successful PRs, terminally failed tasks, untouched queued tasks, every attempt URL/outcome, and the first causal error for each terminal failure.
 
 The user must explicitly request a resumed batch. On resume, rerun the full preflight against current `main`, skip tasks now checked, and never overwrite branches left by the earlier attempt.
 
@@ -74,6 +75,7 @@ For every successful child, independently verify:
 - PR is open, unmerged, and has no auto-merge;
 - the latest base commit is an ancestor of the final PR head and GitHub reports it `MERGEABLE`;
 - PR body contains complete desk testing and the exact hidden plan marker;
+- PR body contains the task's concrete example;
 - task workflow validation, final-head baseline CI, and email step succeeded.
 
 Return a compact table with one row per group member: task, status, branch, PR, workflow, and CI. Include the group's current completion status, list completed tasks skipped by the resolver and tasks not started after a failure, and note that the merge workflow will advance the count after each manual merge. Stop without merging or starting a later group.
