@@ -20,7 +20,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-01 — V0.1 independent work** | `SRCH-04`, `SRCH-05`, `SRCH-07`, `API-05`, `API-06`, `EXIT-01`, `EXIT-03`, `EXIT-04` | All direct dependencies are checked. | Complete (8/8) |
 | **PG-02 — finish V0.1** | `SRCH-06`, `API-04`, `EXIT-02` | `SRCH-04` and `SRCH-07` | Complete (3/3) |
 | **PG-03 — begin enrichment** | `ENR-01`, `ENR-02` | `EXIT-01`, `EXIT-02`, `EXIT-03`, `EXIT-04` | Complete (2/2) |
-| **PG-04 — score enriched data** | `ENR-03`, `ENR-05` | `SRCH-04`, `SRCH-05`, `ENR-01`, `ENR-02` | Not started (0/2) |
+| **PG-04 — score enriched data** | `ENR-03`, `ENR-05` | `SRCH-04`, `SRCH-05`, `ENR-01`, `ENR-02` | In progress (1/2) |
 | **PG-05 — explain ranking** | `ENR-04` | `SRCH-05`, `ENR-03` | Not started (0/1) |
 | **PG-06 — accept an API source** | `GEN-01` | `ENR-04`, `ENR-05` | Not started (0/1) |
 | **PG-07 — propose a contract** | `GEN-02` | `GEN-01` | Not started (0/1) |
@@ -92,7 +92,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 ## V0.2 — enrichment and better ranking
 - [x] **ENR-01** — GitHub repository enrichment: activity, release age, archived status, license. _(Depends on: EXIT-01, EXIT-02, EXIT-03, EXIT-04)_
 - [x] **ENR-02** — Inspect discoverable MCP tool schemas without unsafe arbitrary execution where possible. _(Depends on: EXIT-01, EXIT-02, EXIT-03, EXIT-04)_
-- [ ] **ENR-03** — Capability normalization and coverage scoring. _(Depends on: SRCH-03, SRCH-04, ENR-02)_
+- [x] **ENR-03** — Capability normalization and coverage scoring. _(Depends on: SRCH-03, SRCH-04, ENR-02)_
 - [ ] **ENR-04** — Explain ranking feature contributions. _(Depends on: SRCH-05, ENR-03)_
 - [ ] **ENR-05** — Add basic trust/quality score. _(Depends on: SRCH-05, ENR-01, ENR-02)_
 
