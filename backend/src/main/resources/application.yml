@@ -1,6 +1,10 @@
 spring:
   application:
     name: mcp-compass
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mcp_compass}
     username: ${SPRING_DATASOURCE_USERNAME:mcp_compass}
@@ -19,6 +23,11 @@ management:
         include: health,info,metrics
 
 app:
+  generation:
+    openapi-source:
+      max-bytes: 2097152
+      connect-timeout: 5s
+      read-timeout: 20s
   github:
     enrichment:
       enabled: ${MCP_COMPASS_GITHUB_ENRICHMENT_ENABLED:false}

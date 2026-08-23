@@ -93,3 +93,38 @@ Only with Spring `local` profile:
 `POST /dev/registry/sync?maxPages=1`
 
 This endpoint is deliberately not intended for production exposure.
+
+## Accept an OpenAPI source
+
+`POST /generation/sources/openapi`
+
+Upload an OpenAPI 3.x JSON or YAML file as multipart form data:
+
+```bash
+curl -F "file=@petstore.yaml" http://localhost:8080/api/v1/generation/sources/openapi
+```
+
+Or submit a public HTTPS URL as JSON:
+
+```json
+{"url":"https://developer.example.com/openapi.json"}
+```
+
+The backend fetches URL sources with redirects disabled, rejects credentials, non-default ports, and
+hosts that resolve to private/local addresses, and limits both source types to 2 MiB. It parses the
+document without executing source content and returns a summary for the later contract-design stage:
+
+```json
+{
+  "sourceType": "FILE",
+  "sourceLocation": "petstore.yaml",
+  "openApiVersion": "3.1.0",
+  "title": "Pet Store",
+  "apiVersion": "1.0.0",
+  "pathCount": 1,
+  "operationCount": 2
+}
+```
+
+This endpoint only accepts and validates the source. It does not select endpoints, propose MCP tools,
+or generate code.

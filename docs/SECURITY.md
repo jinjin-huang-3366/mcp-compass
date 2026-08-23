@@ -11,6 +11,9 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
 - Search does not execute server tools.
 - Tool-schema enrichment reads bounded, declared JSON metadata only. It does not install or start MCP
   packages, connect to publisher endpoints, or invoke tools; invalid and oversized schemas are discarded.
+- OpenAPI URL ingestion permits public HTTPS sources only, disables redirects, rejects credentials and
+  non-default ports, checks resolved addresses for local/private ranges, and caps response size. Uploaded
+  OpenAPI files are subject to the same size bound. Parsing never executes source content.
 
 ## Future sandbox requirements
 - ephemeral container/microVM;
