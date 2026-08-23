@@ -128,3 +128,40 @@ document without executing source content and returns a summary for the later co
 
 This endpoint only accepts and validates the source. It does not select endpoints, propose MCP tools,
 or generate code.
+
+## Propose an MCP tool contract
+
+`POST /generation/contracts/openapi`
+
+Submit the same multipart `file` or JSON `url` request supported by the OpenAPI source endpoint. The
+backend returns a versioned, reviewable contract with one proposed tool per OpenAPI operation. The
+proposal includes each tool's name, description, JSON input/output schemas, source HTTP operation,
+declared authentication requirements, and conservative risk classification.
+
+For example, a `GET /pets` operation with `operationId: listPets` produces:
+
+```json
+{
+  "contractVersion": "1.0",
+  "status": "PROPOSED",
+  "source": {
+    "type": "FILE",
+    "location": "petstore.yaml",
+    "openApiVersion": "3.1.0",
+    "title": "Pet Store",
+    "apiVersion": "1.0.0"
+  },
+  "tools": [{
+    "name": "list_pets",
+    "description": "List pets",
+    "inputSchema": {"type": "object", "properties": {}, "additionalProperties": false},
+    "outputSchema": {"type": "array", "items": {"type": "object"}},
+    "sourceOperation": {"method": "GET", "path": "/pets", "operationId": "listPets"},
+    "authenticationRequirements": ["apiKey"],
+    "risk": "READ_ONLY"
+  }]
+}
+```
+
+The contract is a proposal: this endpoint does not approve endpoint selection, persist developer
+edits, generate source code, or execute API/MCP code. Those remain later generation stages.
