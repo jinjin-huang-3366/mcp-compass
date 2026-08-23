@@ -36,6 +36,7 @@ Response shape:
       "description": "...",
       "version": "1.0.0",
       "score": 0.82,
+      "qualityScore": 0.75,
       "capabilityCoverage": 0.5,
       "matchedCapabilities": ["github.issue.read"],
       "missingCapabilities": ["github.pull-request.create"],
@@ -50,6 +51,11 @@ by the server's normalized capability metadata. Coverage contributes 80% of the 
 overlap contributes 20%. The matched and missing lists make that contribution explicit. For
 heuristic-only requirements with no structured capabilities, `capabilityCoverage` is `null` and
 ranking falls back to deterministic text overlap.
+
+`qualityScore` is a deterministic value from 0 to 1 built from persisted Registry provenance,
+installability, declared tool-schema coverage, and GitHub enrichment (archive status, license, and
+activity). It contributes a bounded 15% of secondary ranking so capability coverage remains dominant.
+Missing enrichment adds no credit; it is never guessed and search does not call GitHub or an MCP server.
 
 Coverage matching is deterministic and normalizes common Registry/tool naming variants. For
 example, a discovered `github.create_pull_requests` capability covers the requested

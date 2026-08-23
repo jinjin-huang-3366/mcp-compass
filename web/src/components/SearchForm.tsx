@@ -150,7 +150,8 @@ export function SearchForm() {
                 </div>
                 <p>{match.description || "No description provided."}</p>
                 <div className="meta">
-                  Version {match.version || "unknown"} {"\u00b7"} {match.status || "active"}
+                  Version {match.version || "unknown"} {"\u00b7"} {match.status || "active"} {"\u00b7"}{" "}
+                  Quality {Math.round(match.qualityScore * 100)}%
                 </div>
                 <CapabilityCoverage
                   coverage={match.capabilityCoverage}

@@ -6,6 +6,7 @@ export type SearchMatch = {
   version: string | null;
   status: string | null;
   score: number;
+  qualityScore: number;
   capabilityCoverage: number | null;
   matchedCapabilities: string[];
   missingCapabilities: string[];
