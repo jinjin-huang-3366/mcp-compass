@@ -14,10 +14,10 @@ SPEC.loader.exec_module(RESOLVER)
 
 PLAN = """# Plan
 
-| Group | Task IDs | Start after |
-| --- | --- | --- |
-| **PG-01 — ready work** | `TASK-02`, `TASK-03` | `TASK-01` |
-| **PG-02 — later work** | `TASK-04` | `TASK-02` |
+| Group | Task IDs | Start after | Status |
+| --- | --- | --- | --- |
+| **PG-01 — ready work** | `TASK-02`, `TASK-03` | `TASK-01` | Not started (0/2) |
+| **PG-02 — later work** | `TASK-04` | `TASK-02` | Not started (0/1) |
 
 - [x] **TASK-01** — Foundation. _(Depends on: none)_
 - [ ] **TASK-02** — First ready task. _(Depends on: TASK-01)_
@@ -31,6 +31,7 @@ class ResolveGroupTest(unittest.TestCase):
         result = RESOLVER.resolve_group(PLAN, "pg-01")
 
         self.assertEqual("ready", result["status"])
+        self.assertEqual("Not started (0/2)", result["completion_status"])
         self.assertEqual(["TASK-02", "TASK-03"], result["ready_task_ids"])
         first = result["tasks"][0]
         self.assertEqual("task/task-02", first["branch_name"])
@@ -48,13 +49,21 @@ class ResolveGroupTest(unittest.TestCase):
         self.assertEqual(["TASK-02"], result["tasks"][0]["blocked_by"])
 
     def test_skips_completed_group_members(self):
-        plan = PLAN.replace("- [ ] **TASK-02**", "- [x] **TASK-02**")
+        plan = PLAN.replace("- [ ] **TASK-02**", "- [x] **TASK-02**").replace(
+            "Not started (0/2)", "In progress (1/2)"
+        )
 
         result = RESOLVER.resolve_group(plan, "PG-01")
 
         self.assertEqual("ready", result["status"])
         self.assertEqual(["TASK-02"], result["completed_task_ids"])
         self.assertEqual(["TASK-03"], result["ready_task_ids"])
+
+    def test_rejects_stale_completion_status(self):
+        plan = PLAN.replace("- [ ] **TASK-02**", "- [x] **TASK-02**")
+
+        with self.assertRaisesRegex(RESOLVER.PlanError, "stale completion status"):
+            RESOLVER.resolve_group(plan, "PG-01")
 
     def test_rejects_same_group_dependency(self):
         plan = PLAN.replace(

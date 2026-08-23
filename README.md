@@ -96,7 +96,7 @@ The local Codex session uses the developer's existing GitHub authentication to p
 
 Conflict freedom is verified at handoff, not guaranteed forever. If the base changes later—for example, after another batch PR merges—the affected task branch must be synchronized and revalidated again before manual merge.
 
-When an exact plan item is supplied, the task workflow validates that it is currently unchecked and adds a machine-readable marker to the pull request. After that pull request is merged, `Mark merged plan item complete` changes only the matching `- [ ]` entry to `- [x]` on the base branch. Pull requests without the marker are ignored, and ambiguous or unknown items fail without modifying the plan.
+When an exact plan item is supplied, the task workflow validates that it is currently unchecked and adds a machine-readable marker to the pull request. After that pull request is merged, `Mark merged plan item and group complete` changes only the matching `- [ ]` entry to `- [x]` on the base branch and derives the parallel delivery group's `Status` count from all of its canonical task checkboxes. The group is marked complete only after every listed task pull request has been merged. Pull requests without the marker are ignored, and ambiguous or unknown items fail without modifying the plan.
 
 ## Important design constraints
 

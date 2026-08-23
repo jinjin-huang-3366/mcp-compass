@@ -20,8 +20,9 @@ This skill requires subagent support. Never implement multiple group tasks in th
    ```
 
 4. Treat the resolver's `plan_item` as the exact task-flow input. It intentionally excludes the `- [ ]` prefix.
-5. Skip group members already checked. If all members are checked, report a no-op and stop without creating branches or dispatching workflows.
-6. If any unchecked member is blocked, missing, duplicated, or dependent on another member of the same group, stop the entire batch before mutation.
+5. Treat the resolver's `completion_status` as the table's canonical progress summary. The resolver rejects a status that does not match the member checkboxes.
+6. Skip group members already checked. If all members are checked, report a no-op and stop without creating branches or dispatching workflows.
+7. If any unchecked member is blocked, missing, duplicated, or dependent on another member of the same group, stop the entire batch before mutation.
 
 ## Preflight the whole batch
 
@@ -51,6 +52,8 @@ Treat any failed preflight as batch-blocking. Do not create a partial set of bra
 
 Each child must leave its canonical checkbox unchecked in its task branch. The merge workflow completes that one exact item only after manual merge.
 
+The `Status` column in the parallel delivery table is derived from those canonical checkboxes. Each merged task PR updates the group count, and the merge workflow changes the group to `Complete (n/n)` only when every listed task PR has been merged. The batch flow must not edit this status itself or report the group complete while any child PR remains open.
+
 ## Failure policy
 
 When any child fails:
@@ -73,7 +76,7 @@ For every successful child, independently verify:
 - PR body contains complete desk testing and the exact hidden plan marker;
 - task workflow validation, final-head baseline CI, and email step succeeded.
 
-Return a compact table with one row per group member: task, status, branch, PR, workflow, and CI. List completed tasks skipped by the resolver and tasks not started after a failure. Stop without merging or starting a later group.
+Return a compact table with one row per group member: task, status, branch, PR, workflow, and CI. Include the group's current completion status, list completed tasks skipped by the resolver and tasks not started after a failure, and note that the merge workflow will advance the count after each manual merge. Stop without merging or starting a later group.
 
 The checks guarantee that every PR is conflict-free against the base at batch handoff. Because the PRs remain independent and unmerged, a later base update—including merging a sibling PR—can invalidate that state; re-run the single-task synchronization for any affected PR immediately before its manual merge.
 

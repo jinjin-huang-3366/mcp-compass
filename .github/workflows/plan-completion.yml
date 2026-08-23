@@ -1,4 +1,4 @@
-name: Mark merged plan item complete
+name: Mark merged plan item and group complete
 
 on:
   pull_request:
@@ -23,13 +23,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Mark linked plan item complete
+      - name: Mark linked plan item and update group status
         id: plan
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: python .github/scripts/mark_plan_item_complete.py
 
-      - name: Commit completed plan item
+      - name: Commit completed plan item and group status
         if: ${{ steps.plan.outputs.changed == 'true' }}
         env:
           BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
@@ -40,6 +40,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- PLANS.md
           git diff --cached --check
-          git commit -m "Mark merged plan item complete"
+          git commit -m "Update merged task and group status"
           gh auth setup-git
           git push origin "HEAD:$BASE_BRANCH"
