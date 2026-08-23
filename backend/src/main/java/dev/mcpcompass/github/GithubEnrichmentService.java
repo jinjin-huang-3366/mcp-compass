@@ -3,6 +3,7 @@ package dev.mcpcompass.github;
 import dev.mcpcompass.registry.RegistryClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -17,6 +18,7 @@ public class GithubEnrichmentService {
     private final GithubRepositoryMetricStore store;
     private final Clock clock;
 
+    @Autowired
     GithubEnrichmentService(
             GithubEnrichmentProperties properties,
             GithubRepositoryClient client,

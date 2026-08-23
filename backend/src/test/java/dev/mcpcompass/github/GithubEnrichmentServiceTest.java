@@ -2,6 +2,7 @@ package dev.mcpcompass.github;
 
 import dev.mcpcompass.registry.RegistryClient;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -18,6 +19,22 @@ class GithubEnrichmentServiceTest {
     private static final Instant NOW = Instant.parse("2026-08-23T10:00:00Z");
     private final GithubRepositoryClient client = mock(GithubRepositoryClient.class);
     private final GithubRepositoryMetricStore store = mock(GithubRepositoryMetricStore.class);
+
+    @Test
+    void springCreatesServiceWithTheProductionConstructor() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
+            GithubEnrichmentProperties properties = new GithubEnrichmentProperties(
+                    false, "https://api.github.com", "", Duration.ofSeconds(1), Duration.ofSeconds(2));
+            context.registerBean(GithubEnrichmentProperties.class, () -> properties);
+            context.registerBean(GithubRepositoryClient.class, () -> client);
+            context.registerBean(GithubRepositoryMetricStore.class, () -> store);
+            context.register(GithubEnrichmentService.class);
+
+            context.refresh();
+
+            org.assertj.core.api.Assertions.assertThat(context.getBean(GithubEnrichmentService.class)).isNotNull();
+        }
+    }
 
     @Test
     void enrichesGithubRepositoriesAndPersistsCollectionTime() {
