@@ -53,6 +53,13 @@ Embedding requests are batched once per Registry page and happen after metadata 
 pgvector query failure logs only the exception type and falls back to lexical search; it does not make Registry data or
 user search unavailable.
 
+### Optional GitHub repository enrichment
+
+Set `MCP_COMPASS_GITHUB_ENRICHMENT_ENABLED=true` to refresh repository activity, latest release time, archived status,
+and SPDX license in `repo_metrics` after each Registry page is persisted. `GITHUB_TOKEN` is optional for public
+repositories but recommended to obtain a higher API rate limit. GitHub failures are logged per repository and do not
+fail Registry persistence or introduce a dependency in the search request path.
+
 Registry sync observability is available through Spring Boot Actuator metrics:
 
 - `mcp.registry.sync.pages` — pages persisted successfully;

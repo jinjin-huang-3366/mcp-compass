@@ -1,6 +1,7 @@
 package dev.mcpcompass.registry;
 
 import dev.mcpcompass.embedding.ServerEmbeddingService;
+import dev.mcpcompass.github.GithubEnrichmentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ public class RegistrySyncService {
     private final RegistrySyncStore store;
     private final RegistrySyncMetrics metrics;
     private final ServerEmbeddingService embeddingService;
+    private final GithubEnrichmentService githubEnrichmentService;
     private final Clock clock;
 
     @Autowired
@@ -24,9 +26,10 @@ public class RegistrySyncService {
             RegistryClient client,
             RegistrySyncStore store,
             RegistrySyncMetrics metrics,
-            ServerEmbeddingService embeddingService
+            ServerEmbeddingService embeddingService,
+            GithubEnrichmentService githubEnrichmentService
     ) {
-        this(client, store, metrics, embeddingService, Clock.systemUTC());
+        this(client, store, metrics, embeddingService, githubEnrichmentService, Clock.systemUTC());
     }
 
     RegistrySyncService(
@@ -34,12 +37,14 @@ public class RegistrySyncService {
             RegistrySyncStore store,
             RegistrySyncMetrics metrics,
             ServerEmbeddingService embeddingService,
+            GithubEnrichmentService githubEnrichmentService,
             Clock clock
     ) {
         this.client = client;
         this.store = store;
         this.metrics = metrics;
         this.embeddingService = embeddingService;
+        this.githubEnrichmentService = githubEnrichmentService;
         this.clock = clock;
     }
 
@@ -59,6 +64,7 @@ public class RegistrySyncService {
                 RegistryClient.RegistryPage page = client.fetchServers(cursor, updatedSince);
                 int persistedItems = store.persistPage(page, clock.instant(), syncStartedAt);
                 embeddingService.indexServers(page.servers());
+                githubEnrichmentService.enrichServers(page.servers());
                 pages++;
                 servers += page.servers().size();
                 metrics.recordPage(persistedItems);

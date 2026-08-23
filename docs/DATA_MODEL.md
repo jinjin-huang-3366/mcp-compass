@@ -34,7 +34,9 @@ Registry upsert replaces that server's tool and capability mappings so repeated 
 and removed upstream metadata does not remain searchable.
 
 ### `repo_metrics`
-Future GitHub maintenance/quality enrichment.
+Latest GitHub repository enrichment for a Registry server: repository URL, last push and release timestamps,
+archived status, SPDX license identifier, and collection time. Registry sync refreshes these values only when
+GitHub enrichment is enabled; a GitHub failure does not discard Registry metadata or make search depend on GitHub.
 
 ### `validation_result`
 Future build/protocol/security validation history.
