@@ -42,6 +42,12 @@ public class McpServerEntity {
     @Column(name = "remote_count", nullable = false)
     private int remoteCount;
 
+    @Column(name = "tool_schema_status", nullable = false)
+    private String toolSchemaStatus = "NOT_DISCOVERABLE";
+
+    @Column(name = "tool_schema_inspected_at")
+    private Instant toolSchemaInspectedAt;
+
     @Column(name = "first_seen_at", nullable = false)
     private Instant firstSeenAt;
 
@@ -72,6 +78,11 @@ public class McpServerEntity {
         this.lastSeenAt = now;
     }
 
+    public void recordToolSchemaInspection(String status, Instant inspectedAt) {
+        this.toolSchemaStatus = status;
+        this.toolSchemaInspectedAt = inspectedAt;
+    }
+
     public UUID getId() { return id; }
     public String getRegistryName() { return registryName; }
     public String getTitle() { return title; }
@@ -83,6 +94,8 @@ public class McpServerEntity {
     public String getRepositoryUrl() { return repositoryUrl; }
     public int getPackageCount() { return packageCount; }
     public int getRemoteCount() { return remoteCount; }
+    public String getToolSchemaStatus() { return toolSchemaStatus; }
+    public Instant getToolSchemaInspectedAt() { return toolSchemaInspectedAt; }
     public Instant getFirstSeenAt() { return firstSeenAt; }
     public Instant getLastSeenAt() { return lastSeenAt; }
 }

@@ -43,6 +43,7 @@ class JdbcCapabilityMetadataStoreTest {
                         "get_issue",
                         "Get an issue",
                         "{\"type\":\"object\"}",
+                        "registry-server-metadata",
                         List.of(capability)
                 )),
                 List.of(capability)

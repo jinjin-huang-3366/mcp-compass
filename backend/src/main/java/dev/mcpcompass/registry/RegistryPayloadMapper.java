@@ -12,6 +12,8 @@ import java.util.Optional;
 public class RegistryPayloadMapper {
     private static final String OFFICIAL_METADATA = "io.modelcontextprotocol.registry/official";
     private static final String PUBLISHER_METADATA = "io.modelcontextprotocol.registry/publisher-provided";
+    private static final String SERVER_SCHEMA_SOURCE = "registry-server-metadata";
+    private static final String PUBLISHER_SCHEMA_SOURCE = "publisher-extension-metadata";
 
     private final ObjectMapper objectMapper;
 
@@ -79,13 +81,14 @@ public class RegistryPayloadMapper {
 
     private List<RegistryClient.RegistryToolPayload> tools(JsonNode server) throws Exception {
         List<RegistryClient.RegistryToolPayload> tools = new ArrayList<>();
-        appendTools(server.path("tools"), tools);
-        appendTools(server.path("_meta").path(PUBLISHER_METADATA).path("tools"), tools);
+        appendTools(server.path("tools"), SERVER_SCHEMA_SOURCE, tools);
+        appendTools(server.path("_meta").path(PUBLISHER_METADATA).path("tools"), PUBLISHER_SCHEMA_SOURCE, tools);
         return List.copyOf(tools);
     }
 
     private void appendTools(
             JsonNode values,
+            String schemaSource,
             List<RegistryClient.RegistryToolPayload> tools
     ) throws Exception {
         if (!values.isArray()) {
@@ -102,7 +105,8 @@ public class RegistryPayloadMapper {
                     inputSchema.isMissingNode() || inputSchema.isNull()
                             ? null
                             : objectMapper.writeValueAsString(inputSchema),
-                    capabilityValues(value.path("capabilities"))
+                    capabilityValues(value.path("capabilities")),
+                    schemaSource
             ));
         }
     }

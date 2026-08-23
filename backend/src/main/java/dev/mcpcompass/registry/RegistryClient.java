@@ -110,10 +110,16 @@ public class RegistryClient {
             String name,
             String description,
             String inputSchema,
-            List<RegistryCapabilityPayload> capabilities
+            List<RegistryCapabilityPayload> capabilities,
+            String schemaSource
     ) {
         public RegistryToolPayload {
             capabilities = capabilities == null ? List.of() : List.copyOf(capabilities);
+        }
+
+        public RegistryToolPayload(String name, String description, String inputSchema,
+                                   List<RegistryCapabilityPayload> capabilities) {
+            this(name, description, inputSchema, capabilities, null);
         }
     }
 

@@ -9,6 +9,8 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
 - No production credentials in repo.
 - Local development sync endpoint is profile-gated.
 - Search does not execute server tools.
+- Tool-schema enrichment reads bounded, declared JSON metadata only. It does not install or start MCP
+  packages, connect to publisher endpoints, or invoke tools; invalid and oversized schemas are discarded.
 
 ## Future sandbox requirements
 - ephemeral container/microVM;

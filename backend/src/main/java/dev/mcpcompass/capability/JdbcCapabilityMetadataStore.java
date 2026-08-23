@@ -62,14 +62,15 @@ class JdbcCapabilityMetadataStore implements CapabilityMetadataStore {
             UUID toolId = deterministicUuid("mcp-tool", serverId + "\\0" + tool.name());
             jdbc.update("""
                     INSERT INTO mcp_tool
-                        (id, server_id, name, description, input_schema, risk_level)
-                    VALUES (:id, :serverId, :name, :description, :inputSchema, NULL)
+                        (id, server_id, name, description, input_schema, schema_source, risk_level)
+                    VALUES (:id, :serverId, :name, :description, :inputSchema, :schemaSource, NULL)
                     """, new MapSqlParameterSource()
                     .addValue("id", toolId)
                     .addValue("serverId", serverId)
                     .addValue("name", tool.name())
                     .addValue("description", tool.description())
-                    .addValue("inputSchema", tool.inputSchema()));
+                    .addValue("inputSchema", tool.inputSchema())
+                    .addValue("schemaSource", tool.schemaSource()));
 
             for (NormalizedCapabilityMetadata.NormalizedCapability capability : tool.capabilities()) {
                 UUID capabilityId = capabilityId(capabilityIds, capability);

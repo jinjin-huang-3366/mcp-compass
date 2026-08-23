@@ -19,6 +19,7 @@ public record NormalizedCapabilityMetadata(
             String name,
             String description,
             String inputSchema,
+            String schemaSource,
             List<NormalizedCapability> capabilities
     ) {
         public NormalizedTool {

@@ -140,9 +140,11 @@ class RegistryPayloadMapperTest {
         assertThat(server.tools()).extracting(RegistryClient.RegistryToolPayload::name)
                 .containsExactly("create_pull_request", "list_issues");
         assertThat(server.tools().getFirst().inputSchema()).isEqualTo("{\"type\":\"object\"}");
+        assertThat(server.tools().getFirst().schemaSource()).isEqualTo("registry-server-metadata");
         assertThat(server.tools().getFirst().capabilities())
                 .extracting(RegistryClient.RegistryCapabilityPayload::name)
                 .containsExactly("github.pull-request.create");
         assertThat(server.tools().get(1).capabilities()).isEqualTo(List.of());
+        assertThat(server.tools().get(1).schemaSource()).isEqualTo("publisher-extension-metadata");
     }
 }
