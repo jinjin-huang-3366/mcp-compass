@@ -15,7 +15,8 @@ class TypeScriptMcpProjectControllerTest {
     @Test
     void returnsGeneratedProjectFiles() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(
-                        new TypeScriptMcpProjectController(new TypeScriptMcpProjectGenerator(objectMapper)))
+                        new TypeScriptMcpProjectController(new TypeScriptMcpProjectGenerator(
+                                objectMapper, new TypeScriptMcpRuntimePack())))
                 .setControllerAdvice(new OpenApiSourceErrorHandler())
                 .build();
 
@@ -32,7 +33,8 @@ class TypeScriptMcpProjectControllerTest {
     @Test
     void rejectsUnapprovedContract() throws Exception {
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(
-                        new TypeScriptMcpProjectController(new TypeScriptMcpProjectGenerator(objectMapper)))
+                        new TypeScriptMcpProjectController(new TypeScriptMcpProjectGenerator(
+                                objectMapper, new TypeScriptMcpRuntimePack())))
                 .setControllerAdvice(new OpenApiSourceErrorHandler())
                 .build();
 

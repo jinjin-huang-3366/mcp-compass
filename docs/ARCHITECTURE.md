@@ -91,4 +91,6 @@ ZIP / GitHub-ready project
 - LLM integration implements interfaces; it must not be embedded into controllers or repositories.
 - Generation and validation are separate: successful code generation does not imply safe/valid execution.
 - The TypeScript generator is a deterministic transform from an approved contract to an in-memory file
-  manifest. The backend does not write, install, compile, or execute generated projects.
+  manifest. It serializes contract-specific values into `contract.json` and combines them with a versioned,
+  classpath-only TypeScript runtime pack. The runtime registers tools from contract data instead of baking reviewed
+  values into generated source. The backend does not write, install, compile, or execute generated projects.

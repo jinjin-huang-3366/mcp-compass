@@ -208,9 +208,10 @@ contract, generate source code, or execute API/MCP code.
 
 Submit a version `1.0` contract with status `APPROVED`. The response is a deterministic TypeScript
 project manifest containing `package.json`, `tsconfig.json`, `.env.example`, `README.md`, the approved
-`contract.json`, and MCP/API client sources. Each selected contract tool is registered with its reviewed
-name and description, declared input/output schemas, source HTTP operation, and conservative MCP risk
-annotations.
+`contract.json`, and MCP/API client sources. The source files come from a versioned classpath runtime pack;
+they load `contract.json` as data and register each selected tool with its reviewed name and description,
+declared input/output schemas, source HTTP operation, and conservative MCP risk annotations. Contract values
+are not interpolated into TypeScript source.
 
 For example, an approved `find_pets` tool backed by `GET /pets/{petId}` produces a registration using
 that path and the declared `petId` input schema. Calls substitute the encoded path value, send other

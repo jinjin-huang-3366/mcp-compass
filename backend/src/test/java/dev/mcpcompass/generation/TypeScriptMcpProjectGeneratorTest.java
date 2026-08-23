@@ -12,7 +12,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TypeScriptMcpProjectGeneratorTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final TypeScriptMcpProjectGenerator generator = new TypeScriptMcpProjectGenerator(objectMapper);
+    private final TypeScriptMcpProjectGenerator generator = new TypeScriptMcpProjectGenerator(
+            objectMapper, new TypeScriptMcpRuntimePack());
 
     @Test
     void generatesDeterministicTypeScriptProjectFromApprovedContract() {
@@ -34,16 +35,18 @@ class TypeScriptMcpProjectGeneratorTest {
                 .contains("API_BASE_URL=https://api.example.com")
                 .contains("API_AUTH_TOKEN=replace-me");
         assertThat(files.get("src/index.ts"))
-                .contains("server.registerTool(\"find_pets\"")
-                .contains("fromJsonSchema(JSON.parse")
-                .contains("method: \"GET\", path: \"/pets/{petId}\", authenticationRequired: true")
-                .contains("readOnlyHint: true")
-                .contains("destructiveHint: false");
+                .contains("for (const tool of contract.tools)")
+                .contains("server.registerTool(tool.name")
+                .contains("fromJsonSchema(tool.inputSchema)")
+                .contains("readOnlyHint: tool.risk === \"READ_ONLY\"")
+                .doesNotContain("find_pets", "/pets/{petId}");
         assertThat(files.get("src/api-client.ts"))
                 .contains("encodeURIComponent(String(value))")
                 .contains("headers.Authorization = `Bearer ${requiredEnvironment(\"API_AUTH_TOKEN\")}`")
                 .doesNotContain("child_process", "exec(", "spawn(");
         assertThat(files.get("contract.json"))
+                .contains("\"name\" : \"find_pets\"")
+                .contains("\"path\" : \"/pets/{petId}\"")
                 .contains("\"status\" : \"APPROVED\"")
                 .contains("\"risk\" : \"READ_ONLY\"");
     }
@@ -58,12 +61,12 @@ class TypeScriptMcpProjectGeneratorTest {
                         tool.authenticationRequirements(), tool.risk())
         ));
 
-        String source = generator.generate(contract).files().stream()
-                .filter(file -> file.path().equals("src/index.ts"))
-                .findFirst().orElseThrow().content();
+        Map<String, String> files = generator.generate(contract).files().stream().collect(Collectors.toMap(
+                GeneratedTypeScriptProject.File::path, GeneratedTypeScriptProject.File::content));
 
-        assertThat(source).contains("description: \"Quote \\\" and newline\\nconsole.log('injected')\"");
-        assertThat(source.lines().filter(line -> line.trim().startsWith("console.log"))).isEmpty();
+        assertThat(files.get("src/index.ts")).doesNotContain("console.log('injected')", "Quote \\\"");
+        assertThat(files.get("contract.json"))
+                .contains("Quote \\\" and newline\\nconsole.log('injected')");
     }
 
     @Test
