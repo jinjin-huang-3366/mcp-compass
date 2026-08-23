@@ -23,7 +23,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-04 — score enriched data** | `ENR-03`, `ENR-05` | `SRCH-04`, `SRCH-05`, `ENR-01`, `ENR-02` | Complete (2/2) |
 | **PG-05 — explain ranking** | `ENR-04` | `SRCH-05`, `ENR-03` | Complete (1/1) |
 | **PG-06 — accept an API source** | `GEN-01` | `ENR-04`, `ENR-05` | Complete (1/1) |
-| **PG-07 — propose a contract** | `GEN-02` | `GEN-01` | Not started (0/1) |
+| **PG-07 — propose a contract** | `GEN-02` | `GEN-01` | Complete (1/1) |
 | **PG-08 — review the contract** | `GEN-03` | `GEN-02` | Not started (0/1) |
 | **PG-09 — generate from the contract** | `GEN-04` | `GEN-03` | Not started (0/1) |
 | **PG-10 — verify generated code** | `GEN-05` | `GEN-04` | Not started (0/1) |
@@ -98,7 +98,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 
 ## V0.3 — contract-first MCP generation
 - [x] **GEN-01** — Accept OpenAPI file/URL as source. _(Depends on: ENR-04, ENR-05)_
-- [ ] **GEN-02** — Produce a proposed MCP tool contract before code. _(Depends on: REQ-02, GEN-01)_
+- [x] **GEN-02** — Produce a proposed MCP tool contract before code. _(Depends on: REQ-02, GEN-01)_
 - [ ] **GEN-03** — Let developer review/edit selected endpoints/tools. _(Depends on: FND-02, GEN-02)_
 - [ ] **GEN-04** — Generate TypeScript MCP server from approved contract. _(Depends on: GEN-03)_
 - [ ] **GEN-05** — Compile/test generated project. _(Depends on: GEN-04)_
