@@ -98,6 +98,7 @@ public class McpSearchService {
                         ranked.capabilityCoverage() == null ? null : rounded(ranked.capabilityCoverage()),
                         ranked.matchedCapabilities(),
                         ranked.missingCapabilities(),
+                        rankingExplanation(ranked.rankingExplanation()),
                         ranked.reasons()
                 ))
                 .toList();
@@ -110,6 +111,23 @@ public class McpSearchService {
                 totalMatches,
                 totalPages,
                 matches
+        );
+    }
+
+    private static SearchResponse.RankingExplanation rankingExplanation(
+            RankingService.RankingExplanation explanation
+    ) {
+        return new SearchResponse.RankingExplanation(
+                explanation.contributions().stream()
+                        .map(contribution -> new SearchResponse.RankingFeatureContribution(
+                                contribution.feature(),
+                                rounded(contribution.featureScore()),
+                                rounded(contribution.weight()),
+                                rounded(contribution.contribution())
+                        ))
+                        .toList(),
+                rounded(explanation.preAdjustmentScore()),
+                rounded(explanation.statusMultiplier())
         );
     }
 

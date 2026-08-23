@@ -10,7 +10,21 @@ export type SearchMatch = {
   capabilityCoverage: number | null;
   matchedCapabilities: string[];
   missingCapabilities: string[];
+  rankingExplanation: RankingExplanation;
   reasons: string[];
+};
+
+export type RankingExplanation = {
+  contributions: RankingFeatureContribution[];
+  preAdjustmentScore: number;
+  statusMultiplier: number;
+};
+
+export type RankingFeatureContribution = {
+  feature: "capabilityCoverage" | "retrievalRelevance" | "quality";
+  featureScore: number;
+  weight: number;
+  contribution: number;
 };
 
 export type SearchResponse = {

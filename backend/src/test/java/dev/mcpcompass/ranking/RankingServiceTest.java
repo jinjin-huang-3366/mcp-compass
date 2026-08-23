@@ -108,6 +108,31 @@ class RankingServiceTest {
     }
 
     @Test
+    void explainsStructuredRankingWithDeterministicFeatureContributions() {
+        RequirementAnalysis requirement = structuredRequirement(
+                List.of("github"),
+                List.of("github.issue.read", "github.issue.create")
+        );
+        McpServerEntity server = server("io.example/github", "GitHub MCP", "", "active");
+
+        RankingService.RankedServer ranked = rankingService.rank(
+                server,
+                requirement,
+                List.of("github.issue.read")
+        );
+
+        assertThat(ranked.rankingExplanation().contributions()).containsExactly(
+                new RankingService.RankingFeatureContribution("capabilityCoverage", 0.5, 0.8, 0.4),
+                new RankingService.RankingFeatureContribution("retrievalRelevance", 1.0, 0.17, 0.17),
+                new RankingService.RankingFeatureContribution("quality", 0.2, 0.03, 0.006)
+        );
+        assertThat(ranked.rankingExplanation().preAdjustmentScore())
+                .isCloseTo(0.576, org.assertj.core.data.Offset.offset(0.000001));
+        assertThat(ranked.rankingExplanation().statusMultiplier()).isEqualTo(1.0);
+        assertThat(ranked.score()).isCloseTo(0.576, org.assertj.core.data.Offset.offset(0.000001));
+    }
+
+    @Test
     void fallsBackToSecondaryScoreWhenRequirementHasNoCapabilities() {
         RequirementAnalysis requirement = new RequirementAnalysis("github", List.of("github"));
         McpServerEntity server = server("io.example/github", "GitHub MCP", "", "active");
@@ -119,6 +144,22 @@ class RankingServiceTest {
         assertThat(ranked.capabilityCoverage()).isNull();
         assertThat(ranked.matchedCapabilities()).isEmpty();
         assertThat(ranked.missingCapabilities()).isEmpty();
+        assertThat(ranked.rankingExplanation().contributions()).containsExactly(
+                new RankingService.RankingFeatureContribution("retrievalRelevance", 1.0, 0.85, 0.85),
+                new RankingService.RankingFeatureContribution("quality", 0.2, 0.15, 0.03)
+        );
+    }
+
+    @Test
+    void explainsDeprecatedStatusAsAnExplicitFinalMultiplier() {
+        RequirementAnalysis requirement = new RequirementAnalysis("github", List.of("github"));
+        McpServerEntity server = server("io.example/github", "GitHub MCP", "", "deprecated");
+
+        RankingService.RankedServer ranked = rankingService.rank(server, requirement);
+
+        assertThat(ranked.rankingExplanation().preAdjustmentScore()).isEqualTo(0.85);
+        assertThat(ranked.rankingExplanation().statusMultiplier()).isEqualTo(0.5);
+        assertThat(ranked.score()).isEqualTo(0.425);
     }
 
     private static RequirementAnalysis structuredRequirement(List<String> keywords, List<String> capabilities) {

@@ -35,12 +35,21 @@ Response shape:
       "title": "Example MCP",
       "description": "...",
       "version": "1.0.0",
-      "score": 0.82,
-      "qualityScore": 0.75,
+      "score": 0.576,
+      "qualityScore": 0.2,
       "capabilityCoverage": 0.5,
       "matchedCapabilities": ["github.issue.read"],
       "missingCapabilities": ["github.pull-request.create"],
-      "reasons": ["title contains github", "description matches issues"]
+      "rankingExplanation": {
+        "contributions": [
+          {"feature": "capabilityCoverage", "featureScore": 0.5, "weight": 0.8, "contribution": 0.4},
+          {"feature": "retrievalRelevance", "featureScore": 1.0, "weight": 0.17, "contribution": 0.17},
+          {"feature": "quality", "featureScore": 0.2, "weight": 0.03, "contribution": 0.006}
+        ],
+        "preAdjustmentScore": 0.576,
+        "statusMultiplier": 1.0
+      },
+      "reasons": ["title matches github", "active Registry status"]
     }
   ]
 }
@@ -60,6 +69,13 @@ Missing enrichment adds no credit; it is never guessed and search does not call 
 Coverage matching is deterministic and normalizes common Registry/tool naming variants. For
 example, a discovered `github.create_pull_requests` capability covers the requested
 `github.pull-request.create` capability; the response reports the canonical requested name.
+
+`rankingExplanation` shows the exact deterministic arithmetic behind `score`. Each contribution is
+the feature's normalized signal multiplied by its effective weight. Effective weights reflect whether
+structured capability coverage is available: coverage receives 80% when present, while retrieval and
+quality share the remaining 20%; otherwise retrieval and quality use 85% and 15%. The contributions
+sum to `preAdjustmentScore`, then `statusMultiplier` makes the final deprecated-status adjustment
+explicit (`0.5` for deprecated servers and `1.0` otherwise).
 
 ## MCP detail
 
