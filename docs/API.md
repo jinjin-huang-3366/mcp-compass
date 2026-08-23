@@ -55,7 +55,10 @@ ranking falls back to deterministic text overlap.
 
 `GET /mcp/{id}`
 
-Returns normalized server detail and basic metadata.
+Returns normalized server detail and basic metadata. `toolSchemaStatus` reports whether bounded,
+statically declared MCP input schemas were `DISCOVERED`, `PARTIAL`, `INVALID`, or
+`NOT_DISCOVERABLE`; `toolSchemaInspectedAt` identifies the Registry ingestion that last inspected
+the metadata. These fields do not imply that MCP code or a server tool was executed.
 
 ## Local Registry sync
 

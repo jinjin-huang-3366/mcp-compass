@@ -35,13 +35,16 @@ public class McpServerDetailController {
             String description,
             String version,
             String status,
+            String toolSchemaStatus,
+            Instant toolSchemaInspectedAt,
             Instant firstSeenAt,
             Instant lastSeenAt
     ) {
         static McpServerDetail from(McpServerEntity entity) {
             return new McpServerDetail(
                     entity.getId(), entity.getRegistryName(), entity.getTitle(), entity.getDescription(),
-                    entity.getVersion(), entity.getStatus(), entity.getFirstSeenAt(), entity.getLastSeenAt()
+                    entity.getVersion(), entity.getStatus(), entity.getToolSchemaStatus(),
+                    entity.getToolSchemaInspectedAt(), entity.getFirstSeenAt(), entity.getLastSeenAt()
             );
         }
     }

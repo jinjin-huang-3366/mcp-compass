@@ -2,6 +2,8 @@ package dev.mcpcompass.registry;
 
 import dev.mcpcompass.capability.CapabilityMetadataNormalizer;
 import dev.mcpcompass.capability.CapabilityMetadataStore;
+import dev.mcpcompass.capability.DeclaredToolSchemaInspector;
+import dev.mcpcompass.capability.ToolSchemaInspection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -18,17 +20,20 @@ class RegistrySyncStore {
     private final RegistrySyncStateRepository stateRepository;
     private final CapabilityMetadataNormalizer capabilityNormalizer;
     private final CapabilityMetadataStore capabilityStore;
+    private final DeclaredToolSchemaInspector toolSchemaInspector;
 
     RegistrySyncStore(
             McpServerRepository serverRepository,
             RegistrySyncStateRepository stateRepository,
             CapabilityMetadataNormalizer capabilityNormalizer,
-            CapabilityMetadataStore capabilityStore
+            CapabilityMetadataStore capabilityStore,
+            DeclaredToolSchemaInspector toolSchemaInspector
     ) {
         this.serverRepository = serverRepository;
         this.stateRepository = stateRepository;
         this.capabilityNormalizer = capabilityNormalizer;
         this.capabilityStore = capabilityStore;
+        this.toolSchemaInspector = toolSchemaInspector;
     }
 
     @Transactional(readOnly = true)
@@ -50,10 +55,12 @@ class RegistrySyncStore {
             McpServerEntity entity = serverRepository.findByRegistryName(payload.name())
                     .orElseGet(() -> McpServerEntity.create(payload.name(), seenAt));
             entity.updateFrom(payload, seenAt);
+            ToolSchemaInspection inspection = toolSchemaInspector.inspect(payload);
+            entity.recordToolSchemaInspection(inspection.status().name(), seenAt);
             McpServerEntity persistedServer = serverRepository.saveAndFlush(entity);
             capabilityStore.replaceForServer(
                     persistedServer.getId(),
-                    capabilityNormalizer.normalize(payload)
+                    capabilityNormalizer.normalize(payload, inspection.tools())
             );
             persistedItems++;
         }

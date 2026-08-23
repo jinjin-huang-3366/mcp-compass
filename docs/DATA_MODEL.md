@@ -12,7 +12,15 @@ so servers remain lexically searchable while embeddings are disabled, unavailabl
 ### `mcp_tool`
 Normalized tool metadata associated with a server. Registry ingestion populates rows when a server
 declares tools directly or through publisher-provided extension metadata. Standard Registry entries
-that do not publish tools remain valid and retain their raw metadata for later enrichment.
+that do not publish tools remain valid and retain their raw metadata for later enrichment. Declared
+input schemas are accepted only when they are bounded JSON objects and retain their untrusted metadata
+source. Each server records a tool-schema inspection status (`DISCOVERED`, `PARTIAL`, `INVALID`, or
+`NOT_DISCOVERABLE`) and timestamp.
+
+Schema inspection is static: it never installs or starts packages and never calls a server tool. A
+`NOT_DISCOVERABLE` result means no safe schema was present in ingested metadata; protocol inspection
+of remote or packaged servers remains deferred until an allow-listed or sandboxed execution boundary
+exists.
 
 ### `capability`
 Canonical capability concepts such as `github.issue.read` or `trading.order.cancel`.

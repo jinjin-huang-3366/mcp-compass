@@ -2,7 +2,9 @@ package dev.mcpcompass.registry;
 
 import dev.mcpcompass.capability.CapabilityMetadataNormalizer;
 import dev.mcpcompass.capability.CapabilityMetadataStore;
+import dev.mcpcompass.capability.DeclaredToolSchemaInspector;
 import dev.mcpcompass.capability.NormalizedCapabilityMetadata;
+import dev.mcpcompass.capability.ToolSchemaInspection;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -24,11 +26,13 @@ class RegistrySyncStoreTest {
     private final RegistrySyncStateRepository stateRepository = mock(RegistrySyncStateRepository.class);
     private final CapabilityMetadataNormalizer capabilityNormalizer = mock(CapabilityMetadataNormalizer.class);
     private final CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
+    private final DeclaredToolSchemaInspector toolSchemaInspector = mock(DeclaredToolSchemaInspector.class);
     private final RegistrySyncStore store = new RegistrySyncStore(
             serverRepository,
             stateRepository,
             capabilityNormalizer,
-            capabilityStore
+            capabilityStore,
+            toolSchemaInspector
     );
 
     @Test
@@ -48,7 +52,10 @@ class RegistrySyncStoreTest {
             return entity;
         });
         NormalizedCapabilityMetadata normalized = new NormalizedCapabilityMetadata(List.of(), List.of());
-        when(capabilityNormalizer.normalize(valid)).thenReturn(normalized);
+        ToolSchemaInspection inspection = new ToolSchemaInspection(
+                ToolSchemaInspection.Status.NOT_DISCOVERABLE, List.of());
+        when(toolSchemaInspector.inspect(valid)).thenReturn(inspection);
+        when(capabilityNormalizer.normalize(valid, inspection.tools())).thenReturn(normalized);
         when(stateRepository.findById(RegistrySyncStore.SOURCE)).thenReturn(Optional.empty());
 
         int persistedItems = store.persistPage(page, NOW, NOW);
@@ -59,6 +66,7 @@ class RegistrySyncStoreTest {
                 UUID.fromString("f9271073-d3f1-4c62-bbf3-96696e4eeb4f"),
                 normalized
         );
+        verify(toolSchemaInspector).inspect(valid);
         verify(serverRepository, never()).findByRegistryName(unnamed.name());
         verify(stateRepository).save(any(RegistrySyncStateEntity.class));
     }

@@ -22,6 +22,13 @@ public class CapabilityMetadataNormalizer {
     private static final Pattern REPEATED_DOTS = Pattern.compile("\\.{2,}");
 
     public NormalizedCapabilityMetadata normalize(RegistryClient.RegistryServerPayload payload) {
+        return normalize(payload, payload.tools());
+    }
+
+    public NormalizedCapabilityMetadata normalize(
+            RegistryClient.RegistryServerPayload payload,
+            List<RegistryClient.RegistryToolPayload> inspectedTools
+    ) {
         Map<String, NormalizedCapabilityMetadata.NormalizedCapability> serverCapabilities =
                 new LinkedHashMap<>();
         for (RegistryClient.RegistryCapabilityPayload capability : payload.capabilities()) {
@@ -30,7 +37,7 @@ public class CapabilityMetadataNormalizer {
         }
 
         Map<String, NormalizedCapabilityMetadata.NormalizedTool> tools = new LinkedHashMap<>();
-        for (RegistryClient.RegistryToolPayload tool : payload.tools()) {
+        for (RegistryClient.RegistryToolPayload tool : inspectedTools) {
             String toolName = normalizeToolName(tool.name());
             if (toolName == null || tools.containsKey(toolName)) {
                 continue;
@@ -58,6 +65,7 @@ public class CapabilityMetadataNormalizer {
                     toolName,
                     normalizeOptionalText(tool.description()),
                     normalizeOptionalText(tool.inputSchema()),
+                    normalizeOptionalText(tool.schemaSource()),
                     List.copyOf(toolCapabilities.values())
             ));
         }
