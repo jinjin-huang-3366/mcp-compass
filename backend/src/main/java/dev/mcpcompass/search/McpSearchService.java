@@ -3,6 +3,8 @@ package dev.mcpcompass.search;
 import dev.mcpcompass.capability.CapabilityMetadataStore;
 import dev.mcpcompass.embedding.ServerEmbeddingService;
 import dev.mcpcompass.ranking.RankingService;
+import dev.mcpcompass.ranking.TrustQualitySignalStore;
+import dev.mcpcompass.ranking.TrustQualitySignals;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
 import dev.mcpcompass.requirement.RequirementAnalysis;
@@ -29,19 +31,22 @@ public class McpSearchService {
     private final RankingService rankingService;
     private final CapabilityMetadataStore capabilityStore;
     private final ServerEmbeddingService embeddingService;
+    private final TrustQualitySignalStore trustQualitySignalStore;
 
     public McpSearchService(
             RequirementAnalyzer analyzer,
             McpServerRepository repository,
             RankingService rankingService,
             CapabilityMetadataStore capabilityStore,
-            ServerEmbeddingService embeddingService
+            ServerEmbeddingService embeddingService,
+            TrustQualitySignalStore trustQualitySignalStore
     ) {
         this.analyzer = analyzer;
         this.repository = repository;
         this.rankingService = rankingService;
         this.capabilityStore = capabilityStore;
         this.embeddingService = embeddingService;
+        this.trustQualitySignalStore = trustQualitySignalStore;
     }
 
     public SearchResponse search(String requirement, int page, int pageSize) {
@@ -54,6 +59,9 @@ public class McpSearchService {
         Map<UUID, Set<String>> capabilitiesByServer = capabilityStore.findCapabilityNamesByServerIds(
                 candidates.stream().map(candidate -> candidate.server().getId()).toList()
         );
+        Map<UUID, TrustQualitySignals> trustSignalsByServer = trustQualitySignalStore.findByServerIds(
+                candidates.stream().map(candidate -> candidate.server().getId()).toList()
+        );
 
         List<RankingService.RankedServer> rankedMatches = candidates.stream()
                 .filter(candidate -> !"deleted".equalsIgnoreCase(candidate.server().getStatus()))
@@ -61,7 +69,10 @@ public class McpSearchService {
                         candidate.server(),
                         analysis,
                         capabilitiesByServer.getOrDefault(candidate.server().getId(), Set.of()),
-                        candidate.vectorSimilarity()
+                        candidate.vectorSimilarity(),
+                        trustSignalsByServer.getOrDefault(
+                                candidate.server().getId(), TrustQualitySignals.unavailable()
+                        )
                 ))
                 .filter(ranked -> ranked.score() > 0)
                 .sorted(Comparator.comparingDouble(RankingService.RankedServer::score)
@@ -83,6 +94,7 @@ public class McpSearchService {
                         ranked.server().getVersion(),
                         ranked.server().getStatus(),
                         rounded(ranked.score()),
+                        rounded(ranked.qualityScore()),
                         ranked.capabilityCoverage() == null ? null : rounded(ranked.capabilityCoverage()),
                         ranked.matchedCapabilities(),
                         ranked.missingCapabilities(),

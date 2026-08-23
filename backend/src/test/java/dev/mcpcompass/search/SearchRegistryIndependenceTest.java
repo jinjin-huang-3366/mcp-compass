@@ -3,6 +3,7 @@ package dev.mcpcompass.search;
 import dev.mcpcompass.capability.CapabilityMetadataStore;
 import dev.mcpcompass.embedding.ServerEmbeddingService;
 import dev.mcpcompass.ranking.RankingService;
+import dev.mcpcompass.ranking.TrustQualitySignalStore;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
 import dev.mcpcompass.registry.RegistryClient;
@@ -48,6 +49,7 @@ class SearchRegistryIndependenceTest {
         McpServerRepository repository = mock(McpServerRepository.class);
         CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
         ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
+        TrustQualitySignalStore trustQualitySignalStore = mock(TrustQualitySignalStore.class);
         McpServerEntity persistedServer = mock(McpServerEntity.class);
         UUID serverId = UUID.fromString("16e45463-617c-4371-8104-3a942c169e2d");
         RequirementAnalysis analysis = new RequirementAnalysis("github issues", List.of("github", "issues"));
@@ -65,12 +67,14 @@ class SearchRegistryIndependenceTest {
         )).thenReturn(new PageImpl<>(List.of(persistedServer)));
         when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
         when(embeddingService.findNearestServers(analysis.originalRequirement())).thenReturn(List.of());
+        when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
         McpSearchService service = new McpSearchService(
                 analyzer,
                 repository,
                 new RankingService(),
                 capabilityStore,
-                embeddingService
+                embeddingService,
+                trustQualitySignalStore
         );
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new McpSearchController(service)).build();
 
@@ -82,7 +86,8 @@ class SearchRegistryIndependenceTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.matches[0].id").value(serverId.toString()))
                 .andExpect(jsonPath("$.matches[0].registryName").value("io.example/github"))
-                .andExpect(jsonPath("$.matches[0].score").value(0.9));
+                .andExpect(jsonPath("$.matches[0].score").value(0.88))
+                .andExpect(jsonPath("$.matches[0].qualityScore").value(0.2));
         verify(repository).findAll(
                 org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
                 any(Pageable.class)

@@ -20,6 +20,7 @@ public record SearchResponse(
             String version,
             String status,
             double score,
+            double qualityScore,
             Double capabilityCoverage,
             List<String> matchedCapabilities,
             List<String> missingCapabilities,

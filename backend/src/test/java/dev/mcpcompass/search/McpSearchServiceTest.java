@@ -3,6 +3,8 @@ package dev.mcpcompass.search;
 import dev.mcpcompass.capability.CapabilityMetadataStore;
 import dev.mcpcompass.embedding.ServerEmbeddingService;
 import dev.mcpcompass.ranking.RankingService;
+import dev.mcpcompass.ranking.TrustQualitySignalStore;
+import dev.mcpcompass.ranking.TrustQualitySignals;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
 import dev.mcpcompass.requirement.RequirementAnalysis;
@@ -31,12 +33,14 @@ class McpSearchServiceTest {
     private final RankingService rankingService = mock(RankingService.class);
     private final CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
     private final ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
+    private final TrustQualitySignalStore trustQualitySignalStore = mock(TrustQualitySignalStore.class);
     private final McpSearchService searchService = new McpSearchService(
             analyzer,
             repository,
             rankingService,
             capabilityStore,
-            embeddingService
+            embeddingService,
+            trustQualitySignalStore
     );
 
     @Test
@@ -63,7 +67,9 @@ class McpSearchServiceTest {
                 any(Pageable.class)
         )).thenReturn(new PageImpl<>(servers));
         when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
-        servers.forEach(server -> when(rankingService.rank(server, analysis, Set.of(), null))
+        when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
+        servers.forEach(server -> when(rankingService.rank(
+                server, analysis, Set.of(), null, TrustQualitySignals.unavailable()))
                 .thenReturn(ranked(server, 0.8)));
 
         SearchResponse response = searchService.search("github", 2, 2);
@@ -87,7 +93,9 @@ class McpSearchServiceTest {
                 any(Pageable.class)
         )).thenReturn(new PageImpl<>(List.of(server)));
         when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
-        when(rankingService.rank(server, analysis, Set.of(), null)).thenReturn(ranked(server, 0.8));
+        when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
+        when(rankingService.rank(server, analysis, Set.of(), null, TrustQualitySignals.unavailable()))
+                .thenReturn(ranked(server, 0.8));
 
         SearchResponse response = searchService.search("github", 3, 10);
 
@@ -127,7 +135,8 @@ class McpSearchServiceTest {
                 repository,
                 new RankingService(),
                 capabilityStore,
-                embeddingService
+                embeddingService,
+                trustQualitySignalStore
         );
 
         SearchResponse response = capabilitySearchService.search(analysis.originalRequirement(), 1, 10);
@@ -160,12 +169,14 @@ class McpSearchServiceTest {
         when(repository.findAllById(List.of(lexicalId, vectorId))).thenReturn(List.of(vector, lexical));
         when(capabilityStore.findCapabilityNamesByServerIds(List.of(lexicalId, vectorId)))
                 .thenReturn(Map.of());
+        when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
         McpSearchService vectorSearchService = new McpSearchService(
                 analyzer,
                 repository,
                 new RankingService(),
                 capabilityStore,
-                embeddingService
+                embeddingService,
+                trustQualitySignalStore
         );
 
         SearchResponse response = vectorSearchService.search(analysis.originalRequirement(), 1, 10);
@@ -207,6 +218,7 @@ class McpSearchServiceTest {
         return new RankingService.RankedServer(
                 server,
                 score,
+                0.2,
                 null,
                 List.of(),
                 List.of(),

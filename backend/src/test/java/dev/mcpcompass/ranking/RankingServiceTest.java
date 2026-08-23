@@ -93,7 +93,8 @@ class RankingServiceTest {
 
         RankingService.RankedServer ranked = rankingService.rank(server, requirement, List.of("github.issue.read"));
 
-        assertThat(ranked.score()).isEqualTo(0.9);
+        assertThat(ranked.score()).isEqualTo(0.88);
+        assertThat(ranked.qualityScore()).isEqualTo(0.2);
         assertThat(ranked.capabilityCoverage()).isNull();
         assertThat(ranked.matchedCapabilities()).isEmpty();
         assertThat(ranked.missingCapabilities()).isEmpty();
@@ -147,8 +148,57 @@ class RankingServiceTest {
 
         RankingService.RankedServer ranked = rankingService.rank(server, requirement, List.of(), 0.78);
 
-        assertThat(ranked.score()).isCloseTo(0.713, org.assertj.core.data.Offset.offset(0.000001));
+        assertThat(ranked.score()).isCloseTo(0.693, org.assertj.core.data.Offset.offset(0.000001));
         assertThat(ranked.reasons()).contains("semantic similarity 78%");
+    }
+
+    @Test
+    void calculatesBoundedTrustQualityFromPersistedEnrichmentSignals() {
+        RequirementAnalysis requirement = new RequirementAnalysis("github", List.of("github"));
+        McpServerEntity server = featureRichServer("io.example/github", "GitHub MCP", "", "active");
+        server.recordToolSchemaInspection("DISCOVERED", Instant.parse("2026-08-10T00:00:00Z"));
+        TrustQualitySignals signals = new TrustQualitySignals(
+                false,
+                "Apache-2.0",
+                Instant.parse("2026-07-01T00:00:00Z"),
+                Instant.parse("2026-08-10T00:00:00Z")
+        );
+
+        RankingService.RankedServer ranked = rankingService.rank(
+                server, requirement, List.of(), null, signals
+        );
+
+        assertThat(ranked.qualityScore()).isEqualTo(1.0);
+        assertThat(ranked.score()).isEqualTo(1.0);
+        assertThat(ranked.reasons()).contains(
+                "declared tool schemas discovered",
+                "GitHub repository is not archived",
+                "repository license declared",
+                "repository activity within one year of enrichment"
+        );
+    }
+
+    @Test
+    void archivedOrStaleRepositoryDoesNotReceiveGitHubQualityBoosts() {
+        RequirementAnalysis requirement = new RequirementAnalysis("github", List.of("github"));
+        McpServerEntity server = server("io.example/github", "GitHub MCP", "", "active");
+        TrustQualitySignals signals = new TrustQualitySignals(
+                true,
+                "NOASSERTION",
+                Instant.parse("2024-01-01T00:00:00Z"),
+                Instant.parse("2026-08-10T00:00:00Z")
+        );
+
+        RankingService.RankedServer ranked = rankingService.rank(
+                server, requirement, List.of(), null, signals
+        );
+
+        assertThat(ranked.qualityScore()).isEqualTo(0.2);
+        assertThat(ranked.reasons()).contains("GitHub repository is archived");
+        assertThat(ranked.reasons()).doesNotContain(
+                "repository license declared",
+                "repository activity within one year of enrichment"
+        );
     }
 
     private static McpServerEntity server(String name, String title, String description, String status) {
