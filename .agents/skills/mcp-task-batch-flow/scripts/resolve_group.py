@@ -18,7 +18,8 @@ TASK_PATTERN = re.compile(
 )
 GROUP_PATTERN = re.compile(
     r"^\| \*\*(?P<group_id>PG-\d+)(?:\s+—\s+(?P<title>[^*]+))?\*\* "
-    r"\| (?P<members>[^|]+) \| (?P<start_after>[^|]+) \|$"
+    r"\| (?P<members>[^|]+) \| (?P<start_after>[^|]+) "
+    r"\| (?P<completion_status>[^|]+) \|$"
 )
 TASK_ID_PATTERN = re.compile(r"`([A-Z]+-\d+)`")
 
@@ -42,6 +43,7 @@ class Group:
     title: str
     members: tuple[str, ...]
     start_after: str
+    completion_status: str
 
 
 def parse_plan(text: str) -> tuple[dict[str, Task], dict[str, Group]]:
@@ -89,6 +91,7 @@ def parse_plan(text: str) -> tuple[dict[str, Task], dict[str, Group]]:
                 title=(group_match.group("title") or "").strip(),
                 members=members,
                 start_after=group_match.group("start_after").strip(),
+                completion_status=group_match.group("completion_status").strip(),
             )
 
     if not tasks:
@@ -136,6 +139,15 @@ def validate_plan(tasks: dict[str, Task], groups: dict[str, Group]) -> None:
             + ", ".join(sorted(missing_unchecked))
         )
 
+    for group in groups.values():
+        completed = sum(tasks[task_id].checked for task_id in group.members)
+        expected_status = format_completion_status(completed, len(group.members))
+        if group.completion_status != expected_status:
+            raise PlanError(
+                f"{group.group_id} has stale completion status "
+                f"'{group.completion_status}'; expected '{expected_status}'"
+            )
+
 
 def ancestors(
     task_id: str,
@@ -148,6 +160,14 @@ def ancestors(
             result.add(dependency)
             ancestors(dependency, tasks, result)
     return result
+
+
+def format_completion_status(completed: int, total: int) -> str:
+    if completed == total:
+        return f"Complete ({completed}/{total})"
+    if completed == 0:
+        return f"Not started ({completed}/{total})"
+    return f"In progress ({completed}/{total})"
 
 
 def resolve_group(text: str, requested_group: str) -> dict[str, object]:
@@ -203,6 +223,7 @@ def resolve_group(text: str, requested_group: str) -> dict[str, object]:
         "group_id": group.group_id,
         "title": group.title,
         "start_after": group.start_after,
+        "completion_status": group.completion_status,
         "status": batch_status,
         "tasks": resolved_tasks,
         "ready_task_ids": ready_ids,

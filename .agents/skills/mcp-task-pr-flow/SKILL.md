@@ -83,4 +83,4 @@ After a successful workflow run:
 
 Do not claim the flow succeeded when validation was not completed, the service startup or task-specific desk-testing guidance is missing or incomplete, the pull request was not created, the final head is not conflict-free against the current base, final-head CI is incomplete, or the email step did not succeed. This is a handoff-time guarantee; a future base-branch update can require another explicit synchronization before merge.
 
-After a linked pull request is merged manually, `.github/workflows/plan-completion.yml` marks its exact `PLANS.md` item complete. Pull requests without a valid marker are ignored.
+After a linked pull request is merged manually, `.github/workflows/plan-completion.yml` marks its exact `PLANS.md` item complete and refreshes the matching parallel delivery group's completion count. The group becomes complete only when all of its canonical items are checked. Pull requests without a valid marker are ignored.

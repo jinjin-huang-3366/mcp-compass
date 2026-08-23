@@ -13,27 +13,27 @@ This is the living implementation plan. Agents should update checkboxes and note
 
 Keep this scheduling index in `PLANS.md` so task state, dependencies, and delivery groups have one source of truth. The groups list task IDs only: do not duplicate task checkboxes or full task text here because the merge workflow must match exactly one canonical plan item.
 
-The table covers every task that was unchecked when the groups were defined, and no task depends directly or transitively on another task in the same group. After tasks land, use the canonical checkboxes below to skip completed IDs; refresh this index when tasks or dependencies change. Group numbers describe dependency waves, not multi-task pull requests. A group is unlocked when the prerequisite tasks named in its **Start after** column are checked; unrelated work in earlier groups does not have to finish. Tasks in an unlocked group may run concurrently, but each task still requires its own branch, `$mcp-task-pr-flow` invocation, workflow run, and pull request. Dependency independence also does not guarantee conflict-free files, so coordinate tasks that edit the same module.
+The table covers every task that was unchecked when the groups were defined, and no task depends directly or transitively on another task in the same group. The **Status** column is derived from the canonical checkboxes below. After each linked task pull request is merged, the plan-completion workflow updates both its checkbox and the group's completed count; a group becomes `Complete (n/n)` only after every listed task is checked. Refresh this index when tasks or dependencies change. Group numbers describe dependency waves, not multi-task pull requests. A group is unlocked when the prerequisite tasks named in its **Start after** column are checked; unrelated work in earlier groups does not have to finish. Tasks in an unlocked group may run concurrently, but each task still requires its own branch, `$mcp-task-pr-flow` invocation, workflow run, and pull request. Dependency independence also does not guarantee conflict-free files, so coordinate tasks that edit the same module.
 
-| Group | Task IDs | Start after |
-| --- | --- | --- |
-| **PG-01 — V0.1 independent work** | `SRCH-04`, `SRCH-05`, `SRCH-07`, `API-05`, `API-06`, `EXIT-01`, `EXIT-03`, `EXIT-04` | All direct dependencies are checked. |
-| **PG-02 — finish V0.1** | `SRCH-06`, `API-04`, `EXIT-02` | `SRCH-04` and `SRCH-07` |
-| **PG-03 — begin enrichment** | `ENR-01`, `ENR-02` | `EXIT-01`, `EXIT-02`, `EXIT-03`, `EXIT-04` |
-| **PG-04 — score enriched data** | `ENR-03`, `ENR-05` | `SRCH-04`, `SRCH-05`, `ENR-01`, `ENR-02` |
-| **PG-05 — explain ranking** | `ENR-04` | `SRCH-05`, `ENR-03` |
-| **PG-06 — accept an API source** | `GEN-01` | `ENR-04`, `ENR-05` |
-| **PG-07 — propose a contract** | `GEN-02` | `GEN-01` |
-| **PG-08 — review the contract** | `GEN-03` | `GEN-02` |
-| **PG-09 — generate from the contract** | `GEN-04` | `GEN-03` |
-| **PG-10 — verify generated code** | `GEN-05` | `GEN-04` |
-| **PG-11 — export generated code** | `GEN-06` | `GEN-05` |
-| **PG-12 — queue validation** | `VAL-01` | `GEN-06` |
-| **PG-13 — isolate validation** | `VAL-02` | `VAL-01` |
-| **PG-14 — validate protocol and containment** | `VAL-03`, `VAL-04` | `VAL-02` |
-| **PG-15 — report tool risk** | `VAL-05` | `VAL-03`, `VAL-04` |
-| **PG-16 — add CLI surfaces** | `DX-01`, `DX-02` | `VAL-05` and, for `DX-02`, `GEN-06` |
-| **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` |
+| Group | Task IDs | Start after | Status |
+| --- | --- | --- | --- |
+| **PG-01 — V0.1 independent work** | `SRCH-04`, `SRCH-05`, `SRCH-07`, `API-05`, `API-06`, `EXIT-01`, `EXIT-03`, `EXIT-04` | All direct dependencies are checked. | Complete (8/8) |
+| **PG-02 — finish V0.1** | `SRCH-06`, `API-04`, `EXIT-02` | `SRCH-04` and `SRCH-07` | Complete (3/3) |
+| **PG-03 — begin enrichment** | `ENR-01`, `ENR-02` | `EXIT-01`, `EXIT-02`, `EXIT-03`, `EXIT-04` | Not started (0/2) |
+| **PG-04 — score enriched data** | `ENR-03`, `ENR-05` | `SRCH-04`, `SRCH-05`, `ENR-01`, `ENR-02` | Not started (0/2) |
+| **PG-05 — explain ranking** | `ENR-04` | `SRCH-05`, `ENR-03` | Not started (0/1) |
+| **PG-06 — accept an API source** | `GEN-01` | `ENR-04`, `ENR-05` | Not started (0/1) |
+| **PG-07 — propose a contract** | `GEN-02` | `GEN-01` | Not started (0/1) |
+| **PG-08 — review the contract** | `GEN-03` | `GEN-02` | Not started (0/1) |
+| **PG-09 — generate from the contract** | `GEN-04` | `GEN-03` | Not started (0/1) |
+| **PG-10 — verify generated code** | `GEN-05` | `GEN-04` | Not started (0/1) |
+| **PG-11 — export generated code** | `GEN-06` | `GEN-05` | Not started (0/1) |
+| **PG-12 — queue validation** | `VAL-01` | `GEN-06` | Not started (0/1) |
+| **PG-13 — isolate validation** | `VAL-02` | `VAL-01` | Not started (0/1) |
+| **PG-14 — validate protocol and containment** | `VAL-03`, `VAL-04` | `VAL-02` | Not started (0/2) |
+| **PG-15 — report tool risk** | `VAL-05` | `VAL-03`, `VAL-04` | Not started (0/1) |
+| **PG-16 — add CLI surfaces** | `DX-01`, `DX-02` | `VAL-05` and, for `DX-02`, `GEN-06` | Not started (0/2) |
+| **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
