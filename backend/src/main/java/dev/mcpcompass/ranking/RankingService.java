@@ -1,12 +1,13 @@
 package dev.mcpcompass.ranking;
 
+import dev.mcpcompass.capability.CapabilityNameNormalizer;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.requirement.RequirementAnalysis;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -127,31 +128,35 @@ public class RankingService {
             RequirementAnalysis requirement,
             Collection<String> serverCapabilities
     ) {
-        List<String> requiredCapabilities = requirement.structuredRequirement().requiredCapabilities().stream()
-                .map(RankingService::canonicalCapability)
-                .toList();
+        LinkedHashMap<String, String> requiredByKey = new LinkedHashMap<>();
+        requirement.structuredRequirement().requiredCapabilities().forEach(capability -> {
+            String key = CapabilityNameNormalizer.matchingKey(capability);
+            if (key != null) {
+                requiredByKey.putIfAbsent(key, CapabilityNameNormalizer.canonicalName(capability));
+            }
+        });
+        List<String> requiredCapabilities = List.copyOf(requiredByKey.values());
         if (requiredCapabilities.isEmpty()) {
             return new CapabilityCoverage(null, List.of(), List.of());
         }
 
         Set<String> availableCapabilities = serverCapabilities.stream()
-                .map(RankingService::canonicalCapability)
-                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
-        List<String> matched = requiredCapabilities.stream()
-                .filter(availableCapabilities::contains)
+                .map(CapabilityNameNormalizer::matchingKey)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        List<String> matched = requiredByKey.entrySet().stream()
+                .filter(entry -> availableCapabilities.contains(entry.getKey()))
+                .map(java.util.Map.Entry::getValue)
                 .toList();
-        List<String> missing = requiredCapabilities.stream()
-                .filter(capability -> !availableCapabilities.contains(capability))
+        List<String> missing = requiredByKey.entrySet().stream()
+                .filter(entry -> !availableCapabilities.contains(entry.getKey()))
+                .map(java.util.Map.Entry::getValue)
                 .toList();
         return new CapabilityCoverage(
                 (double) matched.size() / requiredCapabilities.size(),
                 matched,
                 missing
         );
-    }
-
-    private static String canonicalCapability(String value) {
-        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     private static boolean isPublicRepository(String repositoryUrl) {

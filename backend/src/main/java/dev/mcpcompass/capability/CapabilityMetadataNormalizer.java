@@ -5,9 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @Component
 public class CapabilityMetadataNormalizer {
@@ -18,8 +16,6 @@ public class CapabilityMetadataNormalizer {
     static final double TOOL_NAME_CONFIDENCE = 0.7;
 
     private static final int MAX_NAME_LENGTH = 255;
-    private static final Pattern CAPABILITY_SEPARATOR = Pattern.compile("[^a-z0-9-]+");
-    private static final Pattern REPEATED_DOTS = Pattern.compile("\\.{2,}");
 
     public NormalizedCapabilityMetadata normalize(RegistryClient.RegistryServerPayload payload) {
         return normalize(payload, payload.tools());
@@ -84,7 +80,7 @@ public class CapabilityMetadataNormalizer {
         if (capability == null) {
             return java.util.Optional.empty();
         }
-        String canonicalName = canonicalName(capability.name());
+        String canonicalName = CapabilityNameNormalizer.canonicalName(capability.name());
         if (canonicalName == null) {
             return java.util.Optional.empty();
         }
@@ -96,20 +92,8 @@ public class CapabilityMetadataNormalizer {
         ));
     }
 
-    static String canonicalName(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        String canonical = CAPABILITY_SEPARATOR.matcher(
-                        value.strip().toLowerCase(Locale.ROOT))
-                .replaceAll(".");
-        canonical = REPEATED_DOTS.matcher(canonical).replaceAll(".");
-        canonical = trimDots(canonical);
-        return canonical.isBlank() || canonical.length() > MAX_NAME_LENGTH ? null : canonical;
-    }
-
     private static String derivedToolCapability(String registryName, String toolName) {
-        String canonicalToolName = canonicalName(toolName);
+        String canonicalToolName = CapabilityNameNormalizer.canonicalName(toolName);
         if (canonicalToolName == null) {
             return toolName;
         }
@@ -117,7 +101,7 @@ public class CapabilityMetadataNormalizer {
         if (registryName != null && registryName.contains("/")) {
             namespaceCandidate = registryName.substring(registryName.lastIndexOf('/') + 1);
         }
-        String namespace = canonicalName(namespaceCandidate);
+        String namespace = CapabilityNameNormalizer.canonicalName(namespaceCandidate);
         if (namespace == null || canonicalToolName.startsWith(namespace + ".")) {
             return canonicalToolName;
         }
@@ -137,18 +121,6 @@ public class CapabilityMetadataNormalizer {
             return null;
         }
         return value.strip();
-    }
-
-    private static String trimDots(String value) {
-        int start = 0;
-        int end = value.length();
-        while (start < end && value.charAt(start) == '.') {
-            start++;
-        }
-        while (end > start && value.charAt(end - 1) == '.') {
-            end--;
-        }
-        return value.substring(start, end);
     }
 
     private static void merge(
