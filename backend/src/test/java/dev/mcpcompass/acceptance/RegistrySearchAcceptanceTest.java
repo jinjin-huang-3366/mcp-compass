@@ -1,8 +1,10 @@
 package dev.mcpcompass.acceptance;
 
 import com.sun.net.httpserver.HttpServer;
+import dev.mcpcompass.github.GithubEnrichmentService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -49,6 +51,13 @@ class RegistrySearchAcceptanceTest {
     @LocalServerPort
     private int port;
 
+    private final GithubEnrichmentService githubEnrichmentService;
+
+    @Autowired
+    RegistrySearchAcceptanceTest(GithubEnrichmentService githubEnrichmentService) {
+        this.githubEnrichmentService = githubEnrichmentService;
+    }
+
     @DynamicPropertySource
     static void registryProperties(DynamicPropertyRegistry properties) {
         startRegistryServer();
@@ -68,6 +77,7 @@ class RegistrySearchAcceptanceTest {
 
     @Test
     void ingestsARegistryPageAndSearchesThePersistedServerOverHttp() throws Exception {
+        assertThat(githubEnrichmentService).isNotNull();
         JsonNode syncResponse = post("/api/v1/dev/registry/sync?maxPages=1", null);
 
         assertThat(syncResponse.path("pages").intValue()).isEqualTo(1);

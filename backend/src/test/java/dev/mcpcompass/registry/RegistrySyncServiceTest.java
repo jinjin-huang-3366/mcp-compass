@@ -1,6 +1,7 @@
 package dev.mcpcompass.registry;
 
 import dev.mcpcompass.embedding.ServerEmbeddingService;
+import dev.mcpcompass.github.GithubEnrichmentService;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -25,8 +26,10 @@ class RegistrySyncServiceTest {
     private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
     private final RegistrySyncMetrics metrics = new RegistrySyncMetrics(meterRegistry);
     private final ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
+    private final GithubEnrichmentService githubEnrichmentService = mock(GithubEnrichmentService.class);
     private final RegistrySyncService service = new RegistrySyncService(
-            client, store, metrics, embeddingService, Clock.fixed(NOW, ZoneOffset.UTC));
+            client, store, metrics, embeddingService, githubEnrichmentService,
+            Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
     void springCreatesServiceWithDependencyConstructor() {
@@ -35,6 +38,7 @@ class RegistrySyncServiceTest {
             context.registerBean(RegistrySyncStore.class, () -> store);
             context.registerBean(RegistrySyncMetrics.class, () -> metrics);
             context.registerBean(ServerEmbeddingService.class, () -> embeddingService);
+            context.registerBean(GithubEnrichmentService.class, () -> githubEnrichmentService);
             context.register(RegistrySyncService.class);
 
             context.refresh();
@@ -57,13 +61,15 @@ class RegistrySyncServiceTest {
         RegistrySyncService.SyncResult result = service.syncPages(2);
 
         assertThat(result).isEqualTo(new RegistrySyncService.SyncResult(2, 2, null));
-        var ordered = inOrder(client, store, embeddingService);
+        var ordered = inOrder(client, store, embeddingService, githubEnrichmentService);
         ordered.verify(client).fetchServers("cursor-1", PREVIOUS_SYNC);
         ordered.verify(store).persistPage(first, NOW, NOW);
         ordered.verify(embeddingService).indexServers(first.servers());
+        ordered.verify(githubEnrichmentService).enrichServers(first.servers());
         ordered.verify(client).fetchServers("cursor-2", PREVIOUS_SYNC);
         ordered.verify(store).persistPage(second, NOW, NOW);
         ordered.verify(embeddingService).indexServers(second.servers());
+        ordered.verify(githubEnrichmentService).enrichServers(second.servers());
         assertThat(counter(RegistrySyncMetrics.PAGES)).isEqualTo(2);
         assertThat(counter(RegistrySyncMetrics.ITEMS)).isEqualTo(2);
         assertThat(counter(RegistrySyncMetrics.ERRORS)).isZero();

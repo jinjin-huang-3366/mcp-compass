@@ -34,7 +34,8 @@ Spring Boot modules/packages:
 - `search` — request orchestration and candidate retrieval;
 - `ranking` — deterministic ranking and explanations;
 - `server` — MCP server detail API;
-- future `capability`, `github`, `generation`, `validation`, `ai` modules.
+- `github` — optional repository maintenance enrichment persisted for later ranking;
+- future `generation`, `validation`, `ai` modules.
 
 ### PostgreSQL
 Stores normalized server metadata, future tools/capabilities, enrichment, validation results, and optional vectors. The public Registry is not the search-time source of truth.
