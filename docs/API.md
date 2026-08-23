@@ -51,6 +51,10 @@ overlap contributes 20%. The matched and missing lists make that contribution ex
 heuristic-only requirements with no structured capabilities, `capabilityCoverage` is `null` and
 ranking falls back to deterministic text overlap.
 
+Coverage matching is deterministic and normalizes common Registry/tool naming variants. For
+example, a discovered `github.create_pull_requests` capability covers the requested
+`github.pull-request.create` capability; the response reports the canonical requested name.
+
 ## MCP detail
 
 `GET /mcp/{id}`
