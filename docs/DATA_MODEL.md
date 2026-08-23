@@ -41,6 +41,12 @@ confidence `0.7`. Prose descriptions are not treated as semantic capability clai
 Registry upsert replaces that server's tool and capability mappings so repeated syncs are idempotent
 and removed upstream metadata does not remain searchable.
 
+Coverage comparison applies the same deterministic normalization to required and persisted
+capabilities. It treats punctuation variants uniformly, singularizes common plural resource names,
+and rotates action-first tool names (for example `github.create_pull_requests`) into the same
+comparison key as contract-style capabilities (`github.pull-request.create`). This normalization is
+bounded and lexical; it does not infer capabilities from prose or call an LLM at scoring time.
+
 ### `repo_metrics`
 Latest GitHub repository enrichment for a Registry server: repository URL, last push and release timestamps,
 archived status, SPDX license identifier, and collection time. Registry sync refreshes these values only when

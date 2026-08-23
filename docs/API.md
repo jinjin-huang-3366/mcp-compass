@@ -57,6 +57,10 @@ installability, declared tool-schema coverage, and GitHub enrichment (archive st
 activity). It contributes a bounded 15% of secondary ranking so capability coverage remains dominant.
 Missing enrichment adds no credit; it is never guessed and search does not call GitHub or an MCP server.
 
+Coverage matching is deterministic and normalizes common Registry/tool naming variants. For
+example, a discovered `github.create_pull_requests` capability covers the requested
+`github.pull-request.create` capability; the response reports the canonical requested name.
+
 ## MCP detail
 
 `GET /mcp/{id}`

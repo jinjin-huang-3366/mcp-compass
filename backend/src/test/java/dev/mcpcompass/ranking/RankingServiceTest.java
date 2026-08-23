@@ -87,6 +87,27 @@ class RankingServiceTest {
     }
 
     @Test
+    void matchesActionFirstPluralToolCapabilitiesAgainstCanonicalRequirements() {
+        RequirementAnalysis requirement = structuredRequirement(
+                List.of("github"),
+                List.of("GitHub.Pull-Request.Create", "github.issue.list")
+        );
+        McpServerEntity server = server("io.example/github", "GitHub MCP", "", "active");
+
+        RankingService.RankedServer ranked = rankingService.rank(
+                server,
+                requirement,
+                List.of("github.create_pull_requests", "github.list_issues")
+        );
+
+        assertThat(ranked.capabilityCoverage()).isEqualTo(1.0);
+        assertThat(ranked.matchedCapabilities())
+                .containsExactly("github.pull-request.create", "github.issue.list");
+        assertThat(ranked.missingCapabilities()).isEmpty();
+        assertThat(ranked.reasons()).contains("capability coverage 2/2");
+    }
+
+    @Test
     void fallsBackToSecondaryScoreWhenRequirementHasNoCapabilities() {
         RequirementAnalysis requirement = new RequirementAnalysis("github", List.of("github"));
         McpServerEntity server = server("io.example/github", "GitHub MCP", "", "active");
