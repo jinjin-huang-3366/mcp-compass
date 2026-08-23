@@ -2,6 +2,7 @@ package dev.mcpcompass;
 
 import dev.mcpcompass.embedding.EmbeddingProperties;
 import dev.mcpcompass.github.GithubEnrichmentProperties;
+import dev.mcpcompass.generation.OpenApiSourceProperties;
 import dev.mcpcompass.registry.RegistryProperties;
 import dev.mcpcompass.requirement.RequirementLlmProperties;
 import org.springframework.boot.SpringApplication;
@@ -15,7 +16,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         RegistryProperties.class,
         RequirementLlmProperties.class,
         EmbeddingProperties.class,
-        GithubEnrichmentProperties.class
+        GithubEnrichmentProperties.class,
+        OpenApiSourceProperties.class
 })
 public class McpCompassApplication {
 
