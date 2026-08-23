@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { searchMcps, SearchResponse } from "@/lib/api";
 import { CapabilityCoverage } from "@/components/CapabilityCoverage";
+import { RankingExplanation } from "@/components/RankingExplanation";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
 const PAGE_SIZE = 10;
@@ -158,6 +159,7 @@ export function SearchForm() {
                   matchedCapabilities={match.matchedCapabilities}
                   missingCapabilities={match.missingCapabilities}
                 />
+                <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
                 <Link className="detailLink" href={`/mcp/${match.id}`}>
                   View MCP details

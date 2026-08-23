@@ -222,6 +222,13 @@ class McpSearchServiceTest {
                 null,
                 List.of(),
                 List.of(),
+                new RankingService.RankingExplanation(
+                        List.of(new RankingService.RankingFeatureContribution(
+                                "retrievalRelevance", 0.8, 1.0, 0.8
+                        )),
+                        0.8,
+                        1.0
+                ),
                 List.of("text match")
         );
     }

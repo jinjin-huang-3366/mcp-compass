@@ -93,23 +93,33 @@ public class RankingService {
             retrievalScore = Math.max(retrievalScore, boundedSimilarity);
             reasons.add("semantic similarity %d%%".formatted(Math.round(boundedSimilarity * 100.0)));
         }
-        double secondaryScore = Math.min(
-                1.0,
-                Math.max(0.0, retrievalScore * LEXICAL_WEIGHT + quality.score() * QUALITY_WEIGHT)
-        );
         CapabilityCoverage capabilityCoverage = capabilityCoverage(requirement, serverCapabilities);
-        double score = secondaryScore;
+        List<RankingFeatureContribution> contributions = new ArrayList<>();
+        double retrievalWeight = LEXICAL_WEIGHT;
+        double qualityWeight = QUALITY_WEIGHT;
         if (capabilityCoverage.score() != null) {
-            score = CAPABILITY_WEIGHT * capabilityCoverage.score() + SECONDARY_WEIGHT * secondaryScore;
+            contributions.add(contribution("capabilityCoverage", capabilityCoverage.score(), CAPABILITY_WEIGHT));
+            retrievalWeight *= SECONDARY_WEIGHT;
+            qualityWeight *= SECONDARY_WEIGHT;
             reasons.add(0, "capability coverage %d/%d".formatted(
                     capabilityCoverage.matched().size(),
                     capabilityCoverage.matched().size() + capabilityCoverage.missing().size()
             ));
         }
+        contributions.add(contribution("retrievalRelevance", retrievalScore, retrievalWeight));
+        contributions.add(contribution("quality", quality.score(), qualityWeight));
 
-        if ("deprecated".equalsIgnoreCase(server.getStatus())) {
-            score *= 0.5;
-        }
+        double preAdjustmentScore = contributions.stream()
+                .mapToDouble(RankingFeatureContribution::contribution)
+                .sum();
+        double statusMultiplier = "deprecated".equalsIgnoreCase(server.getStatus()) ? 0.5 : 1.0;
+        double score = preAdjustmentScore * statusMultiplier;
+
+        RankingExplanation explanation = new RankingExplanation(
+                List.copyOf(contributions),
+                preAdjustmentScore,
+                statusMultiplier
+        );
 
         return new RankedServer(
                 server,
@@ -118,8 +128,13 @@ public class RankingService {
                 capabilityCoverage.score(),
                 capabilityCoverage.matched(),
                 capabilityCoverage.missing(),
+                explanation,
                 List.copyOf(reasons)
         );
+    }
+
+    private static RankingFeatureContribution contribution(String feature, double featureScore, double weight) {
+        return new RankingFeatureContribution(feature, featureScore, weight, featureScore * weight);
     }
 
     private static QualityAssessment quality(McpServerEntity server, TrustQualitySignals signals) {
@@ -215,6 +230,21 @@ public class RankingService {
     private record QualityAssessment(double score, List<String> reasons) {
     }
 
+    public record RankingFeatureContribution(
+            String feature,
+            double featureScore,
+            double weight,
+            double contribution
+    ) {
+    }
+
+    public record RankingExplanation(
+            List<RankingFeatureContribution> contributions,
+            double preAdjustmentScore,
+            double statusMultiplier
+    ) {
+    }
+
     public record RankedServer(
             McpServerEntity server,
             double score,
@@ -222,6 +252,7 @@ public class RankingService {
             Double capabilityCoverage,
             List<String> matchedCapabilities,
             List<String> missingCapabilities,
+            RankingExplanation rankingExplanation,
             List<String> reasons
     ) {
     }

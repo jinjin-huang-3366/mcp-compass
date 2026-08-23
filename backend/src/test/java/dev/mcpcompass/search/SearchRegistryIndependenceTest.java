@@ -87,7 +87,17 @@ class SearchRegistryIndependenceTest {
                 .andExpect(jsonPath("$.matches[0].id").value(serverId.toString()))
                 .andExpect(jsonPath("$.matches[0].registryName").value("io.example/github"))
                 .andExpect(jsonPath("$.matches[0].score").value(0.88))
-                .andExpect(jsonPath("$.matches[0].qualityScore").value(0.2));
+                .andExpect(jsonPath("$.matches[0].qualityScore").value(0.2))
+                .andExpect(jsonPath("$.matches[0].rankingExplanation.preAdjustmentScore").value(0.88))
+                .andExpect(jsonPath("$.matches[0].rankingExplanation.statusMultiplier").value(1.0))
+                .andExpect(jsonPath("$.matches[0].rankingExplanation.contributions[0].feature")
+                        .value("retrievalRelevance"))
+                .andExpect(jsonPath("$.matches[0].rankingExplanation.contributions[0].contribution")
+                        .value(0.85))
+                .andExpect(jsonPath("$.matches[0].rankingExplanation.contributions[1].feature")
+                        .value("quality"))
+                .andExpect(jsonPath("$.matches[0].rankingExplanation.contributions[1].contribution")
+                        .value(0.03));
         verify(repository).findAll(
                 org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
                 any(Pageable.class)
