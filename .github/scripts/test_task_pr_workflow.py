@@ -17,17 +17,36 @@ class TaskPrWorkflowContractTest(unittest.TestCase):
         first_check = self.workflow.index(check)
         backend_validation = self.workflow.index("- name: Run backend tests")
         second_check = self.workflow.rindex(check)
-        open_pull_request = self.workflow.index("- name: Open pull request")
+        open_pull_request = self.workflow.index("- name: Open or update pull request")
         self.assertLess(first_check, backend_validation)
         self.assertLess(backend_validation, second_check)
         self.assertLess(second_check, open_pull_request)
 
     def test_final_check_fetches_the_latest_requested_base(self):
         recheck = self.workflow.split("- name: Recheck branch against latest base", 1)[1]
-        recheck = recheck.split("- name: Open pull request", 1)[0]
+        recheck = recheck.split("- name: Open or update pull request", 1)[0]
 
         self.assertIn('refs/heads/$BASE_BRANCH:refs/remotes/origin/$BASE_BRANCH', recheck)
         self.assertIn('--base-ref "origin/$BASE_BRANCH"', recheck)
+
+    def test_requires_and_publishes_a_concrete_example(self):
+        self.assertIn("      concrete_example:\n", self.workflow)
+        self.assertIn("CONCRETE_EXAMPLE: ${{ inputs.concrete_example }}", self.workflow)
+        self.assertIn("## Concrete example", self.workflow)
+        self.assertIn(
+            "CONCRETE_EXAMPLE_PATH: ${{ runner.temp }}/concrete-example.md",
+            self.workflow,
+        )
+
+    def test_retry_dispatch_updates_the_existing_open_pull_request(self):
+        publish = self.workflow.split("- name: Open or update pull request", 1)[1]
+        publish = publish.split("- name: Start baseline CI", 1)[0]
+
+        self.assertIn("gh pr list", publish)
+        self.assertIn('--head "$BRANCH_NAME"', publish)
+        self.assertIn('--state open', publish)
+        self.assertIn('gh pr edit "$pr_url"', publish)
+        self.assertIn("gh pr create", publish)
 
 
 if __name__ == "__main__":

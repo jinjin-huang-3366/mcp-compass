@@ -14,6 +14,7 @@ Require a concrete task description. Accept or derive these values:
 - `branch_name`: default to a short `task/<slug>` name.
 - `base_branch`: default to `main`.
 - `pr_title`: derive a concise, behavior-focused title.
+- `concrete_example`: provide one specific before/after, request/response, or user-visible scenario that demonstrates the completed behavior. Include real field names or commands where useful; do not repeat the abstract summary.
 - `desk_testing`: provide complete, reproducible task-specific checks with ordered commands or actions, expected results, and any unperformed steps with the reason. The workflow automatically prepends standard PostgreSQL, backend, and frontend startup, readiness, and cleanup steps.
 - `plan_item`: use the exact text of one unchecked `PLANS.md` entry when the task implements it; otherwise use an empty value.
 
@@ -40,19 +41,19 @@ Treat authentication, permissions, missing email secrets, an existing branch, an
 5. Review the diff for scope and secrets. Stage only the intended files.
 6. Commit with the pull request title or another concise behavior-focused message and push `branch_name` without force.
 7. Fetch `base_branch` again immediately before dispatch and require it to be an ancestor of the pushed task head. If the base advanced, repeat the synchronization, review, validation, commit, and push cycle before dispatching.
-8. Prepare a concise summary of the completed changes and validation results, plus complete `desk_testing` guidance, for the pull request and email.
+8. Prepare a concise summary of the completed changes and validation results, a concrete example, plus complete `desk_testing` guidance, for the pull request and email.
 
 If the environment cannot write the local Git index but an authenticated GitHub API or CLI can safely create the branch and commit the exact validated files, use that as a fallback. Never update the base branch or overwrite an existing task branch.
 
-## Dispatch once
+## Dispatch
 
-Dispatch the workflow once using the pushed task branch so the workflow definition and source both come from that branch:
+Dispatch the initial workflow attempt once using the pushed task branch so the workflow definition and source both come from that branch. Each permitted retry is a separately recorded run of the same branch workflow:
 
 ```text
-gh workflow run task-pr.yml --ref <branch-name> -f task=<task-description> -f branch_name=<branch-name> -f base_branch=<base-branch> -f pr_title=<pr-title> -f summary=<local-codex-summary> -f desk_testing=<complete-desk-testing-guidance> -f plan_item=<exact-plan-item-or-empty>
+gh workflow run task-pr.yml --ref <branch-name> -f task=<task-description> -f branch_name=<branch-name> -f base_branch=<base-branch> -f pr_title=<pr-title> -f summary=<local-codex-summary> -f concrete_example=<specific-behavior-example> -f desk_testing=<complete-desk-testing-guidance> -f plan_item=<exact-plan-item-or-empty>
 ```
 
-Record the returned run URL or identify the newly created `workflow_dispatch` run using `gh run list`. Correlate it by workflow, actor, branch ref, and creation time. Never dispatch a second run merely because the first run is queued or slow.
+Record the returned run URL or identify the newly created `workflow_dispatch` run using `gh run list`. Correlate it by workflow, actor, branch ref, and creation time. Never dispatch another attempt merely because the current run is queued or slow. Prefer ASCII-escaped JSON input when multiline or non-ASCII values are present so the exact content survives the local shell.
 
 The workflow checks twice that the task head contains the latest fetched base: once before validation and again immediately before pull request creation. A stale branch fails before a pull request is opened.
 
@@ -60,27 +61,28 @@ The workflow checks twice that the task head contains the latest fetched base: o
 
 Poll the run with `gh run view <run-id> --json status,conclusion,url,jobs`. Provide a concise user update at least once per minute while it is active; avoid one long blocking watch command.
 
-On failure:
+On failure, allow at most two retries after the initial attempt (three total attempts):
 
 1. Collect read-only diagnostics with `gh run view <run-id> --log-failed`.
 2. Determine whether validation, pull request creation, or email completed. The local branch and commit already exist before dispatch.
-3. Stop without retrying, merging, starting another task, or making compensating repository changes.
-4. Report the first causal error and the intervention required.
+3. Retry only after identifying a transient cause or making an in-scope correction that addresses the first causal error. Revalidate and synchronize the branch when files or the base changed; never force-push.
+4. Before retrying, confirm there is at most one open pull request for the task branch and that it targets the requested base. The workflow updates that PR when it already exists, so a retry must not create a duplicate.
+5. Record every attempt URL and outcome. If the same uncorrected deterministic error repeats, the failure is unsafe to retry, or the third attempt fails, stop without merging or starting another task and report the first causal error plus the intervention required.
 
-The repository workflow sends email only after successful pull request creation. Do not retry the workflow automatically when validation or email fails.
+The repository workflow sends email only after successful pull request creation. A retry after a later-stage failure revalidates the branch, updates the existing pull request body, restarts baseline CI, and sends the email again. Do not exceed the two-retry limit.
 
 ## Verify completion
 
 After a successful workflow run:
 
 1. Find the open pull request whose head is `branch_name`.
-2. Confirm its base is `base_branch`, its commit exists, and it is not merged or configured for automatic merge. Confirm that its `Desk testing` section contains the standard service startup/readiness/cleanup block followed by the complete task-specific guidance supplied at dispatch. When `plan_item` is set, also confirm the pull request body contains the exact hidden plan-item marker.
+2. Confirm its base is `base_branch`, its commit exists, and it is not merged or configured for automatic merge. Confirm that its `Concrete example` section contains the supplied specific scenario and its `Desk testing` section contains the standard service startup/readiness/cleanup block followed by the complete task-specific guidance supplied at dispatch. When `plan_item` is set, also confirm the pull request body contains the exact hidden plan-item marker.
 3. Wait for GitHub to calculate mergeability and require `MERGEABLE`, never `CONFLICTING` or an unresolved `UNKNOWN`. Fetch the base once more and confirm its current head is an ancestor of the pull request head.
 4. If the base advanced after pull request creation, perform one post-creation synchronization: merge the latest base locally, resolve conflicts, rerun the relevant validation, commit, and push without force. Do not redispatch `task-pr.yml`; wait for baseline CI on the new pull request head. If the base advances again or resolution would change task scope, stop and report intervention required.
 5. Confirm the workflow validation steps and `Email pull request summary` step succeeded, and confirm baseline CI succeeded for the final pull request head. Do not expose SMTP or repository secrets.
 6. Report the run URL, branch, final commit, pull request URL, mergeability, validation results, desk-testing handoff, and email-step result.
 7. Stop. Never merge the pull request or start a follow-up task without a new explicit request.
 
-Do not claim the flow succeeded when validation was not completed, the service startup or task-specific desk-testing guidance is missing or incomplete, the pull request was not created, the final head is not conflict-free against the current base, final-head CI is incomplete, or the email step did not succeed. This is a handoff-time guarantee; a future base-branch update can require another explicit synchronization before merge.
+Do not claim the flow succeeded when validation was not completed, the concrete example or service startup/task-specific desk-testing guidance is missing or incomplete, the pull request was not created, the final head is not conflict-free against the current base, final-head CI is incomplete, or the email step did not succeed. This is a handoff-time guarantee; a future base-branch update can require another explicit synchronization before merge.
 
 After a linked pull request is merged manually, `.github/workflows/plan-completion.yml` marks its exact `PLANS.md` item complete and refreshes the matching parallel delivery group's completion count. The group becomes complete only when all of its canonical items are checked. Pull requests without a valid marker are ignored.

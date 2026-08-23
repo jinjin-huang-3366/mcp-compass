@@ -18,6 +18,7 @@ def build_email_content(
     pr_url: str,
     branch_name: str,
     codex_summary: str,
+    concrete_example: str,
     desk_testing: str,
 ) -> str:
     return f"""A single MCP Compass task is complete and ready for manual review.
@@ -34,6 +35,10 @@ Pull request
 Branch
 ------
 {branch_name}
+
+Concrete example
+----------------
+{concrete_example}
 
 Desk testing
 ------------
@@ -65,8 +70,10 @@ def main() -> None:
     branch_name = required_environment("BRANCH_NAME")
     task_description = required_environment("TASK_DESCRIPTION")
     summary_path = Path(required_environment("CODEX_SUMMARY_PATH"))
+    concrete_example_path = Path(required_environment("CONCRETE_EXAMPLE_PATH"))
     desk_testing_path = Path(required_environment("DESK_TESTING_PATH"))
     codex_summary = summary_path.read_text(encoding="utf-8").strip()
+    concrete_example = concrete_example_path.read_text(encoding="utf-8").strip()
     desk_testing = desk_testing_path.read_text(encoding="utf-8").strip()
 
     message = EmailMessage()
@@ -80,6 +87,7 @@ def main() -> None:
             pr_url,
             branch_name,
             codex_summary,
+            concrete_example,
             desk_testing,
         )
     )

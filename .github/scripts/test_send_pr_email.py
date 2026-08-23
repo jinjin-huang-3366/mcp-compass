@@ -17,9 +17,19 @@ Expected: HTTP 200 and a sync result."""
             pr_url="https://example.test/pull/1",
             branch_name="task/registry-sync-docs",
             codex_summary="Added local development guidance.",
+            concrete_example=(
+                "Before: developers guessed how to trigger a sync.\n"
+                "After: POST /api/v1/dev/registry/sync returns the sync summary."
+            ),
             desk_testing=desk_testing,
         )
 
+        self.assertIn(
+            "Concrete example\n----------------\n"
+            "Before: developers guessed how to trigger a sync.\n"
+            "After: POST /api/v1/dev/registry/sync returns the sync summary.",
+            content,
+        )
         self.assertIn("Desk testing\n------------\n" + desk_testing, content)
         self.assertIn("Validation\n----------", content)
         self.assertIn("Summary\n-------", content)

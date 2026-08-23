@@ -24,6 +24,10 @@ on:
         description: Summary of the changes produced by local Codex
         required: true
         type: string
+      concrete_example:
+        description: Concrete before/after or usage example that demonstrates the completed behavior
+        required: true
+        type: string
       desk_testing:
         description: Reproducible manual test steps, expected results, and any steps not run
         required: true
@@ -97,11 +101,13 @@ jobs:
       - name: Prepare local Codex artifacts
         env:
           CODEX_SUMMARY: ${{ inputs.summary }}
+          CONCRETE_EXAMPLE: ${{ inputs.concrete_example }}
           DESK_TESTING_PATH: ${{ runner.temp }}/desk-testing.md
           TASK_DESK_TESTING: ${{ inputs.desk_testing }}
         shell: bash
         run: |
           printf '%s\n' "$CODEX_SUMMARY" > "$RUNNER_TEMP/codex-summary.md"
+          printf '%s\n' "$CONCRETE_EXAMPLE" > "$RUNNER_TEMP/concrete-example.md"
           python .github/scripts/prepare_desk_testing.py
 
       - name: Validate plan item
@@ -153,12 +159,13 @@ jobs:
             --base-ref "origin/$BASE_BRANCH" \
             --head-ref HEAD
 
-      - name: Open pull request
+      - name: Open or update pull request
         id: pull_request
         env:
           BASE_BRANCH: ${{ inputs.base_branch }}
           BRANCH_NAME: ${{ inputs.branch_name }}
           CODEX_SUMMARY: ${{ runner.temp }}/codex-summary.md
+          CONCRETE_EXAMPLE: ${{ runner.temp }}/concrete-example.md
           DESK_TESTING: ${{ runner.temp }}/desk-testing.md
           GH_TOKEN: ${{ github.token }}
           PLAN_ITEM: ${{ inputs.plan_item }}
@@ -170,6 +177,8 @@ jobs:
             printf '## Task\n\n%s\n\n' "$TASK_DESCRIPTION"
             printf '## Local Codex summary\n\n'
             cat "$CODEX_SUMMARY"
+            printf '\n\n## Concrete example\n\n'
+            cat "$CONCRETE_EXAMPLE"
             printf '\n\n## Desk testing\n\n'
             cat "$DESK_TESTING"
             printf '\n\n## Validation\n\n'
@@ -183,13 +192,23 @@ jobs:
             printf '\nThis pull request was created automatically but must be merged manually.\n'
           } > "$RUNNER_TEMP/pr-body.md"
 
-          pr_url=$(gh pr create \
+          pr_url=$(gh pr list \
             --base "$BASE_BRANCH" \
             --head "$BRANCH_NAME" \
-            --title "$PR_TITLE" \
-            --body-file "$RUNNER_TEMP/pr-body.md")
+            --state open \
+            --json url \
+            --jq '.[0].url')
+          if [[ -n "$pr_url" ]]; then
+            gh pr edit "$pr_url" --title "$PR_TITLE" --body-file "$RUNNER_TEMP/pr-body.md"
+          else
+            pr_url=$(gh pr create \
+              --base "$BASE_BRANCH" \
+              --head "$BRANCH_NAME" \
+              --title "$PR_TITLE" \
+              --body-file "$RUNNER_TEMP/pr-body.md")
+          fi
           echo "url=$pr_url" >> "$GITHUB_OUTPUT"
-          printf 'Created pull request: %s\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Pull request ready: %s\n' "$pr_url" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Start baseline CI
         env:
@@ -202,6 +221,7 @@ jobs:
         env:
           BRANCH_NAME: ${{ inputs.branch_name }}
           CODEX_SUMMARY_PATH: ${{ runner.temp }}/codex-summary.md
+          CONCRETE_EXAMPLE_PATH: ${{ runner.temp }}/concrete-example.md
           DESK_TESTING_PATH: ${{ runner.temp }}/desk-testing.md
           EMAIL_TO: ${{ secrets.GMAIL_ADDRESS }}
           PR_TITLE: ${{ inputs.pr_title }}
