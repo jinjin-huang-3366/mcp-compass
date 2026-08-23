@@ -48,6 +48,40 @@ export type McpServerDetail = {
   lastSeenAt: string;
 };
 
+export type McpToolContract = {
+  contractVersion: string;
+  status: "PROPOSED" | "APPROVED";
+  source: {
+    type: "FILE" | "URL";
+    location: string;
+    openApiVersion: string;
+    title: string;
+    apiVersion: string;
+  };
+  tools: McpTool[];
+};
+
+export type McpTool = {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+  outputSchema: Record<string, unknown>;
+  sourceOperation: {
+    method: string;
+    path: string;
+    operationId: string | null;
+  };
+  authenticationRequirements: string[];
+  risk: "READ_ONLY" | "MUTATING" | "DESTRUCTIVE";
+};
+
+export type McpToolReview = {
+  toolIndex: number;
+  selected: boolean;
+  name: string;
+  description: string;
+};
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 export async function searchMcps(
@@ -84,4 +118,34 @@ export async function getMcpDetail(id: string): Promise<McpServerDetail | null> 
   }
 
   return response.json() as Promise<McpServerDetail>;
+}
+
+export async function proposeOpenApiContract(file: File): Promise<McpToolContract> {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await fetch(`${API_BASE}/api/v1/generation/contracts/openapi`, {
+    method: "POST",
+    body: form,
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Contract proposal returned ${response.status}${body ? `: ${body}` : ""}`);
+  }
+  return response.json() as Promise<McpToolContract>;
+}
+
+export async function approveMcpToolContract(
+  contract: McpToolContract,
+  tools: McpToolReview[],
+): Promise<McpToolContract> {
+  const response = await fetch(`${API_BASE}/api/v1/generation/contracts/review`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ contract, tools }),
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Contract review returned ${response.status}${body ? `: ${body}` : ""}`);
+  }
+  return response.json() as Promise<McpToolContract>;
 }

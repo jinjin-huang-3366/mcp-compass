@@ -165,3 +165,39 @@ For example, a `GET /pets` operation with `operationId: listPets` produces:
 
 The contract is a proposal: this endpoint does not approve endpoint selection, persist developer
 edits, generate source code, or execute API/MCP code. Those remain later generation stages.
+
+## Review and approve an MCP tool contract
+
+`POST /generation/contracts/review`
+
+Submit the `PROPOSED` contract together with exactly one review for each proposed tool. Each review
+identifies the tool by its zero-based `toolIndex`, chooses whether it is selected, and supplies the
+developer-reviewed name and description:
+
+```json
+{
+  "contract": {
+    "contractVersion": "1.0",
+    "status": "PROPOSED",
+    "source": {"type":"FILE","location":"petstore.yaml","openApiVersion":"3.1.0","title":"Pet Store","apiVersion":"1.0.0"},
+    "tools": [{
+      "name":"list_pets",
+      "description":"List pets",
+      "inputSchema":{"type":"object"},
+      "outputSchema":{"type":"array"},
+      "sourceOperation":{"method":"GET","path":"/pets","operationId":"listPets"},
+      "authenticationRequirements":[],
+      "risk":"READ_ONLY"
+    }]
+  },
+  "tools": [
+    {"toolIndex":0,"selected":true,"name":"find_pets","description":"Find available pets"}
+  ]
+}
+```
+
+The response has status `APPROVED` and contains only selected tools. Tool names and descriptions
+use the developer's edits; source operation, schemas, authentication requirements, and risk remain
+the values from the proposal. At least one tool must be selected, and selected names must be valid
+and unique. The `/generate` web page provides this review flow. Approval does not persist the
+contract, generate source code, or execute API/MCP code.

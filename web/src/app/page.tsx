@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { SearchForm } from "@/components/SearchForm";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       <Suspense fallback={<div className="searchCard">Loading search...</div>}>
         <SearchForm />
       </Suspense>
+      <Link className="generationLink" href="/generate">Review an OpenAPI tool contract</Link>
       <footer>
         V0.1: Registry discovery and ranking. MCP generation comes after search quality is proven.
       </footer>
