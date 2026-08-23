@@ -90,3 +90,5 @@ ZIP / GitHub-ready project
 - Ranking accepts explicit features/candidates and remains deterministic where possible.
 - LLM integration implements interfaces; it must not be embedded into controllers or repositories.
 - Generation and validation are separate: successful code generation does not imply safe/valid execution.
+- The TypeScript generator is a deterministic transform from an approved contract to an in-memory file
+  manifest. The backend does not write, install, compile, or execute generated projects.

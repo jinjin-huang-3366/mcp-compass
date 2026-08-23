@@ -2,20 +2,21 @@
 
 MCP Compass is a developer-focused MCP intelligence tool:
 
-> Describe the capability your agent needs. MCP Compass finds and ranks the best existing MCP server. If no server is good enough, the roadmap adds MCP generation from an API/OpenAPI source.
+> Describe the capability your agent needs. MCP Compass finds and ranks the best existing MCP server. If no server is good enough, it can turn an approved API/OpenAPI tool contract into a TypeScript MCP server project.
 
 ## Current status
 
-This repository is a working **V0.1 starter**. It intentionally focuses on the first vertical slice:
+This repository has a working discovery vertical slice plus contract-first generation foundations:
 
 1. ingest public MCP Registry metadata into PostgreSQL;
 2. normalize searchable MCP server metadata;
 3. analyse a developer's natural-language requirement;
 4. retrieve candidate MCP servers;
 5. rank and explain matches;
-6. expose the result through a REST API and a simple Next.js UI.
+6. expose the result through a REST API and a simple Next.js UI;
+7. accept OpenAPI sources, review an MCP tool contract, and generate an in-memory TypeScript project manifest.
 
-MCP generation, runtime inspection, GitHub enrichment, and security sandboxing remain planned. Vector candidate
+Generated-project compilation/export, runtime inspection, and security sandboxing remain planned. Vector candidate
 retrieval is available as an opt-in, benchmark-gated extension to the default lexical search path.
 
 ## Stack

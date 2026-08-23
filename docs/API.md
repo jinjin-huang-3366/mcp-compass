@@ -201,3 +201,24 @@ use the developer's edits; source operation, schemas, authentication requirement
 the values from the proposal. At least one tool must be selected, and selected names must be valid
 and unique. The `/generate` web page provides this review flow. Approval does not persist the
 contract, generate source code, or execute API/MCP code.
+
+## Generate a TypeScript MCP project
+
+`POST /generation/projects/typescript`
+
+Submit a version `1.0` contract with status `APPROVED`. The response is a deterministic TypeScript
+project manifest containing `package.json`, `tsconfig.json`, `.env.example`, `README.md`, the approved
+`contract.json`, and MCP/API client sources. Each selected contract tool is registered with its reviewed
+name and description, declared input/output schemas, source HTTP operation, and conservative MCP risk
+annotations.
+
+For example, an approved `find_pets` tool backed by `GET /pets/{petId}` produces a registration using
+that path and the declared `petId` input schema. Calls substitute the encoded path value, send other
+arguments as query parameters, and use a reserved `body` argument as JSON request content. When the
+contract declares authentication, the generated project reads `API_AUTH_TOKEN` from the environment;
+`API_BASE_URL` is always required. The generated README calls out that this generic bearer-token mapping
+must be reviewed against the source API's declared authentication scheme.
+
+The backend only returns generated files as JSON data. It does not write a project to disk, install npm
+packages, compile source, call the upstream API, or execute the generated MCP server. Compilation and
+sandbox validation remain separate later stages.
