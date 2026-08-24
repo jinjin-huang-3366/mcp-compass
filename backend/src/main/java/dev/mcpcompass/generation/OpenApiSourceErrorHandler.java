@@ -1,5 +1,6 @@
 package dev.mcpcompass.generation;
 
+import dev.mcpcompass.validation.ValidationJobController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,7 +11,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
         OpenApiSourceController.class,
         OpenApiToolContractController.class,
         McpToolContractReviewController.class,
-        TypeScriptMcpProjectController.class
+        TypeScriptMcpProjectController.class,
+        ValidationJobController.class
 })
 class OpenApiSourceErrorHandler {
     @ExceptionHandler(OpenApiSourceException.class)

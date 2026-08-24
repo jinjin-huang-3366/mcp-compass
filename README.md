@@ -17,8 +17,9 @@ This repository has a working discovery vertical slice plus contract-first gener
 7. accept OpenAPI sources, review an MCP tool contract, and generate an in-memory TypeScript project manifest from a
    versioned, data-driven runtime pack with locked dependencies and generated unit tests verified in CI;
 8. download the approved project as a GitHub-ready ZIP with repository ignores and its own CI workflow.
+9. queue an approved generated project snapshot for later isolated validation without executing it in the backend.
 
-Runtime inspection and security sandboxing remain planned. Vector candidate retrieval is
+Validation execution, runtime inspection, and security sandboxing remain planned. Vector candidate retrieval is
 available as an opt-in, benchmark-gated extension to the default lexical search path.
 
 ## Stack

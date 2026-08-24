@@ -24,6 +24,9 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
 - ZIP export accepts only generator-owned manifest paths, rejects duplicate or traversal paths, and creates the
   archive in memory. It does not initialize Git, publish a repository, install dependencies, or execute generated
   content.
+- Validation queue submission accepts the same approved contract as TypeScript generation, validates it through the
+  deterministic generator, and persists the resulting project manifest as untrusted JSON data. Submission does not
+  materialize files, run package lifecycle scripts, start an MCP server, or consume the queued job in the backend.
 
 ## Future sandbox requirements
 - ephemeral container/microVM;
