@@ -149,3 +149,20 @@ export async function approveMcpToolContract(
   }
   return response.json() as Promise<McpToolContract>;
 }
+
+export async function exportTypeScriptMcpProject(
+  contract: McpToolContract,
+): Promise<{ archive: Blob; fileName: string }> {
+  const response = await fetch(`${API_BASE}/api/v1/generation/projects/typescript/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(contract),
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Project export returned ${response.status}${body ? `: ${body}` : ""}`);
+  }
+  const disposition = response.headers.get("Content-Disposition") ?? "";
+  const fileName = disposition.match(/filename="?([^";]+)"?/i)?.[1] ?? "generated-mcp-server.zip";
+  return { archive: await response.blob(), fileName };
+}

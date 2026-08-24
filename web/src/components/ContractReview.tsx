@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import {
   approveMcpToolContract,
+  exportTypeScriptMcpProject,
   McpToolContract,
   McpToolReview,
   proposeOpenApiContract,
@@ -13,6 +14,7 @@ export function ContractReview() {
   const [reviews, setReviews] = useState<McpToolReview[]>([]);
   const [approved, setApproved] = useState<McpToolContract | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function loadProposal(event: FormEvent<HTMLFormElement>) {
@@ -60,6 +62,28 @@ export function ContractReview() {
     setReviews((current) => current.map((review) =>
       review.toolIndex === toolIndex ? { ...review, ...patch } : review
     ));
+  }
+
+  async function downloadProject() {
+    if (!approved) return;
+    setExporting(true);
+    setError(null);
+    try {
+      const { archive, fileName } = await exportTypeScriptMcpProject(approved);
+      const url = URL.createObjectURL(archive);
+      try {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = fileName;
+        link.click();
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Unable to export the project.");
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -131,8 +155,11 @@ export function ContractReview() {
       {approved && (
         <div className="approvedContract" aria-live="polite">
           <div className="eyebrow">APPROVED CONTRACT</div>
-          <h2>Ready for generation</h2>
-          <p>{approved.tools.length} reviewed {approved.tools.length === 1 ? "tool" : "tools"}. No source code has been generated.</p>
+          <h2>Ready to export</h2>
+          <p>{approved.tools.length} reviewed {approved.tools.length === 1 ? "tool" : "tools"}. Download a GitHub-ready TypeScript repository with locked dependencies and CI.</p>
+          <button type="button" disabled={exporting} onClick={downloadProject}>
+            {exporting ? "Preparing ZIP..." : "Download GitHub-ready ZIP"}
+          </button>
           <pre>{JSON.stringify(approved, null, 2)}</pre>
         </div>
       )}

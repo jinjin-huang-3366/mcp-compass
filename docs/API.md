@@ -226,3 +226,20 @@ representative approved contract, installs its locked dependencies with npm life
 command. The production backend only returns generated files as JSON data; it does not write a project to disk,
 install npm packages, compile source, call the upstream API, or execute the generated MCP server. Runtime/protocol
 validation remains a separate sandboxed stage.
+
+## Export a TypeScript MCP project
+
+`POST /generation/projects/typescript/export`
+
+Submit the same version `1.0` `APPROVED` contract accepted by the manifest endpoint. The response is an
+`application/zip` download named from the generated project, for example:
+
+```text
+Content-Disposition: attachment; filename="pet-store-mcp-server.zip"
+```
+
+The archive has one top-level `pet-store-mcp-server/` directory. It contains the locked TypeScript project,
+approved `contract.json`, `.gitignore`, and `.github/workflows/ci.yml`, so the extracted directory can be initialized
+as a Git repository or pushed to GitHub. The workflow installs with lifecycle scripts disabled and runs the generated
+compile and mocked-network tests. Export only assembles the validated manifest in memory; it does not write to the
+server filesystem, create a remote GitHub repository, install packages, or execute generated code.
