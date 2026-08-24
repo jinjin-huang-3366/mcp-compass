@@ -27,7 +27,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-08 — review the contract** | `GEN-03` | `GEN-02` | Complete (1/1) |
 | **PG-09 — generate from the contract** | `GEN-04` | `GEN-03` | Complete (1/1) |
 | **PG-10 — verify generated code** | `GEN-05` | `GEN-04` | Complete (1/1) |
-| **PG-11 — export generated code** | `GEN-06` | `GEN-05` | Not started (0/1) |
+| **PG-11 — export generated code** | `GEN-06` | `GEN-05` | Complete (1/1) |
 | **PG-12 — queue validation** | `VAL-01` | `GEN-06` | Not started (0/1) |
 | **PG-13 — isolate validation** | `VAL-02` | `VAL-01` | Not started (0/1) |
 | **PG-14 — validate protocol and containment** | `VAL-03`, `VAL-04` | `VAL-02` | Not started (0/2) |
@@ -102,7 +102,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **GEN-03** — Let developer review/edit selected endpoints/tools. _(Depends on: FND-02, GEN-02)_
 - [x] **GEN-04** — Generate TypeScript MCP server from approved contract. _(Depends on: GEN-03)_
 - [x] **GEN-05** — Compile/test generated project. _(Depends on: GEN-04)_
-- [ ] **GEN-06** — Export ZIP/GitHub-ready repository. _(Depends on: GEN-05)_
+- [x] **GEN-06** — Export ZIP/GitHub-ready repository. _(Depends on: GEN-05)_
 
 ## V0.4 — sandbox validation
 - [ ] **VAL-01** — Queue validation jobs. _(Depends on: GEN-06)_
