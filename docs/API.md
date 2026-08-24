@@ -243,3 +243,23 @@ approved `contract.json`, `.gitignore`, and `.github/workflows/ci.yml`, so the e
 as a Git repository or pushed to GitHub. The workflow installs with lifecycle scripts disabled and runs the generated
 compile and mocked-network tests. Export only assembles the validated manifest in memory; it does not write to the
 server filesystem, create a remote GitHub repository, install packages, or execute generated code.
+
+## Queue a validation job
+
+`POST /validation/jobs`
+
+Submit the same version `1.0` `APPROVED` contract accepted by the TypeScript generation and export endpoints. The
+backend validates the contract by deterministically generating the project manifest, stores that exact manifest as
+an inert job snapshot, and returns `202 Accepted`:
+
+```json
+{
+  "id": "bb62591b-bc88-4b64-a3ff-7330cc0158b3",
+  "status": "QUEUED",
+  "projectName": "pet-store-mcp-server",
+  "queuedAt": "2026-08-24T14:30:00Z"
+}
+```
+
+Queue submission does not run a worker, create a container, materialize project files, install dependencies, or
+execute generated code. Isolated consumption and validation remain later sandbox milestones.

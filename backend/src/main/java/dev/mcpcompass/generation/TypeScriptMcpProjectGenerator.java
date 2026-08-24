@@ -12,7 +12,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
-class TypeScriptMcpProjectGenerator {
+class TypeScriptMcpProjectGenerator implements GeneratedProjectProvider {
     private static final String GENERATOR_VERSION = "1.0";
     private static final Pattern TOOL_NAME = Pattern.compile("[a-z][a-z0-9_]{0,63}");
     private static final Pattern HTTP_METHOD = Pattern.compile("GET|PUT|POST|DELETE|OPTIONS|HEAD|PATCH|TRACE");
@@ -27,7 +27,8 @@ class TypeScriptMcpProjectGenerator {
         this.runtimePack = runtimePack;
     }
 
-    GeneratedTypeScriptProject generate(McpToolContract contract) {
+    @Override
+    public GeneratedTypeScriptProject generate(McpToolContract contract) {
         validate(contract);
         String projectName = projectName(contract.source().title());
         List<GeneratedTypeScriptProject.File> files = List.of(

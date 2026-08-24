@@ -57,6 +57,12 @@ Registry provenance, installability, and declared-schema status. Missing metrics
 ### `validation_result`
 Future build/protocol/security validation history.
 
+### `validation_job`
+Durable FIFO-oriented validation work. A job begins in `QUEUED` state and stores the generated project name,
+generator/contract versions, submission time, and the exact deterministic TypeScript project manifest as JSONB. The
+`status, queued_at, id` index supports stable worker claiming later. The manifest is an inert snapshot; the main
+backend does not materialize or execute it, and VAL-01 adds no job consumer.
+
 ### `registry_sync_state`
 Checkpoint and last-success metadata for incremental ingestion. A partial run retains its next cursor and
 the prior `updated_since` boundary; completing pagination clears the cursor and advances the boundary to

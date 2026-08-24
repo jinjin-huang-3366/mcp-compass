@@ -35,13 +35,20 @@ Spring Boot modules/packages:
 - `ranking` — deterministic ranking and explanations;
 - `server` — MCP server detail API;
 - `github` — optional repository maintenance enrichment persisted for later ranking;
-- future `generation`, `validation`, `ai` modules.
+- `generation` — contract-first deterministic TypeScript project generation and export;
+- `validation` — durable validation job submission, with execution delegated to the future isolated worker;
+- future `ai` integrations.
 
 ### PostgreSQL
 Stores normalized server metadata, future tools/capabilities, enrichment, validation results, and optional vectors. The public Registry is not the search-time source of truth.
 
 ### Future sandbox worker
 Generated or third-party MCP code must run in an isolated worker/container with bounded CPU/memory/time/filesystem/network. The main backend never executes it directly.
+
+The backend queues a validation request by persisting the exact deterministic generated-project manifest as inert
+JSON with `QUEUED` status. Persisting the snapshot makes the eventual worker input stable even if the generator pack
+changes after submission. VAL-01 does not consume jobs, materialize files, or start generated code; those operations
+remain behind the future sandbox boundary.
 
 ## Search pipeline evolution
 
@@ -90,6 +97,8 @@ Sandbox + MCP protocol validation
 - Ranking accepts explicit features/candidates and remains deterministic where possible.
 - LLM integration implements interfaces; it must not be embedded into controllers or repositories.
 - Generation and validation are separate: successful code generation does not imply safe/valid execution.
+- The validation queue is PostgreSQL-backed inside the modular monolith. It records work for an isolated consumer;
+  queue submission is not a hidden execution path.
 - The TypeScript generator is a deterministic transform from an approved contract to an in-memory file
   manifest. It serializes contract-specific values into `contract.json` and combines them with a versioned,
   classpath-only TypeScript runtime pack. The runtime registers tools from contract data instead of baking reviewed
