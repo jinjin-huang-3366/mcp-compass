@@ -49,7 +49,9 @@ record ContainerExecutionRequest(
                 List.of(
                         "sh",
                         "-lc",
-                        "ln -s /opt/mcp-compass/runtime/node_modules node_modules && npm run build && npm start"
+                        "cp -R /input/. /workspace/"
+                                + " && ln -s /opt/mcp-compass/runtime/node_modules node_modules"
+                                + " && npm run build && npm start"
                 ),
                 workspace.toAbsolutePath(),
                 startupWindow

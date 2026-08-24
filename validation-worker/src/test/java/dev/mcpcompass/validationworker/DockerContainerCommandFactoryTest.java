@@ -29,9 +29,12 @@ class DockerContainerCommandFactoryTest {
                 "--cap-drop", "ALL", "--security-opt", "no-new-privileges"
         );
         assertThat(command).contains(
-                "type=bind,source=" + workspace.toAbsolutePath() + ",target=/workspace",
+                "/workspace:rw,noexec,nosuid,size=64m",
+                "type=bind,source=" + workspace.toAbsolutePath() + ",target=/input,readonly",
                 "mcp-compass/typescript-sandbox:1.0",
-                "ln -s /opt/mcp-compass/runtime/node_modules node_modules && npm run build && npm start"
+                "cp -R /input/. /workspace/"
+                        + " && ln -s /opt/mcp-compass/runtime/node_modules node_modules"
+                        + " && npm run build && npm start"
         );
         assertThat(commands.startAttached("job-1"))
                 .containsExactly("docker", "start", "--attach", "--interactive", "job-1");

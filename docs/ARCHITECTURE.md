@@ -46,7 +46,8 @@ Stores normalized server metadata, future tools/capabilities, enrichment, valida
 Generated or third-party MCP code runs only in an ephemeral container controlled by the separate
 `validation-worker` JVM. The main backend never materializes or executes a workload and has no container-runtime
 dependency. The worker claims queued snapshots atomically, materializes each snapshot under a unique worker-owned
-directory, observes container startup, removes the container, deletes the workspace, and records `EXECUTED` or
+directory, mounts it read-only, copies it into a container-only temporary workspace, observes container startup,
+removes the container, deletes the host workspace, and records `EXECUTED` or
 `FAILED`.
 
 Generated TypeScript workloads use a versioned runtime image whose dependencies were installed with lifecycle

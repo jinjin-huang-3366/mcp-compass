@@ -28,7 +28,8 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
   deterministic generator, and persists the resulting project manifest as untrusted JSON data. Submission does not
   materialize files, run package lifecycle scripts, start an MCP server, or consume the queued job in the backend.
 - The separate validation worker materializes a bounded, traversal-checked snapshot only under a unique worker
-  workspace and launches it through an ephemeral container. Workload containers receive no host credentials or
+  workspace and launches it through an ephemeral container. The snapshot is mounted read-only and copied into
+  container-only temporary storage before compilation. Workload containers receive no host credentials or
   Docker socket, default to no network, use a read-only root filesystem plus isolated temporary storage, drop Linux
   capabilities, and are forcibly removed after a bounded startup observation. Generated dependencies come from the
   application-owned runtime image and are not installed from the network during validation.

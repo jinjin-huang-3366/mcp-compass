@@ -29,8 +29,9 @@ final class DockerContainerCommandFactory {
         ));
         if (request.workloadType() == ContainerExecutionRequest.WorkloadType.GENERATED_PROJECT) {
             command.addAll(List.of(
+                    "--tmpfs", "/workspace:rw,noexec,nosuid,size=64m",
                     "--mount",
-                    "type=bind,source=" + request.workspace() + ",target=/workspace",
+                    "type=bind,source=" + request.workspace() + ",target=/input,readonly",
                     "--workdir", "/workspace"
             ));
         }

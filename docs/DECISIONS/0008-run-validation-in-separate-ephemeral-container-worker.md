@@ -23,8 +23,9 @@ Dependencies are installed into that image with lifecycle scripts disabled; vali
 not install dependencies at runtime. A second request form starts an already-discovered OCI image and passes its
 command as container arguments, never through a host shell.
 
-The VAL-02 safe baseline gives workload containers no Docker socket or inherited credentials, a read-only root
-filesystem, an isolated temporary filesystem, no network, dropped Linux capabilities, and `no-new-privileges`.
+The VAL-02 safe baseline gives workload containers no Docker socket or inherited credentials, mounts generated
+snapshots read-only and compiles a copy in container-only temporary storage, uses a read-only root filesystem,
+has no network, drops Linux capabilities, and sets `no-new-privileges`.
 Production must place the trusted worker and its container-runtime endpoint away from the application host.
 
 `EXECUTED` means only that the MCP server process remained alive for the startup window. MCP Inspector validation is
