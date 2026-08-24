@@ -26,7 +26,9 @@ class TypeScriptMcpProjectControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.projectName").value("pet-store-mcp-server"))
                 .andExpect(jsonPath("$.language").value("typescript"))
-                .andExpect(jsonPath("$.files.length()").value(7))
+                .andExpect(jsonPath("$.files.length()").value(9))
+                .andExpect(jsonPath("$.files[?(@.path == 'package-lock.json')]").exists())
+                .andExpect(jsonPath("$.files[?(@.path == 'src/api-client.test.ts')]").exists())
                 .andExpect(jsonPath("$.files[?(@.path == 'src/index.ts')]").exists());
     }
 

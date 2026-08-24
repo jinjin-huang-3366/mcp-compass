@@ -84,12 +84,32 @@ cd web && npm ci && npm run lint && npm run build
 python -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
 
+Generated-project verification is opt-in locally because it installs the generated manifest's locked npm
+dependencies. With Node.js 22 available, run it on macOS/Linux with:
+
+```bash
+MCP_COMPASS_VERIFY_GENERATED_PROJECT=true ./mvnw -pl backend -Dtest=GeneratedTypeScriptProjectBuildTest test
+```
+
+Or on Windows PowerShell:
+
+```powershell
+$env:MCP_COMPASS_VERIFY_GENERATED_PROJECT = 'true'
+.\mvnw.cmd -pl backend -Dtest=GeneratedTypeScriptProjectBuildTest test
+Remove-Item Env:MCP_COMPASS_VERIFY_GENERATED_PROJECT
+```
+
+The test materializes the exact generator response in an isolated Maven build directory, runs
+`npm ci --ignore-scripts`, then `npm test`. The generated tests mock `fetch`; they neither call the source API nor
+start the MCP server.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs for every pull request, pushes to `main`, and manual dispatches. It has three
 independent quality jobs:
 
-- `backend` uses Java 21 and runs `./mvnw -pl backend test`;
+- `backend` uses Java 21 and Node.js 22, enables exact-manifest generated-project verification, and runs
+  `./mvnw -pl backend test`;
 - `web` uses Node.js 22, installs exactly from `package-lock.json` with `npm ci`, then runs lint and the
   production build;
 - `automation` tests the repository's workflow-support scripts, including the CI contract itself.

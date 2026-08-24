@@ -207,11 +207,11 @@ contract, generate source code, or execute API/MCP code.
 `POST /generation/projects/typescript`
 
 Submit a version `1.0` contract with status `APPROVED`. The response is a deterministic TypeScript
-project manifest containing `package.json`, `tsconfig.json`, `.env.example`, `README.md`, the approved
-`contract.json`, and MCP/API client sources. The source files come from a versioned classpath runtime pack;
-they load `contract.json` as data and register each selected tool with its reviewed name and description,
-declared input/output schemas, source HTTP operation, and conservative MCP risk annotations. Contract values
-are not interpolated into TypeScript source.
+project manifest containing `package.json`, `package-lock.json`, `tsconfig.json`, `.env.example`, `README.md`, the
+approved `contract.json`, MCP/API client sources, and API-client unit tests. The source files come from a versioned
+classpath runtime pack; they load `contract.json` as data and register each selected tool with its reviewed name and
+description, declared input/output schemas, source HTTP operation, and conservative MCP risk annotations. Contract
+values are not interpolated into TypeScript source.
 
 For example, an approved `find_pets` tool backed by `GET /pets/{petId}` produces a registration using
 that path and the declared `petId` input schema. Calls substitute the encoded path value, send other
@@ -220,6 +220,9 @@ contract declares authentication, the generated project reads `API_AUTH_TOKEN` f
 `API_BASE_URL` is always required. The generated README calls out that this generic bearer-token mapping
 must be reviewed against the source API's declared authentication scheme.
 
-The backend only returns generated files as JSON data. It does not write a project to disk, install npm
-packages, compile source, call the upstream API, or execute the generated MCP server. Compilation and
-sandbox validation remain separate later stages.
+The generated `npm test` command compiles the TypeScript and tests request construction with a mocked `fetch`, so it
+does not call the upstream API or start the MCP server. Repository CI materializes the exact manifest produced for a
+representative approved contract, installs its locked dependencies with npm lifecycle scripts disabled, and runs that
+command. The production backend only returns generated files as JSON data; it does not write a project to disk,
+install npm packages, compile source, call the upstream API, or execute the generated MCP server. Runtime/protocol
+validation remains a separate sandboxed stage.

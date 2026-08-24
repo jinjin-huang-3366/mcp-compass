@@ -48,6 +48,18 @@ class TaskPrWorkflowContractTest(unittest.TestCase):
         self.assertIn('gh pr edit "$pr_url"', publish)
         self.assertIn("gh pr create", publish)
 
+    def test_backend_validation_compiles_and_tests_generated_project(self):
+        node_setup = self.workflow.index("- name: Set up Node.js")
+        backend_validation = self.workflow.index("- name: Run backend tests")
+
+        self.assertLess(node_setup, backend_validation)
+        self.assertIn("node-version: '22'", self.workflow)
+        self.assertIn(
+            "backend/src/main/resources/generator/typescript/v1/package-lock.json",
+            self.workflow,
+        )
+        self.assertIn("MCP_COMPASS_VERIFY_GENERATED_PROJECT: 'true'", self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

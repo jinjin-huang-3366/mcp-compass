@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "test": "npm run build && node --test build/api-client.test.js",
     "start": "node build/index.js"
   },
   "dependencies": {

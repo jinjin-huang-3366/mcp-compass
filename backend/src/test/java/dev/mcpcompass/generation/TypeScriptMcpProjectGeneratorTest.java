@@ -23,14 +23,18 @@ class TypeScriptMcpProjectGeneratorTest {
         assertThat(project.language()).isEqualTo("typescript");
         assertThat(project.contractVersion()).isEqualTo("1.0");
         assertThat(project.files()).extracting(GeneratedTypeScriptProject.File::path)
-                .containsExactly("package.json", "tsconfig.json", ".env.example", "README.md",
-                        "contract.json", "src/api-client.ts", "src/index.ts");
+                .containsExactly("package.json", "package-lock.json", "tsconfig.json", ".env.example", "README.md",
+                        "contract.json", "src/api-client.ts", "src/api-client.test.ts", "src/index.ts");
 
         Map<String, String> files = project.files().stream().collect(Collectors.toMap(
                 GeneratedTypeScriptProject.File::path, GeneratedTypeScriptProject.File::content));
         assertThat(files.get("package.json"))
                 .contains("\"@modelcontextprotocol/server\" : \"^2.0.0\"")
-                .contains("\"build\" : \"tsc\"");
+                .contains("\"build\" : \"tsc\"")
+                .contains("\"test\" : \"npm run build && node --test build/api-client.test.js\"");
+        assertThat(files.get("package-lock.json"))
+                .contains("\"name\" : \"pet-store-mcp-server\"")
+                .contains("\"lockfileVersion\" : 3");
         assertThat(files.get(".env.example"))
                 .contains("API_BASE_URL=https://api.example.com")
                 .contains("API_AUTH_TOKEN=replace-me");
@@ -44,6 +48,10 @@ class TypeScriptMcpProjectGeneratorTest {
                 .contains("encodeURIComponent(String(value))")
                 .contains("headers.Authorization = `Bearer ${requiredEnvironment(\"API_AUTH_TOKEN\")}`")
                 .doesNotContain("child_process", "exec(", "spawn(");
+        assertThat(files.get("src/api-client.test.ts"))
+                .contains("globalThis.fetch = async")
+                .contains("https://api.example.com/pets/a%2Fb?page=2")
+                .doesNotContain("listen(", "serveStdio");
         assertThat(files.get("contract.json"))
                 .contains("\"name\" : \"find_pets\"")
                 .contains("\"path\" : \"/pets/{petId}\"")

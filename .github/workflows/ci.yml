@@ -26,7 +26,14 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/src/main/resources/generator/typescript/v1/package-lock.json
       - name: Backend tests
+        env:
+          MCP_COMPASS_VERIFY_GENERATED_PROJECT: 'true'
         run: ./mvnw -pl backend test
 
   web:

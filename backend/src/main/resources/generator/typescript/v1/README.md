@@ -9,9 +9,11 @@ Copy `.env.example` into your secret manager or runtime environment and set `API
 ## Build and run
 
 ```bash
-npm install
-npm run build
+npm ci --ignore-scripts
+npm test
 npm start
 ```
 
-The server uses stdio, so stdout is reserved for MCP protocol messages. Review and compile the generated project before running it. MCP Compass does not execute this project during generation.
+`npm test` compiles the project and exercises request construction with a mocked `fetch`; it does not contact the
+upstream API or start the MCP server. The server uses stdio, so stdout is reserved for MCP protocol messages. Review
+the generated project before running it. MCP Compass does not execute this project during generation.
