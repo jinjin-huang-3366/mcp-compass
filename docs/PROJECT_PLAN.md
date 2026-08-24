@@ -6,7 +6,7 @@ Agent/MCP developer who knows the capability they need but does not want to manu
 ## Primary job
 "Given this agent requirement, tell me which MCP server I should use and why."
 
-## Secondary job (later)
+## Secondary job
 "If no suitable MCP exists, turn my underlying API/OpenAPI source into a reviewable MCP server project."
 
 ## V0.1 UX

@@ -14,6 +14,11 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
 - OpenAPI URL ingestion permits public HTTPS sources only, disables redirects, rejects credentials and
   non-default ports, checks resolved addresses for local/private ranges, and caps response size. Uploaded
   OpenAPI files are subject to the same size bound. Parsing never executes source content.
+- TypeScript generation accepts only an approved versioned contract, serializes reviewed text and schemas into
+  `contract.json`, and combines that data with a bundled, classpath-only runtime pack. Contract values are never
+  interpreted as templates or interpolated into TypeScript source. The backend returns an in-memory file manifest;
+  it does not write files, install dependencies, or execute generated code. Runtime credentials are represented
+  only by environment-variable placeholders.
 
 ## Future sandbox requirements
 - ephemeral container/microVM;

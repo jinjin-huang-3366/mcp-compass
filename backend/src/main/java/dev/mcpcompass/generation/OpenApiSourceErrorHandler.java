@@ -6,7 +6,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(assignableTypes = {OpenApiSourceController.class, OpenApiToolContractController.class})
+@RestControllerAdvice(assignableTypes = {
+        OpenApiSourceController.class,
+        OpenApiToolContractController.class,
+        McpToolContractReviewController.class,
+        TypeScriptMcpProjectController.class
+})
 class OpenApiSourceErrorHandler {
     @ExceptionHandler(OpenApiSourceException.class)
     ResponseEntity<OpenApiSourceError> sourceError(OpenApiSourceException exception) {
