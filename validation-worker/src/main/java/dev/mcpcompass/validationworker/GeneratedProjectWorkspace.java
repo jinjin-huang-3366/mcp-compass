@@ -5,6 +5,8 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -55,6 +57,7 @@ final class GeneratedProjectWorkspace implements AutoCloseable {
                 Files.createDirectories(target.getParent());
                 Files.writeString(target, file.content());
             }
+            makeReadableThroughTheReadOnlyMount(directory);
             return workspace;
         } catch (RuntimeException | IOException error) {
             workspace.close();
@@ -64,6 +67,19 @@ final class GeneratedProjectWorkspace implements AutoCloseable {
 
     Path directory() {
         return directory;
+    }
+
+    private static void makeReadableThroughTheReadOnlyMount(Path directory) throws IOException {
+        if (Files.getFileAttributeView(directory, PosixFileAttributeView.class) == null) {
+            return;
+        }
+        try (var paths = Files.walk(directory)) {
+            for (Path path : paths.toList()) {
+                Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(
+                        Files.isDirectory(path) ? "rwxr-xr-x" : "rw-r--r--"
+                ));
+            }
+        }
     }
 
     @Override
