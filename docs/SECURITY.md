@@ -21,6 +21,9 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
   only by environment-variable placeholders. The application-owned pack includes a dependency lockfile and tests
   that mock `fetch`. CI materializes a representative generated manifest, installs with npm lifecycle scripts
   disabled, compiles it, and runs those tests without starting the MCP server or contacting an upstream API.
+- ZIP export accepts only generator-owned manifest paths, rejects duplicate or traversal paths, and creates the
+  archive in memory. It does not initialize Git, publish a repository, install dependencies, or execute generated
+  content.
 
 ## Future sandbox requirements
 - ephemeral container/microVM;

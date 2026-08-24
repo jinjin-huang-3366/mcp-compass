@@ -17,8 +17,10 @@ class TypeScriptMcpRuntimePack {
             "package.json",
             "package-lock.json",
             "tsconfig.json",
+            ".gitignore",
             ".env.example",
             "README.md",
+            ".github/workflows/ci.yml",
             "src/api-client.ts",
             "src/api-client.test.ts",
             "src/index.ts"

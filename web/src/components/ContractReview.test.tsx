@@ -4,11 +4,12 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ContractReview } from "./ContractReview";
-import { approveMcpToolContract, proposeOpenApiContract } from "../lib/api";
+import { approveMcpToolContract, exportTypeScriptMcpProject, proposeOpenApiContract } from "../lib/api";
 
 vi.mock("../lib/api", () => ({
   proposeOpenApiContract: vi.fn(),
   approveMcpToolContract: vi.fn(),
+  exportTypeScriptMcpProject: vi.fn(),
 }));
 
 const proposal = {
@@ -28,12 +29,22 @@ describe("ContractReview", () => {
   });
 
   it("submits the developer's endpoint selection and tool edits", async () => {
-    vi.mocked(proposeOpenApiContract).mockResolvedValue(proposal);
-    vi.mocked(approveMcpToolContract).mockResolvedValue({
+    const approved = {
       ...proposal,
-      status: "APPROVED",
+      status: "APPROVED" as const,
       tools: [{ ...proposal.tools[0], name: "find_pets", description: "Find available pets" }],
+    };
+    vi.mocked(proposeOpenApiContract).mockResolvedValue(proposal);
+    vi.mocked(approveMcpToolContract).mockResolvedValue(approved);
+    vi.mocked(exportTypeScriptMcpProject).mockResolvedValue({
+      archive: new Blob(["zip"]),
+      fileName: "pet-store-mcp-server.zip",
     });
+    const createObjectUrl = vi.fn(() => "blob:pet-store");
+    const revokeObjectUrl = vi.fn();
+    Object.defineProperty(URL, "createObjectURL", { configurable: true, value: createObjectUrl });
+    Object.defineProperty(URL, "revokeObjectURL", { configurable: true, value: revokeObjectUrl });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
     render(<ContractReview />);
 
     const file = new File(["openapi: 3.1.0"], "petstore.yaml", { type: "application/yaml" });
@@ -50,7 +61,12 @@ describe("ContractReview", () => {
       { toolIndex: 0, selected: true, name: "find_pets", description: "Find available pets" },
       { toolIndex: 1, selected: false, name: "delete_pet", description: "Delete pet" },
     ]));
-    expect(await screen.findByText("Ready for generation")).toBeInTheDocument();
-    expect(screen.getByText("1 reviewed tool. No source code has been generated.")).toBeInTheDocument();
+    expect(await screen.findByText("Ready to export")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Download GitHub-ready ZIP" }));
+
+    await waitFor(() => expect(exportTypeScriptMcpProject).toHaveBeenCalledWith(approved));
+    expect(createObjectUrl).toHaveBeenCalled();
+    expect(click).toHaveBeenCalled();
+    expect(revokeObjectUrl).toHaveBeenCalledWith("blob:pet-store");
   });
 });

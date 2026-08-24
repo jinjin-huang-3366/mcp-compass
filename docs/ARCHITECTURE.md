@@ -78,10 +78,10 @@ TypeScript code generator
 Compile/test repair loop
         |
         v
-Sandbox + MCP protocol validation
+ZIP / GitHub-ready project
         |
         v
-ZIP / GitHub-ready project
+Sandbox + MCP protocol validation
 ```
 
 ## Architecture boundaries
@@ -93,6 +93,8 @@ ZIP / GitHub-ready project
 - The TypeScript generator is a deterministic transform from an approved contract to an in-memory file
   manifest. It serializes contract-specific values into `contract.json` and combines them with a versioned,
   classpath-only TypeScript runtime pack. The runtime registers tools from contract data instead of baking reviewed
-  values into generated source. The pack includes a lockfile and unit tests. Repository CI materializes the exact
-  generated manifest, installs dependencies with lifecycle scripts disabled, compiles it, and runs tests with mocked
-  network access. The production backend does not write, install, compile, or execute generated projects.
+  values into generated source. The pack includes a lockfile, unit tests, `.gitignore`, and a GitHub Actions workflow.
+  The export endpoint streams the validated manifest as a deterministic in-memory ZIP rooted at the generated project
+  name. Repository CI materializes the exact generated manifest, installs dependencies with lifecycle scripts
+  disabled, compiles it, and runs tests with mocked network access. The production backend does not write, install,
+  compile, publish, or execute generated projects.

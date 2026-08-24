@@ -23,8 +23,9 @@ class TypeScriptMcpProjectGeneratorTest {
         assertThat(project.language()).isEqualTo("typescript");
         assertThat(project.contractVersion()).isEqualTo("1.0");
         assertThat(project.files()).extracting(GeneratedTypeScriptProject.File::path)
-                .containsExactly("package.json", "package-lock.json", "tsconfig.json", ".env.example", "README.md",
-                        "contract.json", "src/api-client.ts", "src/api-client.test.ts", "src/index.ts");
+                .containsExactly("package.json", "package-lock.json", "tsconfig.json", ".gitignore", ".env.example",
+                        "README.md", ".github/workflows/ci.yml", "contract.json", "src/api-client.ts",
+                        "src/api-client.test.ts", "src/index.ts");
 
         Map<String, String> files = project.files().stream().collect(Collectors.toMap(
                 GeneratedTypeScriptProject.File::path, GeneratedTypeScriptProject.File::content));
@@ -38,6 +39,9 @@ class TypeScriptMcpProjectGeneratorTest {
         assertThat(files.get(".env.example"))
                 .contains("API_BASE_URL=https://api.example.com")
                 .contains("API_AUTH_TOKEN=replace-me");
+        assertThat(files.get(".gitignore")).contains("node_modules/", ".env");
+        assertThat(files.get(".github/workflows/ci.yml"))
+                .contains("actions/setup-node@v4", "npm ci --ignore-scripts", "npm test");
         assertThat(files.get("src/index.ts"))
                 .contains("for (const tool of contract.tools)")
                 .contains("server.registerTool(tool.name")
