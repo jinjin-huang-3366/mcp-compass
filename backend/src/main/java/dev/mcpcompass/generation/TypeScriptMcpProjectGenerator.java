@@ -32,11 +32,13 @@ class TypeScriptMcpProjectGenerator {
         String projectName = projectName(contract.source().title());
         List<GeneratedTypeScriptProject.File> files = List.of(
                 file("package.json", packageJson(projectName)),
+                file("package-lock.json", packageLockJson(projectName)),
                 runtimePack.file("tsconfig.json"),
                 runtimePack.file(".env.example"),
                 runtimePack.file("README.md"),
                 file("contract.json", prettyJson(contract)),
                 runtimePack.file("src/api-client.ts"),
+                runtimePack.file("src/api-client.test.ts"),
                 runtimePack.file("src/index.ts")
         );
         return new GeneratedTypeScriptProject(
@@ -95,12 +97,28 @@ class TypeScriptMcpProjectGenerator {
     }
 
     private String packageJson(String projectName) {
-        JsonNode template = objectMapper.readTree(runtimePack.content("package.json"));
-        if (!(template instanceof ObjectNode root)) {
-            throw new IllegalStateException("TypeScript runtime pack package.json must contain a JSON object.");
-        }
+        ObjectNode root = jsonObject("package.json");
         root.put("name", projectName);
         return prettyJson(root);
+    }
+
+    private String packageLockJson(String projectName) {
+        ObjectNode root = jsonObject("package-lock.json");
+        root.put("name", projectName);
+        JsonNode rootPackage = root.path("packages").path("");
+        if (!(rootPackage instanceof ObjectNode packageMetadata)) {
+            throw new IllegalStateException("TypeScript runtime pack package-lock.json must describe the root package.");
+        }
+        packageMetadata.put("name", projectName);
+        return prettyJson(root);
+    }
+
+    private ObjectNode jsonObject(String path) {
+        JsonNode template = objectMapper.readTree(runtimePack.content(path));
+        if (!(template instanceof ObjectNode root)) {
+            throw new IllegalStateException("TypeScript runtime pack " + path + " must contain a JSON object.");
+        }
+        return root;
     }
 
     private static String projectName(String title) {

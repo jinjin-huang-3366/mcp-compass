@@ -21,6 +21,13 @@ class CiWorkflowContractTest(unittest.TestCase):
 
         self.assertIn("actions/setup-java@v4", backend)
         self.assertIn("java-version: '21'", backend)
+        self.assertIn("actions/setup-node@v4", backend)
+        self.assertIn("node-version: '22'", backend)
+        self.assertIn(
+            "cache-dependency-path: backend/src/main/resources/generator/typescript/v1/package-lock.json",
+            backend,
+        )
+        self.assertIn("MCP_COMPASS_VERIFY_GENERATED_PROJECT: 'true'", backend)
         self.assertIn("run: ./mvnw -pl backend test", backend)
 
     def test_web_job_uses_node_22_clean_install_lint_and_build(self):

@@ -15,10 +15,10 @@ This repository has a working discovery vertical slice plus contract-first gener
 5. rank and explain matches;
 6. expose the result through a REST API and a simple Next.js UI;
 7. accept OpenAPI sources, review an MCP tool contract, and generate an in-memory TypeScript project manifest from a
-   versioned, data-driven runtime pack.
+   versioned, data-driven runtime pack with locked dependencies and generated unit tests verified in CI.
 
-Generated-project compilation/export, runtime inspection, and security sandboxing remain planned. Vector candidate
-retrieval is available as an opt-in, benchmark-gated extension to the default lexical search path.
+Generated-project export, runtime inspection, and security sandboxing remain planned. Vector candidate retrieval is
+available as an opt-in, benchmark-gated extension to the default lexical search path.
 
 ## Stack
 

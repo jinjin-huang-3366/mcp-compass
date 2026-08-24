@@ -126,15 +126,19 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Run backend tests
-        run: ./mvnw -pl backend test
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: |
+            backend/src/main/resources/generator/typescript/v1/package-lock.json
+            web/package-lock.json
+
+      - name: Run backend tests
+        env:
+          MCP_COMPASS_VERIFY_GENERATED_PROJECT: 'true'
+        run: ./mvnw -pl backend test
 
       - name: Install web dependencies
         working-directory: web

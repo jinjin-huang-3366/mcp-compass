@@ -15,10 +15,12 @@ class TypeScriptMcpRuntimePack {
     private static final String RESOURCE_ROOT = "generator/typescript/v1/";
     private static final List<String> RESOURCE_PATHS = List.of(
             "package.json",
+            "package-lock.json",
             "tsconfig.json",
             ".env.example",
             "README.md",
             "src/api-client.ts",
+            "src/api-client.test.ts",
             "src/index.ts"
     );
 

@@ -18,7 +18,9 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
   `contract.json`, and combines that data with a bundled, classpath-only runtime pack. Contract values are never
   interpreted as templates or interpolated into TypeScript source. The backend returns an in-memory file manifest;
   it does not write files, install dependencies, or execute generated code. Runtime credentials are represented
-  only by environment-variable placeholders.
+  only by environment-variable placeholders. The application-owned pack includes a dependency lockfile and tests
+  that mock `fetch`. CI materializes a representative generated manifest, installs with npm lifecycle scripts
+  disabled, compiles it, and runs those tests without starting the MCP server or contacting an upstream API.
 
 ## Future sandbox requirements
 - ephemeral container/microVM;
