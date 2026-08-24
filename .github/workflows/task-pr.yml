@@ -137,8 +137,14 @@ jobs:
 
       - name: Run backend tests
         env:
+          MCP_COMPASS_VERIFY_CONTAINER_EXECUTION: 'true'
           MCP_COMPASS_VERIFY_GENERATED_PROJECT: 'true'
-        run: ./mvnw -pl backend test
+        run: |
+          docker build \
+            --file validation-worker/runtime/typescript-v1/Dockerfile \
+            --tag mcp-compass/typescript-sandbox:1.0 \
+            .
+          ./mvnw -pl backend,validation-worker test
 
       - name: Install web dependencies
         working-directory: web
@@ -186,7 +192,7 @@ jobs:
             printf '\n\n## Desk testing\n\n'
             cat "$DESK_TESTING"
             printf '\n\n## Validation\n\n'
-            printf '%s\n' '- `./mvnw -pl backend test`'
+            printf '%s\n' '- `./mvnw -pl backend,validation-worker test` (including generated container smoke test)'
             printf '%s\n' '- `cd web && npm ci && npm run lint && npm run build`'
             printf '%s\n' '- `python -m unittest discover -s .github/scripts -p '"'"'test_*.py'"'"'`'
             if [[ -n "$PLAN_ITEM" ]]; then

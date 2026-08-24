@@ -57,8 +57,15 @@ If implementation and documentation disagree, do not silently choose one. Prefer
 ## Commands
 Backend:
 ```bash
-./mvnw -pl backend test
+./mvnw -pl backend,validation-worker test
 ./mvnw -pl backend spring-boot:run
+```
+
+Validation worker:
+```bash
+docker build -f validation-worker/runtime/typescript-v1/Dockerfile -t mcp-compass/typescript-sandbox:1.0 .
+./mvnw -pl validation-worker package
+java -jar validation-worker/target/validation-worker-0.1.0-SNAPSHOT-all.jar queue
 ```
 
 Frontend:

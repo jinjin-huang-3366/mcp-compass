@@ -262,4 +262,17 @@ an inert job snapshot, and returns `202 Accepted`:
 ```
 
 Queue submission does not run a worker, create a container, materialize project files, install dependencies, or
-execute generated code. Isolated consumption and validation remain later sandbox milestones.
+execute generated code. The separate validation worker atomically claims the queued snapshot and starts it only in
+an ephemeral container. A job becomes `EXECUTED` after the server remains alive for the configured startup window,
+or `FAILED` after early exit/materialization/runtime failure. `EXECUTED` is lifecycle evidence only: MCP protocol
+correctness, tool invocation, and security reporting remain later validation stages.
+
+The worker also exposes a runtime-neutral CLI path for an already-discovered OCI image:
+
+```bash
+java -jar validation-worker/target/validation-worker-0.1.0-SNAPSHOT-all.jar \
+  discovered ghcr.io/example/weather-mcp:1.2.3 node server.js --stdio
+```
+
+Both generated and discovered workloads use the same ephemeral-container boundary. The worker passes the discovered
+command directly as container arguments; it does not invoke it through a host shell.

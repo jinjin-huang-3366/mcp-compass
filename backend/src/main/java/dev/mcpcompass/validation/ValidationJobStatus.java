@@ -1,5 +1,8 @@
 package dev.mcpcompass.validation;
 
 enum ValidationJobStatus {
-    QUEUED
+    QUEUED,
+    RUNNING,
+    EXECUTED,
+    FAILED
 }

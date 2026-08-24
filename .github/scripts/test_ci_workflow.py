@@ -28,7 +28,9 @@ class CiWorkflowContractTest(unittest.TestCase):
             backend,
         )
         self.assertIn("MCP_COMPASS_VERIFY_GENERATED_PROJECT: 'true'", backend)
-        self.assertIn("run: ./mvnw -pl backend test", backend)
+        self.assertIn("MCP_COMPASS_VERIFY_CONTAINER_EXECUTION: 'true'", backend)
+        self.assertIn("validation-worker/runtime/typescript-v1/Dockerfile", backend)
+        self.assertIn("./mvnw -pl backend,validation-worker test", backend)
 
     def test_web_job_uses_node_22_clean_install_lint_and_build(self):
         web = self.job("web")

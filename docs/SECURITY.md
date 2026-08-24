@@ -27,16 +27,17 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
 - Validation queue submission accepts the same approved contract as TypeScript generation, validates it through the
   deterministic generator, and persists the resulting project manifest as untrusted JSON data. Submission does not
   materialize files, run package lifecycle scripts, start an MCP server, or consume the queued job in the backend.
+- The separate validation worker materializes a bounded, traversal-checked snapshot only under a unique worker
+  workspace and launches it through an ephemeral container. Workload containers receive no host credentials or
+  Docker socket, default to no network, use a read-only root filesystem plus isolated temporary storage, drop Linux
+  capabilities, and are forcibly removed after a bounded startup observation. Generated dependencies come from the
+  application-owned runtime image and are not installed from the network during validation.
 
-## Future sandbox requirements
-- ephemeral container/microVM;
+## Remaining sandbox requirements
 - non-root user;
-- no host Docker socket;
-- read-only base filesystem where possible;
-- bounded CPU, memory, process count, output size, and wall time;
+- a production-isolated container runtime endpoint for the trusted worker control plane;
+- bounded CPU, memory, process count, and total wall time;
 - explicit network policy/allow-list;
-- no inherited host/cloud credentials;
-- isolated working directory;
 - structured validation output;
 - destructive/write tool classification defaults conservative.
 
