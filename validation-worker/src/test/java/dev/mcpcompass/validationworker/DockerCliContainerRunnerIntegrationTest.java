@@ -2,29 +2,60 @@ package dev.mcpcompass.validationworker;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@EnabledIfEnvironmentVariable(named = "MCP_COMPASS_VERIFY_CONTAINER_EXECUTION", matches = "true")
 class DockerCliContainerRunnerIntegrationTest {
     @Test
-    void startsExactGeneratedProjectInContainerAndLeavesNoContainerBehind() throws Exception {
-        Path source = findGeneratedProject();
-        Path workspace = Path.of("target", "container-integration", UUID.randomUUID().toString())
+    void materializesOnlyThePersistedManifestWhenUnexpectedNpmLogsAreAdjacent() throws Exception {
+        Path fixture = Path.of("target", "container-manifest-handoff", UUID.randomUUID().toString())
                 .toAbsolutePath();
-        copyProjectWithoutHostDependencies(source, workspace);
-        try {
+        Files.createDirectories(fixture);
+        Path manifest = fixture.resolve("container-input-manifest.json");
+        ObjectMapper objectMapper = new ObjectMapper();
+        Files.writeString(manifest, objectMapper.writeValueAsString(Map.of(
+                "files", List.of(
+                        Map.of("path", "package.json", "content", "{}"),
+                        Map.of("path", "src/index.ts", "content", "console.log('ready');")
+                )
+        )));
+        Files.writeString(fixture.resolve("npm-unexpected.log"), "test-only verifier output");
+
+        try (GeneratedProjectWorkspace workspace = materializeContainerInput(
+                manifest, fixture.resolve("workspaces"), objectMapper
+        )) {
+            assertThat(workspace.directory().resolve("package.json")).isRegularFile();
+            assertThat(workspace.directory().resolve("src/index.ts")).isRegularFile();
+            assertThat(findNpmLogs(workspace.directory())).isEmpty();
+        } finally {
+            deleteRecursively(fixture);
+        }
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "MCP_COMPASS_VERIFY_CONTAINER_EXECUTION", matches = "true")
+    void startsExactGeneratedProjectInContainerAndLeavesNoContainerBehind() throws Exception {
+        Path manifest = findGeneratedManifest();
+        assertThat(findNpmLogs(manifest.getParent()))
+                .as("backend verifier should contain test-only npm logs outside the persisted manifest")
+                .isNotEmpty();
+        ObjectMapper objectMapper = new ObjectMapper();
+        try (GeneratedProjectWorkspace workspace = materializeContainerInput(
+                manifest, Path.of("target", "container-integration").toAbsolutePath(), objectMapper
+        )) {
+            assertThat(findNpmLogs(workspace.directory())).isEmpty();
             ContainerExecutionResult result = new DockerCliContainerRunner("docker").execute(
                     ContainerExecutionRequest.generatedProject(
-                            workspace,
+                            workspace.directory(),
                             "mcp-compass/typescript-sandbox:1.0",
                             Duration.ofSeconds(10)
                     )
@@ -34,36 +65,32 @@ class DockerCliContainerRunnerIntegrationTest {
                     .withFailMessage("Generated container exited early: %s", result.failureSummary())
                     .isTrue();
             assertThat(listValidationContainers()).isBlank();
-        } finally {
-            deleteRecursively(workspace);
         }
     }
 
-    private static Path findGeneratedProject() throws Exception {
-        Path root = Path.of("..", "backend", "target", "generated-project-verification").normalize();
+    private static Path findGeneratedManifest() {
+        Path manifest = Path.of(
+                "..", "backend", "target", "generated-project-verification", "container-input-manifest.json"
+        ).normalize();
+        if (!Files.isRegularFile(manifest)) {
+            throw new IllegalStateException("Backend generated-project verification did not emit its manifest");
+        }
+        return manifest;
+    }
+
+    private static GeneratedProjectWorkspace materializeContainerInput(
+            Path manifest,
+            Path workspaceRoot,
+            ObjectMapper objectMapper
+    ) throws Exception {
+        return GeneratedProjectWorkspace.materialize(workspaceRoot, Files.readString(manifest), objectMapper);
+    }
+
+    private static List<Path> findNpmLogs(Path root) throws Exception {
         try (var paths = Files.walk(root)) {
-            return paths.filter(path -> Files.isDirectory(path) && path.getFileName().toString().endsWith("-mcp-server"))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("Backend generated-project verification did not run"));
-        }
-    }
-
-    private static void copyProjectWithoutHostDependencies(Path source, Path target) throws Exception {
-        try (var paths = Files.walk(source)) {
-            for (Path path : paths.toList()) {
-                Path relative = source.relativize(path);
-                if (relative.getNameCount() > 0
-                        && List.of("node_modules", "build").contains(relative.getName(0).toString())) {
-                    continue;
-                }
-                Path destination = target.resolve(relative);
-                if (Files.isDirectory(path)) {
-                    Files.createDirectories(destination);
-                } else {
-                    Files.createDirectories(destination.getParent());
-                    Files.copy(path, destination, StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
+            return paths.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().matches("npm-.*\\.log"))
+                    .toList();
         }
     }
 
