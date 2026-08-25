@@ -12,6 +12,7 @@ record ValidationWorkerConfiguration(
         String generatedImage,
         Path workspaceRoot,
         Duration startupWindow,
+        Duration protocolTimeout,
         Duration pollInterval
 ) {
     static ValidationWorkerConfiguration from(Map<String, String> environment) {
@@ -26,6 +27,7 @@ record ValidationWorkerConfiguration(
                         Path.of(System.getProperty("java.io.tmpdir"), "mcp-compass-validation").toString()
                 )).toAbsolutePath(),
                 seconds(environment, "VALIDATION_STARTUP_WINDOW_SECONDS", 5, 1, 300),
+                seconds(environment, "VALIDATION_PROTOCOL_TIMEOUT_SECONDS", 30, 1, 300),
                 seconds(environment, "VALIDATION_POLL_INTERVAL_SECONDS", 5, 1, 60)
         );
     }

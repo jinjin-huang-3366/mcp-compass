@@ -13,17 +13,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class QueuedValidationWorkerTest {
     @Test
-    void marksJobExecutedOnlyAfterTheContainerRemainsRunningForTheObservationWindow() throws Exception {
+    void marksJobExecutedOnlyAfterInspectorReturnsAValidToolsList() throws Exception {
         RecordingJobStore jobs = new RecordingJobStore(job());
-        RecordingRunner containers = new RecordingRunner(ContainerExecutionResult.observedRunning("ready"));
+        RecordingRunner containers = new RecordingRunner(ContainerExecutionResult.completed("""
+                {"result":{"tools":[{"name":"find_pets","description":"Find available pets"}]}}
+                """));
         QueuedValidationWorker worker = worker(jobs, containers);
 
         assertThat(worker.runNext()).isTrue();
 
         assertThat(jobs.executed).isTrue();
         assertThat(jobs.failedReason).isNull();
+        assertThat(jobs.protocolResult)
+                .contains("\"validator\":\"mcp-inspector\"")
+                .contains("\"method\":\"tools/list\"")
+                .contains("\"name\":\"find_pets\"");
         assertThat(containers.request.workloadType())
                 .isEqualTo(ContainerExecutionRequest.WorkloadType.GENERATED_PROJECT);
+        assertThat(containers.request.expectedOutcome())
+                .isEqualTo(ContainerExecutionRequest.ExpectedOutcome.SUCCESSFUL_EXIT);
         assertThat(containers.request.workspace()).doesNotExist();
     }
 
@@ -39,6 +47,22 @@ class QueuedValidationWorkerTest {
 
         assertThat(jobs.executed).isFalse();
         assertThat(jobs.failedReason).contains("exit 1", "module load failed");
+    }
+
+    @Test
+    void rejectsSuccessfulProcessOutputThatIsNotAnInspectorToolsList() throws Exception {
+        RecordingJobStore jobs = new RecordingJobStore(job());
+        QueuedValidationWorker worker = worker(
+                jobs,
+                new RecordingRunner(ContainerExecutionResult.completed("{\"result\":{}}"))
+        );
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(worker::runNext)
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("tools/list");
+
+        assertThat(jobs.executed).isFalse();
+        assertThat(jobs.failedReason).contains("MCP Inspector returned no tools/list result");
     }
 
     private QueuedValidationWorker worker(RecordingJobStore jobs, RecordingRunner containers) {
@@ -64,6 +88,7 @@ class QueuedValidationWorkerTest {
         private Optional<ValidationJob> next;
         private boolean executed;
         private String failedReason;
+        private String protocolResult;
 
         private RecordingJobStore(ValidationJob job) {
             this.next = Optional.of(job);
@@ -77,8 +102,9 @@ class QueuedValidationWorkerTest {
         }
 
         @Override
-        public void markExecuted(UUID id) {
+        public void markExecuted(UUID id, String protocolResult) {
             executed = true;
+            this.protocolResult = protocolResult;
         }
 
         @Override

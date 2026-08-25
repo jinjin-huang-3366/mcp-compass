@@ -1,0 +1,11 @@
+{
+  "name": "mcp-compass-typescript-validation-runtime",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@modelcontextprotocol/inspector": "2.3.0",
+    "@modelcontextprotocol/server": "2.0.0",
+    "@types/node": "24.13.3",
+    "typescript": "5.9.3"
+  }
+}

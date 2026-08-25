@@ -61,9 +61,10 @@ Future build/protocol/security validation history.
 Durable FIFO-oriented validation work. A job begins in `QUEUED` state and stores the generated project name,
 generator/contract versions, submission time, and the exact deterministic TypeScript project manifest as JSONB. The
 `status, queued_at, id` index supports atomic `FOR UPDATE SKIP LOCKED` worker claiming. The separate validation worker
-moves a job through `RUNNING` to `EXECUTED` when the isolated server remains running for the startup observation, or
-to `FAILED` with a bounded diagnostic when startup fails. Start and finish timestamps provide lifecycle evidence.
-The main backend never materializes or executes the manifest.
+moves a job through `RUNNING` to `EXECUTED` only when the isolated MCP Inspector process completes initialization and
+returns a valid `tools/list` response, or to `FAILED` with a bounded diagnostic when the probe fails or times out. A
+successful job stores the structured Inspector response, validator version, and method in `protocol_result`; start and
+finish timestamps provide lifecycle evidence. The main backend never materializes or executes the manifest.
 
 ### `registry_sync_state`
 Checkpoint and last-success metadata for incremental ingestion. A partial run retains its next cursor and

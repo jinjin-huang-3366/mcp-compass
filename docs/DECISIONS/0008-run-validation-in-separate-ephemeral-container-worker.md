@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted.
+Accepted. The generated-project liveness outcome is superseded by ADR 0009's Inspector protocol validation; the
+isolation boundary and discovered-image liveness path remain current.
 
 ## Context
 
@@ -28,8 +29,8 @@ snapshots read-only and compiles a copy in container-only temporary storage, use
 has no network, drops Linux capabilities, and sets `no-new-privileges`.
 Production must place the trusted worker and its container-runtime endpoint away from the application host.
 
-`EXECUTED` means only that the MCP server process remained alive for the startup window. MCP Inspector validation is
-VAL-03. Non-root enforcement, explicit allow-list policy, comprehensive CPU/memory/process/total-time limits, and
+ADR 0009 changes queued generated-project `EXECUTED` semantics to require a successful MCP Inspector `tools/list`
+probe. Non-root enforcement, explicit allow-list policy, comprehensive CPU/memory/process/total-time limits, and
 runtime endpoint hardening remain VAL-04. Structured security/risk reporting remains VAL-05.
 
 ## Consequences

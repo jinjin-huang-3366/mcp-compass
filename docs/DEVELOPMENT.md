@@ -117,9 +117,15 @@ java -jar validation-worker/target/validation-worker-0.1.0-SNAPSHOT-all.jar queu
 `queue` polls continuously; use `queue-once` for a single FIFO claim. Database settings default to the local Compose
 credentials and can be overridden with `VALIDATION_DATABASE_URL`, `VALIDATION_DATABASE_USERNAME`, and
 `VALIDATION_DATABASE_PASSWORD`. `VALIDATION_GENERATED_IMAGE`, `VALIDATION_WORKSPACE_ROOT`,
-`VALIDATION_STARTUP_WINDOW_SECONDS`, and `VALIDATION_POLL_INTERVAL_SECONDS` control the worker without changing the
-backend. The worker must run as a separate process on a host dedicated to sandbox control; do not enable container
-control in the backend JVM.
+`VALIDATION_STARTUP_WINDOW_SECONDS`, `VALIDATION_PROTOCOL_TIMEOUT_SECONDS`, and
+`VALIDATION_POLL_INTERVAL_SECONDS` control the worker without changing the backend. The protocol timeout defaults to
+30 seconds and bounds the generated-project Inspector probe; the startup window continues to control direct
+discovered-image liveness checks. The worker must run as a separate process on a host dedicated to sandbox control;
+do not enable container control in the backend JVM.
+
+Queued generated projects are compiled in the container and checked with the pinned MCP Inspector CLI using
+`tools/list`. A successful job stores a structured `protocol_result` containing the Inspector version, method, and
+machine-readable response; the probe does not call any generated tool.
 
 For a discovered MCP server already supplied as an OCI image, run:
 
@@ -128,8 +134,8 @@ java -jar validation-worker/target/validation-worker-0.1.0-SNAPSHOT-all.jar \
   discovered ghcr.io/example/weather-mcp:1.2.3 node server.js --stdio
 ```
 
-The worker reports that the server started after it stays alive for the startup window, then forcibly removes the
-container. This is not an MCP Inspector check and does not invoke tools.
+This direct discovered-image entry point reports only that the server stayed alive for the startup window, then
+forcibly removes the container. It is not yet an MCP Inspector check and does not invoke tools.
 
 ## Continuous integration
 

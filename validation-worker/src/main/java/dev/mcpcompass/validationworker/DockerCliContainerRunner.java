@@ -31,10 +31,17 @@ final class DockerCliContainerRunner implements IsolatedContainerRunner {
             Process attached = start(commands.startAttached(containerName));
             OutputCapture capture = new OutputCapture(attached.getInputStream(), MAX_OUTPUT_BYTES);
             Thread reader = Thread.ofVirtual().start(capture);
-            boolean exited = attached.waitFor(request.startupWindow().toMillis(), TimeUnit.MILLISECONDS);
+            boolean exited = attached.waitFor(request.observationWindow().toMillis(), TimeUnit.MILLISECONDS);
             if (exited) {
                 reader.join(Duration.ofSeconds(2));
+                if (attached.exitValue() == 0
+                        && request.expectedOutcome() == ContainerExecutionRequest.ExpectedOutcome.SUCCESSFUL_EXIT) {
+                    return ContainerExecutionResult.completed(capture.value());
+                }
                 return ContainerExecutionResult.exited(attached.exitValue(), capture.value());
+            }
+            if (request.expectedOutcome() == ContainerExecutionRequest.ExpectedOutcome.SUCCESSFUL_EXIT) {
+                return ContainerExecutionResult.timedOut(capture.value());
             }
             return ContainerExecutionResult.observedRunning(capture.value());
         } finally {
