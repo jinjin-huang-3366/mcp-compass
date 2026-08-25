@@ -12,7 +12,8 @@ record ContainerExecutionRequest(
         String image,
         List<String> command,
         Path workspace,
-        Duration startupWindow
+        Duration startupWindow,
+        ContainerSandboxPolicy sandboxPolicy
 ) {
     private static final Pattern IMAGE_REFERENCE = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._/:@-]{0,254}");
 
@@ -29,6 +30,10 @@ record ContainerExecutionRequest(
                 || startupWindow.compareTo(Duration.ofMinutes(5)) > 0) {
             throw new IllegalArgumentException("Startup window must be between one millisecond and five minutes");
         }
+        Objects.requireNonNull(sandboxPolicy, "sandboxPolicy");
+        if (startupWindow.compareTo(sandboxPolicy.wallTimeLimit()) > 0) {
+            throw new IllegalArgumentException("Startup window cannot exceed the workload wall-time limit");
+        }
         if (workloadType == WorkloadType.GENERATED_PROJECT) {
             if (workspace == null || !workspace.isAbsolute() || !Files.isDirectory(workspace)) {
                 throw new IllegalArgumentException("Generated workloads require an absolute workspace directory");
@@ -42,7 +47,12 @@ record ContainerExecutionRequest(
         }
     }
 
-    static ContainerExecutionRequest generatedProject(Path workspace, String image, Duration startupWindow) {
+    static ContainerExecutionRequest generatedProject(
+            Path workspace,
+            String image,
+            Duration startupWindow,
+            ContainerSandboxPolicy sandboxPolicy
+    ) {
         return new ContainerExecutionRequest(
                 WorkloadType.GENERATED_PROJECT,
                 image,
@@ -54,21 +64,24 @@ record ContainerExecutionRequest(
                                 + " && npm run build && npm start"
                 ),
                 workspace.toAbsolutePath(),
-                startupWindow
+                startupWindow,
+                sandboxPolicy
         );
     }
 
     static ContainerExecutionRequest discoveredImage(
             String image,
             List<String> command,
-            Duration startupWindow
+            Duration startupWindow,
+            ContainerSandboxPolicy sandboxPolicy
     ) {
         return new ContainerExecutionRequest(
                 WorkloadType.DISCOVERED_IMAGE,
                 image,
                 command,
                 null,
-                startupWindow
+                startupWindow,
+                sandboxPolicy
         );
     }
 

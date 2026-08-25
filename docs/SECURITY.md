@@ -33,12 +33,13 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
   Docker socket, default to no network, use a read-only root filesystem plus isolated temporary storage, drop Linux
   capabilities, and are forcibly removed after a bounded startup observation. Generated dependencies come from the
   application-owned runtime image and are not installed from the network during validation.
+- Every generated or discovered workload runs as an explicit non-zero numeric UID/GID with configured CPU, memory,
+  process-count, startup, and wall-time limits. Network access remains disabled unless the selected custom Docker
+  network is present in the worker's explicit allow-list. Allowed networks must be provisioned with destination-level
+  egress filtering; built-in shared networks are rejected.
 
 ## Remaining sandbox requirements
-- non-root user;
 - a production-isolated container runtime endpoint for the trusted worker control plane;
-- bounded CPU, memory, process count, and total wall time;
-- explicit network policy/allow-list;
 - structured validation output;
 - destructive/write tool classification defaults conservative.
 
