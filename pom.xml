@@ -19,6 +19,7 @@
 
     <modules>
         <module>backend</module>
+        <module>validation-worker</module>
     </modules>
 
     <properties>

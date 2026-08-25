@@ -25,8 +25,14 @@ class GeneratedTypeScriptProjectBuildTest {
         ObjectMapper objectMapper = new ObjectMapper();
         GeneratedTypeScriptProject project = new TypeScriptMcpProjectGenerator(
                 objectMapper, new TypeScriptMcpRuntimePack()).generate(approvedContract(objectMapper));
-        Path projectDirectory = buildDirectory()
-                .resolve("generated-project-verification")
+        Path verificationDirectory = buildDirectory().resolve("generated-project-verification");
+        Files.createDirectories(verificationDirectory);
+        Files.writeString(
+                verificationDirectory.resolve("container-input-manifest.json"),
+                objectMapper.writeValueAsString(project),
+                StandardCharsets.UTF_8
+        );
+        Path projectDirectory = verificationDirectory
                 .resolve(UUID.randomUUID().toString())
                 .resolve(project.projectName());
         materialize(project, projectDirectory);

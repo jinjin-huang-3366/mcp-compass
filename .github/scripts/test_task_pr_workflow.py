@@ -59,6 +59,9 @@ class TaskPrWorkflowContractTest(unittest.TestCase):
             self.workflow,
         )
         self.assertIn("MCP_COMPASS_VERIFY_GENERATED_PROJECT: 'true'", self.workflow)
+        self.assertIn("MCP_COMPASS_VERIFY_CONTAINER_EXECUTION: 'true'", self.workflow)
+        self.assertIn("validation-worker/runtime/typescript-v1/Dockerfile", self.workflow)
+        self.assertIn("./mvnw -pl backend,validation-worker test", self.workflow)
 
 
 if __name__ == "__main__":

@@ -36,19 +36,29 @@ Spring Boot modules/packages:
 - `server` — MCP server detail API;
 - `github` — optional repository maintenance enrichment persisted for later ranking;
 - `generation` — contract-first deterministic TypeScript project generation and export;
-- `validation` — durable validation job submission, with execution delegated to the future isolated worker;
+- `validation` — durable validation job submission, with execution delegated to the separate isolated worker;
 - future `ai` integrations.
 
 ### PostgreSQL
 Stores normalized server metadata, future tools/capabilities, enrichment, validation results, and optional vectors. The public Registry is not the search-time source of truth.
 
-### Future sandbox worker
-Generated or third-party MCP code must run in an isolated worker/container with bounded CPU/memory/time/filesystem/network. The main backend never executes it directly.
+### Validation worker
+Generated or third-party MCP code runs only in an ephemeral container controlled by the separate
+`validation-worker` JVM. The main backend never materializes or executes a workload and has no container-runtime
+dependency. The worker claims queued snapshots atomically, materializes each snapshot under a unique worker-owned
+directory, mounts it read-only, copies it into a container-only temporary workspace, observes container startup,
+removes the container, deletes the host workspace, and records `EXECUTED` or
+`FAILED`.
+
+Generated TypeScript workloads use a versioned runtime image whose dependencies were installed with lifecycle
+scripts disabled. The workload container receives only its per-job workspace and no inherited credentials. A
+runtime-neutral image path also supports starting a discovered OCI-packaged MCP server. Package discovery and
+protocol validation remain separate concerns.
 
 The backend queues a validation request by persisting the exact deterministic generated-project manifest as inert
 JSON with `QUEUED` status. Persisting the snapshot makes the eventual worker input stable even if the generator pack
-changes after submission. VAL-01 does not consume jobs, materialize files, or start generated code; those operations
-remain behind the future sandbox boundary.
+changes after submission. The backend does not consume jobs, materialize files, or start generated code; those
+operations remain behind the validation-worker/container boundary.
 
 ## Search pipeline evolution
 
@@ -99,6 +109,9 @@ Sandbox + MCP protocol validation
 - Generation and validation are separate: successful code generation does not imply safe/valid execution.
 - The validation queue is PostgreSQL-backed inside the modular monolith. It records work for an isolated consumer;
   queue submission is not a hidden execution path.
+- The validation worker is a separate process and Maven module. It is the only production component allowed to
+  control the container runtime or materialize queued project files, and workload commands are always container
+  arguments rather than host-shell commands.
 - The TypeScript generator is a deterministic transform from an approved contract to an in-memory file
   manifest. It serializes contract-specific values into `contract.json` and combines them with a versioned,
   classpath-only TypeScript runtime pack. The runtime registers tools from contract data instead of baking reviewed

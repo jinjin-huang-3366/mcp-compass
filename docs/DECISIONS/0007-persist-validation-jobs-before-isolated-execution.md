@@ -17,12 +17,11 @@ the exact deterministic generated TypeScript project manifest as JSONB, together
 generator/contract versions, and queue time. The queue index orders eligible work by status, timestamp, and ID.
 
 Submission only generates and serializes the application-owned manifest. It does not materialize files, install
-packages, invoke Docker, start an MCP server, or consume the job. A later isolated worker milestone owns claiming and
-executing jobs under the sandbox controls in `docs/SECURITY.md`.
+packages, invoke Docker, start an MCP server, or consume the job. The separate worker defined by ADR 0008 owns
+claiming and executing jobs under the sandbox controls in `docs/SECURITY.md`.
 
 ## Consequences
 
 Queue submission is durable and decoupled from eventual execution, and each worker will receive the exact submitted
 artifact snapshot. PostgreSQL avoids introducing a second infrastructure system before operational evidence
-requires one. The JSONB payload is untrusted data and must remain behind the isolated-worker boundary when a consumer
-is added.
+requires one. The JSONB payload is untrusted data and remains behind the isolated-worker boundary when consumed.

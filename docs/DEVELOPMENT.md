@@ -79,7 +79,7 @@ npm run dev
 
 ## Tests
 ```bash
-./mvnw -pl backend test
+./mvnw -pl backend,validation-worker test
 cd web && npm ci && npm run lint && npm run build
 python -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
@@ -103,13 +103,41 @@ The test materializes the exact generator response in an isolated Maven build di
 `npm ci --ignore-scripts`, then `npm test`. The generated tests mock `fetch`; they neither call the source API nor
 start the MCP server.
 
+## Isolated validation worker
+
+Build the versioned TypeScript runtime image from the repository root, then package the separate worker JVM:
+
+```bash
+docker build -f validation-worker/runtime/typescript-v1/Dockerfile \
+  -t mcp-compass/typescript-sandbox:1.0 .
+./mvnw -pl validation-worker package
+java -jar validation-worker/target/validation-worker-0.1.0-SNAPSHOT-all.jar queue
+```
+
+`queue` polls continuously; use `queue-once` for a single FIFO claim. Database settings default to the local Compose
+credentials and can be overridden with `VALIDATION_DATABASE_URL`, `VALIDATION_DATABASE_USERNAME`, and
+`VALIDATION_DATABASE_PASSWORD`. `VALIDATION_GENERATED_IMAGE`, `VALIDATION_WORKSPACE_ROOT`,
+`VALIDATION_STARTUP_WINDOW_SECONDS`, and `VALIDATION_POLL_INTERVAL_SECONDS` control the worker without changing the
+backend. The worker must run as a separate process on a host dedicated to sandbox control; do not enable container
+control in the backend JVM.
+
+For a discovered MCP server already supplied as an OCI image, run:
+
+```bash
+java -jar validation-worker/target/validation-worker-0.1.0-SNAPSHOT-all.jar \
+  discovered ghcr.io/example/weather-mcp:1.2.3 node server.js --stdio
+```
+
+The worker reports that the server started after it stays alive for the startup window, then forcibly removes the
+container. This is not an MCP Inspector check and does not invoke tools.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` runs for every pull request, pushes to `main`, and manual dispatches. It has three
 independent quality jobs:
 
-- `backend` uses Java 21 and Node.js 22, enables exact-manifest generated-project verification, and runs
-  `./mvnw -pl backend test`;
+- `backend` uses Java 21 and Node.js 22, builds the versioned sandbox image, enables exact-manifest generated-project
+  verification plus a generated-container smoke test, and runs `./mvnw -pl backend,validation-worker test`;
 - `web` uses Node.js 22, installs exactly from `package-lock.json` with `npm ci`, then runs lint and the
   production build;
 - `automation` tests the repository's workflow-support scripts, including the CI contract itself.

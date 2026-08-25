@@ -60,8 +60,10 @@ Future build/protocol/security validation history.
 ### `validation_job`
 Durable FIFO-oriented validation work. A job begins in `QUEUED` state and stores the generated project name,
 generator/contract versions, submission time, and the exact deterministic TypeScript project manifest as JSONB. The
-`status, queued_at, id` index supports stable worker claiming later. The manifest is an inert snapshot; the main
-backend does not materialize or execute it, and VAL-01 adds no job consumer.
+`status, queued_at, id` index supports atomic `FOR UPDATE SKIP LOCKED` worker claiming. The separate validation worker
+moves a job through `RUNNING` to `EXECUTED` when the isolated server remains running for the startup observation, or
+to `FAILED` with a bounded diagnostic when startup fails. Start and finish timestamps provide lifecycle evidence.
+The main backend never materializes or executes the manifest.
 
 ### `registry_sync_state`
 Checkpoint and last-success metadata for incremental ingestion. A partial run retains its next cursor and

@@ -5,12 +5,14 @@ out/
 
 # Java
 **/target/
+.m2/
 
 # Node
 web/node_modules/
 web/.next/
 web/out/
 web/.env.local
+.npm-cache/
 
 # Python
 __pycache__/
