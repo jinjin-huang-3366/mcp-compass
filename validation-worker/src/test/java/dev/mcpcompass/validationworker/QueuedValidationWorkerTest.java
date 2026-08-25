@@ -48,7 +48,10 @@ class QueuedValidationWorkerTest {
                 new ObjectMapper(),
                 Path.of("target", "queued-worker-test").toAbsolutePath(),
                 "mcp-compass/typescript-sandbox:1.0",
-                Duration.ofSeconds(2)
+                Duration.ofSeconds(2),
+                new ContainerSandboxPolicy(
+                        "65532:65532", "0.5", 256, 64, Duration.ofSeconds(30), "none"
+                )
         );
     }
 

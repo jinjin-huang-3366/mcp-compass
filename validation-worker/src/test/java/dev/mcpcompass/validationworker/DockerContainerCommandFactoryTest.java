@@ -16,7 +16,7 @@ class DockerContainerCommandFactoryTest {
     void generatedProjectIsMountedOnlyInsideAnEphemeralLockedDownContainer() throws Exception {
         Path workspace = Files.createDirectories(Path.of("target", "command-test-workspace")).toAbsolutePath();
         ContainerExecutionRequest request = ContainerExecutionRequest.generatedProject(
-                workspace, "mcp-compass/typescript-sandbox:1.0", Duration.ofSeconds(5)
+                workspace, "mcp-compass/typescript-sandbox:1.0", Duration.ofSeconds(5), defaultPolicy()
         );
 
         List<String> command = commands.create("job-1", request);
@@ -24,7 +24,14 @@ class DockerContainerCommandFactoryTest {
         assertThat(command).containsSubsequence(
                 "docker", "create", "--rm", "--interactive", "--name", "job-1",
                 "--label", "dev.mcpcompass.validation=ephemeral",
-                "--network", "none", "--read-only",
+                "--network", "none",
+                "--user", "65532:65532",
+                "--cpus", "0.5",
+                "--memory", "256m",
+                "--pids-limit", "64",
+                "--env", "HOME=/tmp",
+                "--env", "npm_config_cache=/tmp/npm-cache",
+                "--read-only",
                 "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
                 "--cap-drop", "ALL", "--security-opt", "no-new-privileges"
         );
@@ -45,7 +52,8 @@ class DockerContainerCommandFactoryTest {
         ContainerExecutionRequest request = ContainerExecutionRequest.discoveredImage(
                 "ghcr.io/example/mcp:1.2.3",
                 List.of("node", "server.js", "--stdio"),
-                Duration.ofSeconds(5)
+                Duration.ofSeconds(5),
+                defaultPolicy()
         );
 
         List<String> command = commands.create("job-2", request);
@@ -53,6 +61,12 @@ class DockerContainerCommandFactoryTest {
         assertThat(command).doesNotContain("--mount", "--workdir");
         assertThat(command).endsWith(
                 "ghcr.io/example/mcp:1.2.3", "node", "server.js", "--stdio"
+        );
+    }
+
+    private static ContainerSandboxPolicy defaultPolicy() {
+        return new ContainerSandboxPolicy(
+                "65532:65532", "0.5", 256, 64, Duration.ofSeconds(30), "none"
         );
     }
 }

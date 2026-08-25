@@ -22,8 +22,12 @@ final class DockerCliContainerRunner implements IsolatedContainerRunner {
     @Override
     public ContainerExecutionResult execute(ContainerExecutionRequest request) throws Exception {
         String containerName = "mcp-compass-validation-" + UUID.randomUUID();
+        long deadlineNanos = System.nanoTime() + request.sandboxPolicy().wallTimeLimit().toNanos();
         try {
-            CommandResult created = runToCompletion(commands.create(containerName, request), COMMAND_TIMEOUT);
+            CommandResult created = runToCompletion(
+                    commands.create(containerName, request),
+                    remaining(deadlineNanos, COMMAND_TIMEOUT)
+            );
             if (created.exitCode() != 0) {
                 return ContainerExecutionResult.exited(created.exitCode(), created.output());
             }
@@ -31,10 +35,14 @@ final class DockerCliContainerRunner implements IsolatedContainerRunner {
             Process attached = start(commands.startAttached(containerName));
             OutputCapture capture = new OutputCapture(attached.getInputStream(), MAX_OUTPUT_BYTES);
             Thread reader = Thread.ofVirtual().start(capture);
-            boolean exited = attached.waitFor(request.startupWindow().toMillis(), TimeUnit.MILLISECONDS);
+            Duration observationTime = remaining(deadlineNanos, request.startupWindow());
+            boolean exited = attached.waitFor(observationTime.toMillis(), TimeUnit.MILLISECONDS);
             if (exited) {
                 reader.join(Duration.ofSeconds(2));
                 return ContainerExecutionResult.exited(attached.exitValue(), capture.value());
+            }
+            if (observationTime.compareTo(request.startupWindow()) < 0) {
+                throw new IOException("Container workload exceeded its wall-time limit");
             }
             return ContainerExecutionResult.observedRunning(capture.value());
         } finally {
@@ -44,6 +52,14 @@ final class DockerCliContainerRunner implements IsolatedContainerRunner {
                 // The container may already be absent. Cleanup is best-effort and never masks the execution result.
             }
         }
+    }
+
+    private static Duration remaining(long deadlineNanos, Duration maximum) throws IOException {
+        long remainingNanos = deadlineNanos - System.nanoTime();
+        if (remainingNanos <= 0) {
+            throw new IOException("Container workload exceeded its wall-time limit");
+        }
+        return Duration.ofNanos(Math.min(remainingNanos, maximum.toNanos()));
     }
 
     private static CommandResult runToCompletion(List<String> command, Duration timeout) throws Exception {

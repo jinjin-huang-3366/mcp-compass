@@ -55,6 +55,10 @@ scripts disabled. The workload container receives only its per-job workspace and
 runtime-neutral image path also supports starting a discovered OCI-packaged MCP server. Package discovery and
 protocol validation remain separate concerns.
 
+Both workload paths share one fail-closed sandbox policy: a numeric non-root identity, CPU/memory/process and time
+limits, and no network by default. Optional egress uses only an explicitly allow-listed custom Docker network that
+the operator provisions with destination-level filtering; built-in shared networks are not accepted.
+
 The backend queues a validation request by persisting the exact deterministic generated-project manifest as inert
 JSON with `QUEUED` status. Persisting the snapshot makes the eventual worker input stable even if the generator pack
 changes after submission. The backend does not consume jobs, materialize files, or start generated code; those

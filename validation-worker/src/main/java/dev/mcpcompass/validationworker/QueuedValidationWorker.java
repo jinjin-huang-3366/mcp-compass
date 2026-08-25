@@ -13,6 +13,7 @@ final class QueuedValidationWorker {
     private final Path workspaceRoot;
     private final String generatedImage;
     private final Duration startupWindow;
+    private final ContainerSandboxPolicy sandboxPolicy;
 
     QueuedValidationWorker(
             ValidationJobStore jobs,
@@ -20,7 +21,8 @@ final class QueuedValidationWorker {
             ObjectMapper objectMapper,
             Path workspaceRoot,
             String generatedImage,
-            Duration startupWindow
+            Duration startupWindow,
+            ContainerSandboxPolicy sandboxPolicy
     ) {
         this.jobs = jobs;
         this.containers = containers;
@@ -28,6 +30,7 @@ final class QueuedValidationWorker {
         this.workspaceRoot = workspaceRoot;
         this.generatedImage = generatedImage;
         this.startupWindow = startupWindow;
+        this.sandboxPolicy = sandboxPolicy;
     }
 
     boolean runNext() throws Exception {
@@ -40,7 +43,7 @@ final class QueuedValidationWorker {
                 workspaceRoot, job.projectManifest(), objectMapper
         )) {
             ContainerExecutionResult result = containers.execute(ContainerExecutionRequest.generatedProject(
-                    workspace.directory(), generatedImage, startupWindow
+                    workspace.directory(), generatedImage, startupWindow, sandboxPolicy
             ));
             if (result.observedRunning()) {
                 jobs.markExecuted(job.id());

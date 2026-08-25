@@ -117,9 +117,23 @@ java -jar validation-worker/target/validation-worker-0.1.0-SNAPSHOT-all.jar queu
 `queue` polls continuously; use `queue-once` for a single FIFO claim. Database settings default to the local Compose
 credentials and can be overridden with `VALIDATION_DATABASE_URL`, `VALIDATION_DATABASE_USERNAME`, and
 `VALIDATION_DATABASE_PASSWORD`. `VALIDATION_GENERATED_IMAGE`, `VALIDATION_WORKSPACE_ROOT`,
-`VALIDATION_STARTUP_WINDOW_SECONDS`, and `VALIDATION_POLL_INTERVAL_SECONDS` control the worker without changing the
-backend. The worker must run as a separate process on a host dedicated to sandbox control; do not enable container
-control in the backend JVM.
+`VALIDATION_STARTUP_WINDOW_SECONDS`, and `VALIDATION_POLL_INTERVAL_SECONDS` control worker lifecycle without changing
+the backend. Sandbox defaults and their accepted ranges are:
+
+| Setting | Default | Accepted values |
+| --- | --- | --- |
+| `VALIDATION_CONTAINER_USER` | `65532:65532` | non-zero numeric `uid:gid` |
+| `VALIDATION_CPU_LIMIT` | `0.5` | 0.1 to 8 CPUs |
+| `VALIDATION_MEMORY_LIMIT_MB` | `256` | 64 to 4096 MiB |
+| `VALIDATION_PROCESS_LIMIT` | `64` | 16 to 1024 processes |
+| `VALIDATION_WALL_TIME_LIMIT_SECONDS` | `30` | 1 to 900 seconds and at least the startup window |
+| `VALIDATION_NETWORK` | `none` | `none` or a custom network listed in `VALIDATION_ALLOWED_NETWORKS` |
+| `VALIDATION_ALLOWED_NETWORKS` | empty | comma-separated custom Docker network names |
+
+Network names are policy profiles, not destination filters by themselves. Before allowing one, provision that custom
+Docker network with an egress proxy or firewall that permits only the required destinations. The worker rejects the
+built-in `host`, `bridge`, and `default` networks. It must run as a separate process on a host dedicated to sandbox
+control; do not enable container control in the backend JVM.
 
 For a discovered MCP server already supplied as an OCI image, run:
 
