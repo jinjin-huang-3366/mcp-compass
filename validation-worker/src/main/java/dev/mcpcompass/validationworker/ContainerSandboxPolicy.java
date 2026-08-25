@@ -52,4 +52,12 @@ record ContainerSandboxPolicy(
     String memoryLimit() {
         return memoryLimitMegabytes + "m";
     }
+
+    String userId() {
+        return user.substring(0, user.indexOf(':'));
+    }
+
+    String groupId() {
+        return user.substring(user.indexOf(':') + 1);
+    }
 }

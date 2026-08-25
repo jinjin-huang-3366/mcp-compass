@@ -29,13 +29,13 @@ final class DockerContainerCommandFactory {
                 "--env", "HOME=/tmp",
                 "--env", "npm_config_cache=/tmp/npm-cache",
                 "--read-only",
-                "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
+                "--tmpfs", ownedTmpfs("/tmp", request.sandboxPolicy()),
                 "--cap-drop", "ALL",
                 "--security-opt", "no-new-privileges"
         ));
         if (request.workloadType() == ContainerExecutionRequest.WorkloadType.GENERATED_PROJECT) {
             command.addAll(List.of(
-                    "--tmpfs", "/workspace:rw,noexec,nosuid,size=64m",
+                    "--tmpfs", ownedTmpfs("/workspace", request.sandboxPolicy()),
                     "--mount",
                     "type=bind,source=" + request.workspace() + ",target=/input,readonly",
                     "--workdir", "/workspace"
@@ -44,6 +44,11 @@ final class DockerContainerCommandFactory {
         command.add(request.image());
         command.addAll(request.command());
         return List.copyOf(command);
+    }
+
+    private static String ownedTmpfs(String path, ContainerSandboxPolicy policy) {
+        return path + ":rw,noexec,nosuid,size=64m,uid=" + policy.userId()
+                + ",gid=" + policy.groupId() + ",mode=0700";
     }
 
     List<String> startAttached(String containerName) {

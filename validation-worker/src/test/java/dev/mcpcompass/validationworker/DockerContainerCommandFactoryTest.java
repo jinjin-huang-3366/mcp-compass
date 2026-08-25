@@ -32,11 +32,11 @@ class DockerContainerCommandFactoryTest {
                 "--env", "HOME=/tmp",
                 "--env", "npm_config_cache=/tmp/npm-cache",
                 "--read-only",
-                "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
+                "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m,uid=65532,gid=65532,mode=0700",
                 "--cap-drop", "ALL", "--security-opt", "no-new-privileges"
         );
         assertThat(command).contains(
-                "/workspace:rw,noexec,nosuid,size=64m",
+                "/workspace:rw,noexec,nosuid,size=64m,uid=65532,gid=65532,mode=0700",
                 "type=bind,source=" + workspace.toAbsolutePath() + ",target=/input,readonly",
                 "mcp-compass/typescript-sandbox:1.0",
                 "cp -R /input/. /workspace/"
