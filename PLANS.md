@@ -30,7 +30,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-11 — export generated code** | `GEN-06` | `GEN-05` | Complete (1/1) |
 | **PG-12 — queue validation** | `VAL-01` | `GEN-06` | Complete (1/1) |
 | **PG-13 — isolate validation** | `VAL-02` | `VAL-01` | Complete (1/1) |
-| **PG-14 — validate protocol and containment** | `VAL-03`, `VAL-04` | `VAL-02` | In progress (1/2) |
+| **PG-14 — validate protocol and containment** | `VAL-03`, `VAL-04` | `VAL-02` | Complete (2/2) |
 | **PG-15 — report tool risk** | `VAL-05` | `VAL-03`, `VAL-04` | Not started (0/1) |
 | **PG-16 — add CLI surfaces** | `DX-01`, `DX-02` | `VAL-05` and, for `DX-02`, `GEN-06` | Not started (0/2) |
 | **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` | Not started (0/1) |
@@ -107,7 +107,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 ## V0.4 — sandbox validation
 - [x] **VAL-01** — Queue validation jobs. _(Depends on: GEN-06)_
 - [x] **VAL-02** — Run generated/discovered MCP servers in ephemeral isolated containers. _(Depends on: VAL-01)_
-- [ ] **VAL-03** — Use MCP Inspector CLI for protocol validation. _(Depends on: VAL-02)_
+- [x] **VAL-03** — Use MCP Inspector CLI for protocol validation. _(Depends on: VAL-02)_
 - [x] **VAL-04** — Network allow-listing, CPU/memory/time limits, non-root execution. _(Depends on: VAL-02)_
 - [ ] **VAL-05** — Tool risk classification and security report. _(Depends on: VAL-03, VAL-04)_
 
