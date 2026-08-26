@@ -13,7 +13,8 @@ record ContainerExecutionRequest(
         List<String> command,
         Path workspace,
         Duration observationWindow,
-        ExpectedOutcome expectedOutcome
+        ExpectedOutcome expectedOutcome,
+        ContainerSandboxPolicy sandboxPolicy
 ) {
     private static final Pattern IMAGE_REFERENCE = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._/:@-]{0,254}");
 
@@ -31,6 +32,10 @@ record ContainerExecutionRequest(
             throw new IllegalArgumentException("Observation window must be between one millisecond and five minutes");
         }
         Objects.requireNonNull(expectedOutcome, "expectedOutcome");
+        Objects.requireNonNull(sandboxPolicy, "sandboxPolicy");
+        if (observationWindow.compareTo(sandboxPolicy.wallTimeLimit()) > 0) {
+            throw new IllegalArgumentException("Observation window cannot exceed the workload wall-time limit");
+        }
         if (workloadType == WorkloadType.GENERATED_PROJECT) {
             if (workspace == null || !workspace.isAbsolute() || !Files.isDirectory(workspace)) {
                 throw new IllegalArgumentException("Generated workloads require an absolute workspace directory");
@@ -44,7 +49,12 @@ record ContainerExecutionRequest(
         }
     }
 
-    static ContainerExecutionRequest generatedProject(Path workspace, String image, Duration startupWindow) {
+    static ContainerExecutionRequest generatedProject(
+            Path workspace,
+            String image,
+            Duration startupWindow,
+            ContainerSandboxPolicy sandboxPolicy
+    ) {
         return new ContainerExecutionRequest(
                 WorkloadType.GENERATED_PROJECT,
                 image,
@@ -59,14 +69,16 @@ record ContainerExecutionRequest(
                 ),
                 workspace.toAbsolutePath(),
                 startupWindow,
-                ExpectedOutcome.SUCCESSFUL_EXIT
+                ExpectedOutcome.SUCCESSFUL_EXIT,
+                sandboxPolicy
         );
     }
 
     static ContainerExecutionRequest discoveredImage(
             String image,
             List<String> command,
-            Duration startupWindow
+            Duration startupWindow,
+            ContainerSandboxPolicy sandboxPolicy
     ) {
         return new ContainerExecutionRequest(
                 WorkloadType.DISCOVERED_IMAGE,
@@ -74,7 +86,8 @@ record ContainerExecutionRequest(
                 command,
                 null,
                 startupWindow,
-                ExpectedOutcome.RUNNING_AFTER_WINDOW
+                ExpectedOutcome.RUNNING_AFTER_WINDOW,
+                sandboxPolicy
         );
     }
 

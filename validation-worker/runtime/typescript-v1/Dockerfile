@@ -7,3 +7,4 @@ RUN npm ci --ignore-scripts \
     && npm cache verify
 
 WORKDIR /workspace
+USER 65532:65532

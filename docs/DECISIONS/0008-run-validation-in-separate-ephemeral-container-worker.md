@@ -19,19 +19,24 @@ application-owned command to a Docker CLI adapter. The adapter creates a named, 
 attached process for a bounded startup window, and forcibly removes it on every outcome. The backend remains limited
 to inert job submission and has no Docker/runtime dependency.
 
-Generated TypeScript projects use a versioned Node runtime image built from the generator's checked-in lockfile.
-Dependencies are installed into that image with lifecycle scripts disabled; validation runs with no network and does
-not install dependencies at runtime. A second request form starts an already-discovered OCI image and passes its
-command as container arguments, never through a host shell.
+Generated TypeScript projects use a versioned Node runtime image built from the generator's checked-in lockfile and
+declare the same non-root runtime identity used by the worker's default policy. Dependencies are installed into that
+image with lifecycle scripts disabled; validation runs with no network and does not install dependencies at runtime.
+A second request form starts an already-discovered OCI image and passes its command as container arguments, never
+through a host shell.
 
-The VAL-02 safe baseline gives workload containers no Docker socket or inherited credentials, mounts generated
-snapshots read-only and compiles a copy in container-only temporary storage, uses a read-only root filesystem,
-has no network, drops Linux capabilities, and sets `no-new-privileges`.
-Production must place the trusted worker and its container-runtime endpoint away from the application host.
+The safe baseline gives workload containers no Docker socket or inherited credentials, mounts generated snapshots
+read-only and compiles a copy in container-only temporary storage, uses a read-only root filesystem, drops Linux
+capabilities, and sets `no-new-privileges`. Every workload also runs with an explicit non-zero numeric UID/GID and
+bounded CPU, memory, process count, startup observation, and total wall time. Network access defaults to `none`. An
+operator may select only a custom Docker network named in an explicit allow-list; that network must be provisioned
+outside MCP Compass with destination-level egress controls. Built-in `host`, `bridge`, and `default` networks are
+rejected. Production must place the trusted worker and its container-runtime endpoint away from the application host.
 
 ADR 0009 changes queued generated-project `EXECUTED` semantics to require a successful MCP Inspector `tools/list`
-probe. Non-root enforcement, explicit allow-list policy, comprehensive CPU/memory/process/total-time limits, and
-runtime endpoint hardening remain VAL-04. Structured security/risk reporting remains VAL-05.
+probe. Non-root execution, explicit network allow-list policy, and CPU, memory, process, and total-time limits apply to
+that probe as well as discovered-image liveness checks. Runtime endpoint hardening remains an operational deployment
+responsibility. Structured security/risk reporting remains VAL-05.
 
 ## Consequences
 

@@ -27,7 +27,8 @@ public final class ValidationWorkerApplication {
                 new ObjectMapper(),
                 configuration.workspaceRoot(),
                 configuration.generatedImage(),
-                configuration.protocolTimeout()
+                configuration.protocolTimeout(),
+                configuration.sandboxPolicy()
         );
         if (args.length > 0 && "queue-once".equals(args[0])) {
             worker.runNext();
@@ -55,7 +56,7 @@ public final class ValidationWorkerApplication {
                 ? List.of()
                 : Arrays.asList(args).subList(2, args.length);
         ContainerExecutionResult result = containers.execute(ContainerExecutionRequest.discoveredImage(
-                args[1], command, configuration.startupWindow()
+                args[1], command, configuration.startupWindow(), configuration.sandboxPolicy()
         ));
         if (!result.observedRunning()) {
             throw new IllegalStateException(result.failureSummary());
