@@ -38,6 +38,23 @@ class ValidationJobEntity {
     @Column(name = "queued_at", nullable = false)
     private Instant queuedAt;
 
+    @Column(name = "started_at")
+    private Instant startedAt;
+
+    @Column(name = "finished_at")
+    private Instant finishedAt;
+
+    @Column(name = "failure_reason", length = 2000)
+    private String failureReason;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "protocol_result", columnDefinition = "jsonb")
+    private String protocolResult;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "security_report", columnDefinition = "jsonb")
+    private String securityReport;
+
     protected ValidationJobEntity() {
     }
 
@@ -86,5 +103,25 @@ class ValidationJobEntity {
 
     Instant queuedAt() {
         return queuedAt;
+    }
+
+    Instant startedAt() {
+        return startedAt;
+    }
+
+    Instant finishedAt() {
+        return finishedAt;
+    }
+
+    String failureReason() {
+        return failureReason;
+    }
+
+    String protocolResult() {
+        return protocolResult;
+    }
+
+    String securityReport() {
+        return securityReport;
     }
 }

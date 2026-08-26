@@ -64,7 +64,10 @@ generator/contract versions, submission time, and the exact deterministic TypeSc
 moves a job through `RUNNING` to `EXECUTED` only when the isolated MCP Inspector process completes initialization and
 returns a valid `tools/list` response, or to `FAILED` with a bounded diagnostic when the probe fails or times out. A
 successful job stores the structured Inspector response, validator version, and method in `protocol_result`; start and
-finish timestamps provide lifecycle evidence. The main backend never materializes or executes the manifest.
+finish timestamps provide lifecycle evidence. It also stores a versioned `security_report` with conservative
+per-tool risk classifications, inventory discrepancies, effective sandbox controls, and explicit limitations.
+Unsupported, missing, or undeclared tool classifications default to `DESTRUCTIVE`. The main backend never
+materializes or executes the manifest.
 
 ### `registry_sync_state`
 Checkpoint and last-success metadata for incremental ingestion. A partial run retains its next cursor and

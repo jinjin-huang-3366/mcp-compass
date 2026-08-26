@@ -140,7 +140,13 @@ control; do not enable container control in the backend JVM.
 
 Queued generated projects are compiled in the container and checked with the pinned MCP Inspector CLI using
 `tools/list`. A successful job stores a structured `protocol_result` containing the Inspector version, method, and
-machine-readable response; the probe does not call any generated tool.
+machine-readable response; the probe does not call any generated tool. The same successful transaction stores a
+`security_report` that classifies each approved/observed tool, defaults discrepancies to `DESTRUCTIVE`, records the
+effective sandbox policy, and states the report's limitations. Retrieve it with:
+
+```bash
+curl http://localhost:8080/api/v1/validation/jobs/<job-id>
+```
 
 For a discovered MCP server already supplied as an OCI image, run:
 

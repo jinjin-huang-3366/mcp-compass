@@ -47,7 +47,10 @@ final class QueuedValidationWorker {
             ));
             if (result.completed()) {
                 String protocolResult = McpInspectorProtocolResult.validateAndSerialize(result.output(), objectMapper);
-                jobs.markExecuted(job.id(), protocolResult);
+                String securityReport = ToolSecurityReport.create(
+                        job.projectManifest(), result.output(), sandboxPolicy, objectMapper
+                );
+                jobs.markExecuted(job.id(), protocolResult, securityReport);
                 System.out.printf("Validation job %s passed isolated MCP Inspector protocol validation%n", job.id());
             } else {
                 jobs.markFailed(job.id(), result.failureSummary());

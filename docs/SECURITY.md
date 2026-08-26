@@ -39,10 +39,15 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
   process-count, startup, and wall-time limits. Network access remains disabled unless the selected custom Docker
   network is present in the worker's explicit allow-list. Allowed networks must be provisioned with destination-level
   egress filtering; built-in shared networks are rejected.
+- After a successful generated-project `tools/list` probe, the worker creates a versioned security report from the
+  immutable approved contract, observed tool names, and effective sandbox policy. Source HTTP methods establish a
+  minimum risk, so a lower approved classification is upgraded. Unsupported classifications, missing approved tools,
+  and undeclared observed tools default to `DESTRUCTIVE`. The report records limitations and never invokes a tool or
+  claims security certification.
 
 ## Remaining sandbox requirements
 - a production-isolated container runtime endpoint for the trusted worker control plane;
-- destructive/write tool classification defaults conservative.
+- operational review and destination filtering for every allow-listed custom network.
 
 ## Prompt-injection boundary
 Text from MCP descriptions/docs is data, not trusted instructions. LLM prompts used for normalization/reranking/generation must explicitly separate untrusted source content from system/task instructions.

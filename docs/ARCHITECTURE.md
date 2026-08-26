@@ -49,6 +49,11 @@ dependency. The worker claims queued snapshots atomically, materializes each sna
 directory, mounts it read-only, copies it into a container-only temporary workspace, runs MCP Inspector against the
 generated stdio server, removes the container, deletes the host workspace, and records `EXECUTED` or `FAILED`.
 
+After a successful generated-project probe, the worker deterministically compares Inspector's tool inventory with
+the approved contract and persists a conservative security report. The report combines per-tool risk, discrepancies,
+and effective sandbox controls; it does not invoke tools or certify upstream behavior. The backend exposes persisted
+job evidence without gaining any container-runtime responsibility.
+
 Generated TypeScript workloads use a versioned runtime image whose dependencies were installed with lifecycle
 scripts disabled. The workload container receives only its per-job workspace and no inherited credentials. A
 runtime-neutral image path also supports starting a discovered OCI-packaged MCP server. Package discovery and

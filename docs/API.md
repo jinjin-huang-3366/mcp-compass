@@ -263,9 +263,49 @@ an inert job snapshot, and returns `202 Accepted`:
 
 Queue submission does not run a worker, create a container, materialize project files, install dependencies, or
 execute generated code. The separate validation worker atomically claims the queued snapshot and starts it only in
-an ephemeral container. A job becomes `EXECUTED` after the server remains alive for the configured startup window,
-or `FAILED` after early exit/materialization/runtime failure. `EXECUTED` is lifecycle evidence only: MCP protocol
-correctness, tool invocation, and security reporting remain later validation stages.
+an ephemeral container. A generated job becomes `EXECUTED` after MCP Inspector completes initialization and a valid
+`tools/list` response, or `FAILED` after materialization, runtime, timeout, or protocol failure.
+
+## Get a validation job and security report
+
+`GET /validation/jobs/{id}`
+
+Returns the current lifecycle fields. Completed generated jobs include both `protocolResult` and the deterministic
+`securityReport`:
+
+```json
+{
+  "id": "bb62591b-bc88-4b64-a3ff-7330cc0158b3",
+  "status": "EXECUTED",
+  "projectName": "pet-store-mcp-server",
+  "queuedAt": "2026-08-24T14:30:00Z",
+  "startedAt": "2026-08-24T14:31:00Z",
+  "finishedAt": "2026-08-24T14:31:05Z",
+  "failureReason": null,
+  "protocolResult": {"validator": "mcp-inspector", "method": "tools/list"},
+  "securityReport": {
+    "reportVersion": "1.0",
+    "overallRisk": "DESTRUCTIVE",
+    "tools": [{
+      "name": "delete_pet",
+      "risk": "DESTRUCTIVE",
+      "classificationBasis": "APPROVED_CONTRACT",
+      "listedByInspector": true,
+      "sourceOperation": "DELETE /pets/{id}",
+      "authenticationRequired": true
+    }],
+    "findings": [],
+    "sandbox": {"network": "none", "nonRootUser": "65532:65532"},
+    "protocol": {"method": "tools/list", "toolInvocationPerformed": false},
+    "limitations": ["Risk is a deterministic classification, not a security certification."]
+  }
+}
+```
+
+Risk comes from the immutable approved contract and is checked against both the source HTTP method and observed tool
+inventory. A lower approved classification is upgraded to the method's minimum risk. Unsupported classifications,
+approved tools missing from Inspector output, and undeclared observed tools are classified `DESTRUCTIVE` and produce
+findings. The report does not invoke tools or verify upstream API behavior. Unknown job IDs return `404 Not Found`.
 
 The worker also exposes a runtime-neutral CLI path for an already-discovered OCI image:
 
