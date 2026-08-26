@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted.
+Accepted. The generated-project liveness outcome is superseded by ADR 0009's Inspector protocol validation; the
+isolation boundary and discovered-image liveness path remain current.
 
 ## Context
 
@@ -32,9 +33,10 @@ operator may select only a custom Docker network named in an explicit allow-list
 outside MCP Compass with destination-level egress controls. Built-in `host`, `bridge`, and `default` networks are
 rejected. Production must place the trusted worker and its container-runtime endpoint away from the application host.
 
-`EXECUTED` means only that the MCP server process remained alive for the startup window. MCP Inspector validation is
-VAL-03. Runtime endpoint hardening remains an operational deployment responsibility. Structured security/risk
-reporting remains VAL-05.
+ADR 0009 changes queued generated-project `EXECUTED` semantics to require a successful MCP Inspector `tools/list`
+probe. Non-root execution, explicit network allow-list policy, and CPU, memory, process, and total-time limits apply to
+that probe as well as discovered-image liveness checks. Runtime endpoint hardening remains an operational deployment
+responsibility. Structured security/risk reporting remains VAL-05.
 
 ## Consequences
 

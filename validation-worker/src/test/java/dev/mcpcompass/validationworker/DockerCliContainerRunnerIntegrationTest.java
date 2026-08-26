@@ -43,7 +43,7 @@ class DockerCliContainerRunnerIntegrationTest {
 
     @Test
     @EnabledIfEnvironmentVariable(named = "MCP_COMPASS_VERIFY_CONTAINER_EXECUTION", matches = "true")
-    void startsExactGeneratedProjectInContainerAndLeavesNoContainerBehind() throws Exception {
+    void validatesExactGeneratedProjectWithInspectorAndLeavesNoContainerBehind() throws Exception {
         Path manifest = findGeneratedManifest();
         assertThat(findNpmLogs(manifest.getParent()))
                 .as("backend verifier should contain test-only npm logs outside the persisted manifest")
@@ -64,9 +64,10 @@ class DockerCliContainerRunnerIntegrationTest {
                     )
             );
 
-            assertThat(result.observedRunning())
-                    .withFailMessage("Generated container exited early: %s", result.failureSummary())
+            assertThat(result.completed())
+                    .withFailMessage("Generated protocol validation failed: %s", result.failureSummary())
                     .isTrue();
+            assertThat(result.output()).contains("\"tools\"");
             assertThat(listValidationContainers()).isBlank();
         }
     }

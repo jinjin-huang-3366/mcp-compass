@@ -32,7 +32,9 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
   container-only temporary storage before compilation. Workload containers receive no host credentials or
   Docker socket, default to no network, use a read-only root filesystem plus isolated temporary storage, drop Linux
   capabilities, and are forcibly removed after a bounded startup observation. Generated dependencies come from the
-  application-owned runtime image and are not installed from the network during validation.
+  application-owned runtime image and are not installed from the network during validation. The same image contains
+  a pinned MCP Inspector CLI, which launches the generated stdio server, performs initialization plus `tools/list`,
+  and emits a structured result without invoking any generated tool.
 - Every generated or discovered workload runs as an explicit non-zero numeric UID/GID with configured CPU, memory,
   process-count, startup, and wall-time limits. Network access remains disabled unless the selected custom Docker
   network is present in the worker's explicit allow-list. Allowed networks must be provisioned with destination-level
@@ -40,7 +42,6 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
 
 ## Remaining sandbox requirements
 - a production-isolated container runtime endpoint for the trusted worker control plane;
-- structured validation output;
 - destructive/write tool classification defaults conservative.
 
 ## Prompt-injection boundary

@@ -52,27 +52,28 @@ final class JdbcValidationJobStore implements ValidationJobStore {
     }
 
     @Override
-    public void markExecuted(UUID id) throws Exception {
-        updateOutcome(id, "EXECUTED", null);
+    public void markExecuted(UUID id, String protocolResult) throws Exception {
+        updateOutcome(id, "EXECUTED", null, protocolResult);
     }
 
     @Override
     public void markFailed(UUID id, String reason) throws Exception {
         String bounded = reason == null ? "Unknown isolated execution failure" : reason;
-        updateOutcome(id, "FAILED", bounded.substring(0, Math.min(bounded.length(), MAX_FAILURE_REASON)));
+        updateOutcome(id, "FAILED", bounded.substring(0, Math.min(bounded.length(), MAX_FAILURE_REASON)), null);
     }
 
-    private void updateOutcome(UUID id, String status, String failureReason) throws Exception {
+    private void updateOutcome(UUID id, String status, String failureReason, String protocolResult) throws Exception {
         String sql = """
                 UPDATE validation_job
-                SET status = ?, finished_at = CURRENT_TIMESTAMP, failure_reason = ?
+                SET status = ?, finished_at = CURRENT_TIMESTAMP, failure_reason = ?, protocol_result = CAST(? AS jsonb)
                 WHERE id = ? AND status = 'RUNNING'
                 """;
         try (Connection connection = DriverManager.getConnection(url, username, password);
              PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status);
             statement.setString(2, failureReason);
-            statement.setObject(3, id);
+            statement.setString(3, protocolResult);
+            statement.setObject(4, id);
             if (statement.executeUpdate() != 1) {
                 throw new IllegalStateException("Validation job is no longer RUNNING: " + id);
             }

@@ -12,7 +12,8 @@ record ContainerExecutionRequest(
         String image,
         List<String> command,
         Path workspace,
-        Duration startupWindow,
+        Duration observationWindow,
+        ExpectedOutcome expectedOutcome,
         ContainerSandboxPolicy sandboxPolicy
 ) {
     private static final Pattern IMAGE_REFERENCE = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._/:@-]{0,254}");
@@ -26,13 +27,14 @@ record ContainerExecutionRequest(
         if (command.stream().anyMatch(value -> value == null || value.isBlank())) {
             throw new IllegalArgumentException("Container command arguments cannot be blank");
         }
-        if (startupWindow == null || startupWindow.isNegative() || startupWindow.isZero()
-                || startupWindow.compareTo(Duration.ofMinutes(5)) > 0) {
-            throw new IllegalArgumentException("Startup window must be between one millisecond and five minutes");
+        if (observationWindow == null || observationWindow.isNegative() || observationWindow.isZero()
+                || observationWindow.compareTo(Duration.ofMinutes(5)) > 0) {
+            throw new IllegalArgumentException("Observation window must be between one millisecond and five minutes");
         }
+        Objects.requireNonNull(expectedOutcome, "expectedOutcome");
         Objects.requireNonNull(sandboxPolicy, "sandboxPolicy");
-        if (startupWindow.compareTo(sandboxPolicy.wallTimeLimit()) > 0) {
-            throw new IllegalArgumentException("Startup window cannot exceed the workload wall-time limit");
+        if (observationWindow.compareTo(sandboxPolicy.wallTimeLimit()) > 0) {
+            throw new IllegalArgumentException("Observation window cannot exceed the workload wall-time limit");
         }
         if (workloadType == WorkloadType.GENERATED_PROJECT) {
             if (workspace == null || !workspace.isAbsolute() || !Files.isDirectory(workspace)) {
@@ -61,10 +63,13 @@ record ContainerExecutionRequest(
                         "-lc",
                         "cp -R /input/. /workspace/"
                                 + " && ln -s /opt/mcp-compass/runtime/node_modules node_modules"
-                                + " && npm run build && npm start"
+                                + " && npm run --silent build"
+                                + " && exec /opt/mcp-compass/runtime/node_modules/.bin/mcp-inspector"
+                                + " --cli node build/index.js --method tools/list --format json"
                 ),
                 workspace.toAbsolutePath(),
                 startupWindow,
+                ExpectedOutcome.SUCCESSFUL_EXIT,
                 sandboxPolicy
         );
     }
@@ -81,6 +86,7 @@ record ContainerExecutionRequest(
                 command,
                 null,
                 startupWindow,
+                ExpectedOutcome.RUNNING_AFTER_WINDOW,
                 sandboxPolicy
         );
     }
@@ -88,5 +94,10 @@ record ContainerExecutionRequest(
     enum WorkloadType {
         GENERATED_PROJECT,
         DISCOVERED_IMAGE
+    }
+
+    enum ExpectedOutcome {
+        SUCCESSFUL_EXIT,
+        RUNNING_AFTER_WINDOW
     }
 }

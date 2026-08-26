@@ -14,6 +14,7 @@ class ValidationWorkerConfigurationTest {
 
         assertThat(configuration.generatedImage()).isEqualTo("mcp-compass/typescript-sandbox:1.0");
         assertThat(configuration.startupWindow()).hasSeconds(5);
+        assertThat(configuration.protocolTimeout()).hasSeconds(30);
         assertThat(configuration.pollInterval()).hasSeconds(5);
         assertThat(configuration.sandboxPolicy()).satisfies(policy -> {
             assertThat(policy.user()).isEqualTo("65532:65532");
@@ -31,6 +32,19 @@ class ValidationWorkerConfigurationTest {
                 "VALIDATION_STARTUP_WINDOW_SECONDS", "301"
         ))).isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("VALIDATION_STARTUP_WINDOW_SECONDS");
+    }
+
+    @Test
+    void rejectsUnboundedProtocolTimeout() {
+        assertThatThrownBy(() -> ValidationWorkerConfiguration.from(Map.of(
+                "VALIDATION_PROTOCOL_TIMEOUT_SECONDS", "301"
+        ))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("VALIDATION_PROTOCOL_TIMEOUT_SECONDS");
+        assertThatThrownBy(() -> ValidationWorkerConfiguration.from(Map.of(
+                "VALIDATION_PROTOCOL_TIMEOUT_SECONDS", "31",
+                "VALIDATION_WALL_TIME_LIMIT_SECONDS", "30"
+        ))).isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("cannot exceed VALIDATION_WALL_TIME_LIMIT_SECONDS");
     }
 
     @Test

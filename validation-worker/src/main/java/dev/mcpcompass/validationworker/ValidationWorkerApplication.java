@@ -27,7 +27,7 @@ public final class ValidationWorkerApplication {
                 new ObjectMapper(),
                 configuration.workspaceRoot(),
                 configuration.generatedImage(),
-                configuration.startupWindow(),
+                configuration.protocolTimeout(),
                 configuration.sandboxPolicy()
         );
         if (args.length > 0 && "queue-once".equals(args[0])) {

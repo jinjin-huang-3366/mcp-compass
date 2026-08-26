@@ -15,15 +15,22 @@ record ValidationWorkerConfiguration(
         String generatedImage,
         Path workspaceRoot,
         Duration startupWindow,
+        Duration protocolTimeout,
         Duration pollInterval,
         ContainerSandboxPolicy sandboxPolicy
 ) {
     static ValidationWorkerConfiguration from(Map<String, String> environment) {
         Duration startupWindow = seconds(environment, "VALIDATION_STARTUP_WINDOW_SECONDS", 5, 1, 300);
+        Duration protocolTimeout = seconds(environment, "VALIDATION_PROTOCOL_TIMEOUT_SECONDS", 30, 1, 300);
         Duration wallTimeLimit = seconds(environment, "VALIDATION_WALL_TIME_LIMIT_SECONDS", 30, 1, 900);
         if (startupWindow.compareTo(wallTimeLimit) > 0) {
             throw new IllegalArgumentException(
                     "VALIDATION_STARTUP_WINDOW_SECONDS cannot exceed VALIDATION_WALL_TIME_LIMIT_SECONDS"
+            );
+        }
+        if (protocolTimeout.compareTo(wallTimeLimit) > 0) {
+            throw new IllegalArgumentException(
+                    "VALIDATION_PROTOCOL_TIMEOUT_SECONDS cannot exceed VALIDATION_WALL_TIME_LIMIT_SECONDS"
             );
         }
         String network = environment.getOrDefault("VALIDATION_NETWORK", "none");
@@ -40,6 +47,7 @@ record ValidationWorkerConfiguration(
                         Path.of(System.getProperty("java.io.tmpdir"), "mcp-compass-validation").toString()
                 )).toAbsolutePath(),
                 startupWindow,
+                protocolTimeout,
                 seconds(environment, "VALIDATION_POLL_INTERVAL_SECONDS", 5, 1, 60),
                 new ContainerSandboxPolicy(
                         environment.getOrDefault("VALIDATION_CONTAINER_USER", "65532:65532"),

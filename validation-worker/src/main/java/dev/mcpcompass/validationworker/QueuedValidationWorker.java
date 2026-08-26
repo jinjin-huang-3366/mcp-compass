@@ -12,7 +12,7 @@ final class QueuedValidationWorker {
     private final ObjectMapper objectMapper;
     private final Path workspaceRoot;
     private final String generatedImage;
-    private final Duration startupWindow;
+    private final Duration protocolTimeout;
     private final ContainerSandboxPolicy sandboxPolicy;
 
     QueuedValidationWorker(
@@ -21,7 +21,7 @@ final class QueuedValidationWorker {
             ObjectMapper objectMapper,
             Path workspaceRoot,
             String generatedImage,
-            Duration startupWindow,
+            Duration protocolTimeout,
             ContainerSandboxPolicy sandboxPolicy
     ) {
         this.jobs = jobs;
@@ -29,7 +29,7 @@ final class QueuedValidationWorker {
         this.objectMapper = objectMapper;
         this.workspaceRoot = workspaceRoot;
         this.generatedImage = generatedImage;
-        this.startupWindow = startupWindow;
+        this.protocolTimeout = protocolTimeout;
         this.sandboxPolicy = sandboxPolicy;
     }
 
@@ -43,14 +43,15 @@ final class QueuedValidationWorker {
                 workspaceRoot, job.projectManifest(), objectMapper
         )) {
             ContainerExecutionResult result = containers.execute(ContainerExecutionRequest.generatedProject(
-                    workspace.directory(), generatedImage, startupWindow, sandboxPolicy
+                    workspace.directory(), generatedImage, protocolTimeout, sandboxPolicy
             ));
-            if (result.observedRunning()) {
-                jobs.markExecuted(job.id());
-                System.out.printf("Validation job %s started in an isolated ephemeral container%n", job.id());
+            if (result.completed()) {
+                String protocolResult = McpInspectorProtocolResult.validateAndSerialize(result.output(), objectMapper);
+                jobs.markExecuted(job.id(), protocolResult);
+                System.out.printf("Validation job %s passed isolated MCP Inspector protocol validation%n", job.id());
             } else {
                 jobs.markFailed(job.id(), result.failureSummary());
-                System.err.printf("Validation job %s failed isolated startup%n", job.id());
+                System.err.printf("Validation job %s failed isolated MCP Inspector protocol validation%n", job.id());
             }
         } catch (Exception error) {
             try {

@@ -46,14 +46,13 @@ Stores normalized server metadata, future tools/capabilities, enrichment, valida
 Generated or third-party MCP code runs only in an ephemeral container controlled by the separate
 `validation-worker` JVM. The main backend never materializes or executes a workload and has no container-runtime
 dependency. The worker claims queued snapshots atomically, materializes each snapshot under a unique worker-owned
-directory, mounts it read-only, copies it into a container-only temporary workspace, observes container startup,
-removes the container, deletes the host workspace, and records `EXECUTED` or
-`FAILED`.
+directory, mounts it read-only, copies it into a container-only temporary workspace, runs MCP Inspector against the
+generated stdio server, removes the container, deletes the host workspace, and records `EXECUTED` or `FAILED`.
 
 Generated TypeScript workloads use a versioned runtime image whose dependencies were installed with lifecycle
 scripts disabled. The workload container receives only its per-job workspace and no inherited credentials. A
 runtime-neutral image path also supports starting a discovered OCI-packaged MCP server. Package discovery and
-protocol validation remain separate concerns.
+protocol validation for discovered images remains a separate concern until their queued input model exists.
 
 Both workload paths share one fail-closed sandbox policy: a numeric non-root identity, CPU/memory/process and time
 limits, and no network by default. Optional egress uses only an explicitly allow-listed custom Docker network that

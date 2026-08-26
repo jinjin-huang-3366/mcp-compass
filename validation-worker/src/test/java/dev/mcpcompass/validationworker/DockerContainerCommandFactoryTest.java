@@ -41,8 +41,12 @@ class DockerContainerCommandFactoryTest {
                 "mcp-compass/typescript-sandbox:1.0",
                 "cp -R /input/. /workspace/"
                         + " && ln -s /opt/mcp-compass/runtime/node_modules node_modules"
-                        + " && npm run build && npm start"
+                        + " && npm run --silent build"
+                        + " && exec /opt/mcp-compass/runtime/node_modules/.bin/mcp-inspector"
+                        + " --cli node build/index.js --method tools/list --format json"
         );
+        assertThat(request.expectedOutcome())
+                .isEqualTo(ContainerExecutionRequest.ExpectedOutcome.SUCCESSFUL_EXIT);
         assertThat(commands.startAttached("job-1"))
                 .containsExactly("docker", "start", "--attach", "--interactive", "job-1");
     }
@@ -62,6 +66,8 @@ class DockerContainerCommandFactoryTest {
         assertThat(command).endsWith(
                 "ghcr.io/example/mcp:1.2.3", "node", "server.js", "--stdio"
         );
+        assertThat(request.expectedOutcome())
+                .isEqualTo(ContainerExecutionRequest.ExpectedOutcome.RUNNING_AFTER_WINDOW);
     }
 
     private static ContainerSandboxPolicy defaultPolicy() {
