@@ -28,6 +28,10 @@ class QueuedValidationWorkerTest {
                 .contains("\"validator\":\"mcp-inspector\"")
                 .contains("\"method\":\"tools/list\"")
                 .contains("\"name\":\"find_pets\"");
+        assertThat(jobs.securityReport)
+                .contains("\"overallRisk\":\"READ_ONLY\"")
+                .contains("\"classificationBasis\":\"APPROVED_CONTRACT\"")
+                .contains("\"toolInvocationPerformed\":false");
         assertThat(containers.request.workloadType())
                 .isEqualTo(ContainerExecutionRequest.WorkloadType.GENERATED_PROJECT);
         assertThat(containers.request.expectedOutcome())
@@ -83,7 +87,12 @@ class QueuedValidationWorkerTest {
         return new ValidationJob(
                 UUID.randomUUID(),
                 "pet-store-mcp-server",
-                "{\"files\":[{\"path\":\"package.json\",\"content\":\"{}\"}]}"
+                """
+                {"files":[
+                  {"path":"package.json","content":"{}"},
+                  {"path":"contract.json","content":"{\\\"tools\\\":[{\\\"name\\\":\\\"find_pets\\\",\\\"risk\\\":\\\"READ_ONLY\\\",\\\"sourceOperation\\\":{\\\"method\\\":\\\"GET\\\",\\\"path\\\":\\\"/pets\\\"},\\\"authenticationRequirements\\\":[]}]}"}
+                ]}
+                """
         );
     }
 
@@ -92,6 +101,7 @@ class QueuedValidationWorkerTest {
         private boolean executed;
         private String failedReason;
         private String protocolResult;
+        private String securityReport;
 
         private RecordingJobStore(ValidationJob job) {
             this.next = Optional.of(job);
@@ -105,9 +115,10 @@ class QueuedValidationWorkerTest {
         }
 
         @Override
-        public void markExecuted(UUID id, String protocolResult) {
+        public void markExecuted(UUID id, String protocolResult, String securityReport) {
             executed = true;
             this.protocolResult = protocolResult;
+            this.securityReport = securityReport;
         }
 
         @Override

@@ -6,7 +6,7 @@ import java.util.UUID;
 interface ValidationJobStore {
     Optional<ValidationJob> claimNext() throws Exception;
 
-    void markExecuted(UUID id, String protocolResult) throws Exception;
+    void markExecuted(UUID id, String protocolResult, String securityReport) throws Exception;
 
     void markFailed(UUID id, String reason) throws Exception;
 }

@@ -18,10 +18,11 @@ This repository has a working discovery vertical slice plus contract-first gener
    versioned, data-driven runtime pack with locked dependencies and generated unit tests verified in CI;
 8. download the approved project as a GitHub-ready ZIP with repository ignores and its own CI workflow.
 9. queue an approved generated project snapshot and consume it from a separate validation worker that uses MCP
-   Inspector to validate the generated stdio server only in an ephemeral container.
+   Inspector to validate the generated stdio server only in an ephemeral container;
+10. retrieve a conservative tool-risk and sandbox security report without invoking server tools.
 
-Comprehensive containment policy and security reporting remain planned. Vector candidate retrieval is available as
-an opt-in, benchmark-gated extension to the default lexical search path.
+Production runtime-endpoint isolation remains an operational requirement. Vector candidate retrieval is available
+as an opt-in, benchmark-gated extension to the default lexical search path.
 
 ## Stack
 

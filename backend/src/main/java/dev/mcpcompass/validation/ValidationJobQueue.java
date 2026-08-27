@@ -43,6 +43,6 @@ class ValidationJobQueue {
         );
         repository.save(job);
         log.info("Queued validation job {} for generated project {}", job.id(), job.projectName());
-        return ValidationJobResponse.from(job);
+        return ValidationJobResponse.from(job, objectMapper);
     }
 }
