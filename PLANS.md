@@ -33,7 +33,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-14 — validate protocol and containment** | `VAL-03`, `VAL-04` | `VAL-02` | Complete (2/2) |
 | **PG-15 — report tool risk** | `VAL-05` | `VAL-03`, `VAL-04` | Complete (1/1) |
 | **PG-16 — add CLI surfaces** | `DX-01`, `DX-02` | `VAL-05` and, for `DX-02`, `GEN-06` | Complete (2/2) |
-| **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` | Not started (0/1) |
+| **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` | Complete (1/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
@@ -114,7 +114,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 ## V0.5 — developer surfaces
 - [x] **DX-01** — CLI: `mcp-compass find "..."`. _(Depends on: API-01, API-02, VAL-05)_
 - [x] **DX-02** — CLI: `mcp-compass generate openapi.yaml`. _(Depends on: GEN-06, VAL-05)_
-- [ ] **DX-03** — IntelliJ/VS Code integration only after API/CLI workflows are stable. _(Depends on: DX-01, DX-02)_
+- [x] **DX-03** — IntelliJ/VS Code integration only after API/CLI workflows are stable. _(Depends on: DX-01, DX-02)_
 
 ## Explicit non-goals for V0.1
 - Agent runtime/orchestrator.
