@@ -81,6 +81,7 @@ npm run dev
 ```bash
 ./mvnw -pl backend,validation-worker test
 cd web && npm ci && npm run lint && npm run build
+cd cli && npm ci && npm run lint && npm test
 python -m unittest discover -s .github/scripts -p 'test_*.py'
 ```
 
@@ -160,13 +161,14 @@ forcibly removes the container. It is not yet an MCP Inspector check and does no
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs for every pull request, pushes to `main`, and manual dispatches. It has three
+`.github/workflows/ci.yml` runs for every pull request, pushes to `main`, and manual dispatches. It has four
 independent quality jobs:
 
 - `backend` uses Java 21 and Node.js 22, builds the versioned sandbox image, enables exact-manifest generated-project
   verification plus a generated-container smoke test, and runs `./mvnw -pl backend,validation-worker test`;
 - `web` uses Node.js 22, installs exactly from `package-lock.json` with `npm ci`, then runs lint and the
   production build;
+- `cli` uses Node.js 22, installs exactly from `package-lock.json` with `npm ci`, then runs lint, build, and unit tests;
 - `automation` tests the repository's workflow-support scripts, including the CI contract itself.
 
 The commands in the Tests section mirror these CI gates and should pass before a branch is published.

@@ -12,6 +12,8 @@ web/node_modules/
 web/.next/
 web/out/
 web/.env.local
+cli/node_modules/
+cli/dist/
 .npm-cache/
 
 # Python

@@ -63,6 +63,13 @@ class TaskPrWorkflowContractTest(unittest.TestCase):
         self.assertIn("validation-worker/runtime/typescript-v1/Dockerfile", self.workflow)
         self.assertIn("./mvnw -pl backend,validation-worker test", self.workflow)
 
+    def test_cli_validation_is_part_of_the_task_handoff(self):
+        self.assertIn("cache-dependency-path: |", self.workflow)
+        self.assertIn("cli/package-lock.json", self.workflow)
+        self.assertIn("working-directory: cli", self.workflow)
+        self.assertIn("run: npm run lint && npm test", self.workflow)
+        self.assertIn("`cd cli && npm ci && npm run lint && npm test`", self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()
