@@ -133,6 +133,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             backend/src/main/resources/generator/typescript/v1/package-lock.json
+            cli/package-lock.json
             web/package-lock.json
 
       - name: Run backend tests
@@ -157,6 +158,14 @@ jobs:
       - name: Build web application
         working-directory: web
         run: npm run build
+
+      - name: Install CLI dependencies
+        working-directory: cli
+        run: npm ci
+
+      - name: Lint and test CLI
+        working-directory: cli
+        run: npm run lint && npm test
 
       - name: Recheck branch against latest base
         env:
@@ -194,6 +203,7 @@ jobs:
             printf '\n\n## Validation\n\n'
             printf '%s\n' '- `./mvnw -pl backend,validation-worker test` (including generated container smoke test)'
             printf '%s\n' '- `cd web && npm ci && npm run lint && npm run build`'
+            printf '%s\n' '- `cd cli && npm ci && npm run lint && npm test`'
             printf '%s\n' '- `python -m unittest discover -s .github/scripts -p '"'"'test_*.py'"'"'`'
             if [[ -n "$PLAN_ITEM" ]]; then
               printf '\n## Plan tracking\n\nMark `%s` complete after merge.\n' "$PLAN_ITEM"
