@@ -9,6 +9,11 @@ type CliCommand = {
 
 const USAGE = `Usage: mcp-compass <command> [options]
 
+Commands:
+  find       Find ranked MCP servers for a capability requirement
+  generate   Generate a reviewed MCP project from an OpenAPI document
+  ide        Install VS Code and/or IntelliJ project actions
+
 Run "mcp-compass <command> --help" for command-specific help.`;
 
 export async function main(args = process.argv.slice(2)): Promise<number> {
