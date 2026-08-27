@@ -76,6 +76,14 @@ npm run lint
 npm run build
 ```
 
+CLI:
+```bash
+cd cli
+npm install
+npm run lint
+npm test
+```
+
 Infrastructure:
 ```bash
 docker compose up -d db

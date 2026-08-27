@@ -41,6 +41,16 @@ class CiWorkflowContractTest(unittest.TestCase):
         positions = [web.index(command) for command in commands]
         self.assertEqual(positions, sorted(positions))
 
+    def test_cli_job_uses_node_22_clean_install_lint_and_test(self):
+        cli = self.job("cli")
+
+        self.assertIn("actions/setup-node@v4", cli)
+        self.assertIn("node-version: '22'", cli)
+        self.assertIn("cache-dependency-path: cli/package-lock.json", cli)
+        commands = ["run: npm ci", "run: npm run lint", "run: npm test"]
+        positions = [cli.index(command) for command in commands]
+        self.assertEqual(positions, sorted(positions))
+
     def test_workflow_automation_tests_remain_a_ci_gate(self):
         automation = self.job("automation")
 
