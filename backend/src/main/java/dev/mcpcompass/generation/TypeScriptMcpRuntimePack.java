@@ -48,7 +48,7 @@ class TypeScriptMcpRuntimePack {
     }
 
     private static String readResource(String path) {
-        String resourcePath = RESOURCE_ROOT + path;
+        String resourcePath = RESOURCE_ROOT + (path.equals(".gitignore") ? "gitignore.template" : path);
         try (InputStream input = TypeScriptMcpRuntimePack.class.getClassLoader().getResourceAsStream(resourcePath)) {
             if (input == null) {
                 throw new IllegalStateException("Missing TypeScript runtime-pack resource: " + resourcePath);

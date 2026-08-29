@@ -1,3 +1,7 @@
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
 spring:
   application:
     name: mcp-compass
@@ -6,9 +10,12 @@ spring:
       max-file-size: 2MB
       max-request-size: 2MB
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/mcp_compass}
-    username: ${SPRING_DATASOURCE_USERNAME:mcp_compass}
-    password: ${SPRING_DATASOURCE_PASSWORD:mcp_compass}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:mcp_compass}?sslmode=${PGSSLMODE:prefer}}
+    username: ${SPRING_DATASOURCE_USERNAME:${PGUSER:mcp_compass}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${PGPASSWORD:mcp_compass}}
+    hikari:
+      maximum-pool-size: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:3}
+      minimum-idle: ${SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE:0}
   jpa:
     open-in-view: false
     hibernate:
@@ -23,6 +30,8 @@ management:
         include: health,info,metrics
 
 app:
+  cors:
+    allowed-origin-patterns: ${MCP_COMPASS_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000}
   generation:
     openapi-source:
       max-bytes: 2097152
@@ -63,3 +72,7 @@ app:
       enabled: false
       fixed-delay-ms: 3600000
       max-pages-per-run: 5
+    cron:
+      enabled: ${MCP_COMPASS_REGISTRY_CRON_ENABLED:false}
+      secret: ${CRON_SECRET:}
+      max-pages-per-run: ${MCP_COMPASS_REGISTRY_CRON_MAX_PAGES:5}

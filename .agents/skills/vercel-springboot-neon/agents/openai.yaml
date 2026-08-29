@@ -1,0 +1,4 @@
+interface:
+  display_name: "Vercel Spring Boot + Neon"
+  short_description: "Deploy Next.js and Spring Boot with Neon"
+  default_prompt: "Use $vercel-springboot-neon to deploy this Next.js and Spring Boot project with Neon."

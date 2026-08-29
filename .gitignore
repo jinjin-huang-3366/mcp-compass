@@ -15,6 +15,11 @@ web/.env.local
 cli/node_modules/
 cli/dist/
 .npm-cache/
+.codex-npm-cache/
+.codex-vercel-state/
+.codex-docker-config/
+.vercel/
+web/.vercel/
 
 # Python
 __pycache__/

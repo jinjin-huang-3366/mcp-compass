@@ -1,0 +1,22 @@
+FROM eclipse-temurin:21-jdk-jammy AS build
+
+WORKDIR /workspace
+COPY .mvn/ .mvn/
+COPY mvnw pom.xml ./
+COPY backend/pom.xml backend/pom.xml
+RUN chmod +x mvnw && ./mvnw -q -f backend/pom.xml dependency:go-offline -DskipTests
+
+COPY backend/src/ backend/src/
+RUN ./mvnw -q -f backend/pom.xml package -DskipTests
+
+FROM eclipse-temurin:21-jre-jammy
+
+RUN groupadd --system --gid 10001 mcpcompass \
+    && useradd --system --uid 10001 --gid 10001 --create-home mcpcompass
+WORKDIR /app
+COPY --from=build --chown=mcpcompass:mcpcompass /workspace/backend/target/backend-0.1.0-SNAPSHOT.jar /app/app.jar
+
+ENV PORT=8080
+EXPOSE 8080
+USER 10001
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
