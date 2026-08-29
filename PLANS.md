@@ -116,6 +116,11 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **DX-02** — CLI: `mcp-compass generate openapi.yaml`. _(Depends on: GEN-06, VAL-05)_
 - [x] **DX-03** — IntelliJ/VS Code integration only after API/CLI workflows are stable. _(Depends on: DX-01, DX-02)_
 
+### Production deployment
+- [x] **DEP-01** — Deploy the Next.js frontend and containerized Spring Boot API to Vercel Hobby with Neon PostgreSQL in the London region. _(Depends on: DX-03)_
+- [x] **DEP-02** — Configure authenticated daily Registry sync, production CORS, cold-start handling, Neon migrations, initial Registry bootstrap, and production smoke tests. _(Depends on: DEP-01)_
+- [x] **DEP-03** — Document the deployment runbook and add a reusable Vercel/Spring Boot/Neon skill, including the separate validation-worker hosting limitation. _(Depends on: DEP-02)_
+
 ## Explicit non-goals for V0.1
 - Agent runtime/orchestrator.
 - General end-user personal assistant marketplace.
