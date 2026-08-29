@@ -108,6 +108,20 @@ class TypeScriptMcpProjectGeneratorTest {
                 .hasMessageContaining("path parameter");
     }
 
+    @Test
+    void generatesProjectWithComposedOutputSchema() {
+        McpToolContract approved = approvedContract();
+        McpToolContract.Tool tool = approved.tools().getFirst();
+        var output = objectMapper.createObjectNode();
+        output.putArray("allOf").addObject().put("type", "object");
+        McpToolContract composed = new McpToolContract("1.0", "APPROVED", approved.source(), List.of(
+                new McpToolContract.Tool(tool.name(), tool.description(), tool.inputSchema(), output,
+                        tool.sourceOperation(), tool.authenticationRequirements(), tool.risk())
+        ));
+
+        assertThat(generator.generate(composed).files()).isNotEmpty();
+    }
+
     private McpToolContract approvedContract() {
         var input = objectMapper.createObjectNode().put("type", "object");
         input.putObject("properties")

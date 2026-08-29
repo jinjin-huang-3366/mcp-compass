@@ -17,6 +17,8 @@ import java.util.Set;
 @Service
 class OpenApiToolContractDesigner {
     private static final String CONTRACT_VERSION = "1.0";
+    private static final int MAX_SCHEMA_RESOLUTION_DEPTH = 64;
+    private static final int MAX_RESOLVED_SCHEMA_NODES = 10_000;
     private static final Set<String> HTTP_METHODS = Set.of(
             "get", "put", "post", "delete", "options", "head", "patch", "trace"
     );
@@ -78,24 +80,29 @@ class OpenApiToolContractDesigner {
         return new McpToolContract.Tool(
                 name,
                 description,
-                inputSchema(pathParameters, operation.path("parameters"), operation.path("requestBody")),
-                outputSchema(operation.path("responses")),
+                inputSchema(root, pathParameters, operation.path("parameters"), operation.path("requestBody")),
+                outputSchema(root, operation.path("responses")),
                 new McpToolContract.Operation(method.toUpperCase(Locale.ROOT), path, operationId),
                 authentication(root, operation),
                 risk(method)
         );
     }
 
-    private ObjectNode inputSchema(JsonNode pathParameters, JsonNode operationParameters, JsonNode requestBody) {
+    private ObjectNode inputSchema(
+            JsonNode root,
+            JsonNode pathParameters,
+            JsonNode operationParameters,
+            JsonNode requestBody
+    ) {
         ObjectNode schema = objectMapper.createObjectNode().put("type", "object");
         ObjectNode properties = schema.putObject("properties");
         LinkedHashSet<String> required = new LinkedHashSet<>();
-        addParameters(pathParameters, properties, required);
-        addParameters(operationParameters, properties, required);
+        addParameters(root, pathParameters, properties, required);
+        addParameters(root, operationParameters, properties, required);
         if (requestBody.isObject()) {
             JsonNode bodySchema = contentSchema(requestBody.path("content"));
             if (bodySchema != null) {
-                properties.set("body", bodySchema.deepCopy());
+                properties.set("body", resolveSchema(root, bodySchema));
                 if (requestBody.path("required").asBoolean(false)) {
                     required.add("body");
                 }
@@ -109,7 +116,12 @@ class OpenApiToolContractDesigner {
         return schema;
     }
 
-    private void addParameters(JsonNode parameters, ObjectNode properties, Set<String> required) {
+    private void addParameters(
+            JsonNode root,
+            JsonNode parameters,
+            ObjectNode properties,
+            Set<String> required
+    ) {
         if (!parameters.isArray()) {
             return;
         }
@@ -119,29 +131,104 @@ class OpenApiToolContractDesigner {
             if (name == null || !parameterSchema.isObject()) {
                 continue;
             }
-            properties.set(name, parameterSchema.deepCopy());
+            properties.set(name, resolveSchema(root, parameterSchema));
             if (parameter.path("required").asBoolean(false) || "path".equals(text(parameter, "in"))) {
                 required.add(name);
             }
         }
     }
 
-    private JsonNode outputSchema(JsonNode responses) {
+    private JsonNode outputSchema(JsonNode root, JsonNode responses) {
         if (responses.isObject()) {
             for (var response : responses.properties()) {
                 if (response.getKey().matches("2\\d\\d")) {
                     JsonNode schema = contentSchema(response.getValue().path("content"));
                     if (schema != null) {
-                        return schema.deepCopy();
+                        return resolveSchema(root, schema);
                     }
                 }
             }
             JsonNode schema = contentSchema(responses.path("default").path("content"));
             if (schema != null) {
-                return schema.deepCopy();
+                return resolveSchema(root, schema);
             }
         }
         return objectMapper.createObjectNode().put("type", "object");
+    }
+
+    private JsonNode resolveSchema(JsonNode root, JsonNode schema) {
+        return resolveSchema(root, schema, new LinkedHashSet<>(), new int[]{0}, 0);
+    }
+
+    private JsonNode resolveSchema(
+            JsonNode root,
+            JsonNode schema,
+            Set<String> activeReferences,
+            int[] resolvedNodes,
+            int depth
+    ) {
+        if (depth > MAX_SCHEMA_RESOLUTION_DEPTH || ++resolvedNodes[0] > MAX_RESOLVED_SCHEMA_NODES) {
+            throw invalidSchemaReference("OpenAPI schema references are too deeply nested or expand too far.");
+        }
+        if (schema.isArray()) {
+            ArrayNode resolved = objectMapper.createArrayNode();
+            for (JsonNode item : schema) {
+                resolved.add(resolveSchema(root, item, activeReferences, resolvedNodes, depth + 1));
+            }
+            return resolved;
+        }
+        if (!schema.isObject()) {
+            return schema.deepCopy();
+        }
+
+        JsonNode referenceNode = schema.path("$ref");
+        if (!referenceNode.isMissingNode()) {
+            if (!referenceNode.isString() || referenceNode.stringValue().isBlank()) {
+                throw invalidSchemaReference("OpenAPI schema references must be non-empty strings.");
+            }
+            String reference = referenceNode.stringValue();
+            if (!reference.startsWith("#/")) {
+                throw invalidSchemaReference("Only local OpenAPI schema references are supported: " + reference);
+            }
+            if (!activeReferences.add(reference)) {
+                throw invalidSchemaReference("Circular OpenAPI schema references are not supported: " + reference);
+            }
+            try {
+                JsonNode target = root.at(reference.substring(1));
+                if (target.isMissingNode() || !target.isObject()) {
+                    throw invalidSchemaReference("OpenAPI schema reference cannot be resolved: " + reference);
+                }
+                JsonNode resolvedTarget = resolveSchema(
+                        root, target, activeReferences, resolvedNodes, depth + 1
+                );
+                if (!(resolvedTarget instanceof ObjectNode resolvedObject)) {
+                    throw invalidSchemaReference("OpenAPI schema reference must resolve to an object: " + reference);
+                }
+                ObjectNode merged = resolvedObject.deepCopy();
+                for (var property : schema.properties()) {
+                    if (!"$ref".equals(property.getKey())) {
+                        merged.set(property.getKey(), resolveSchema(
+                                root, property.getValue(), activeReferences, resolvedNodes, depth + 1
+                        ));
+                    }
+                }
+                return merged;
+            } finally {
+                activeReferences.remove(reference);
+            }
+        }
+
+        ObjectNode resolved = objectMapper.createObjectNode();
+        for (var property : schema.properties()) {
+            resolved.set(property.getKey(), resolveSchema(
+                    root, property.getValue(), activeReferences, resolvedNodes, depth + 1
+            ));
+        }
+        return resolved;
+    }
+
+    private static OpenApiSourceException invalidSchemaReference(String message) {
+        return new OpenApiSourceException("INVALID_OPENAPI_DOCUMENT", message);
     }
 
     private JsonNode contentSchema(JsonNode content) {

@@ -6,6 +6,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class OpenApiToolContractDesignerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -72,6 +73,72 @@ class OpenApiToolContractDesignerTest {
         assertThat(first.inputSchema().path("required").get(0).stringValue()).isEqualTo("body");
         assertThat(first.risk()).isEqualTo(McpToolContract.Risk.MUTATING);
         assertThat(first.authenticationRequirements()).isEmpty();
+    }
+
+    @Test
+    void resolvesLocalComponentReferencesIntoSelfContainedToolSchemas() {
+        McpToolContract contract = designer.design(document("""
+                {
+                  "openapi":"3.1.0",
+                  "info":{"title":"Pet Store","version":"1"},
+                  "paths":{"/pets":{"post":{
+                    "operationId":"createPet",
+                    "requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/NewPet"}}}},
+                    "responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Pet"}}}}}
+                  }}},
+                  "components":{"schemas":{
+                    "NewPet":{"type":"object","required":["name"],"properties":{"name":{"type":"string"}}},
+                    "Pet":{"allOf":[
+                      {"$ref":"#/components/schemas/NewPet"},
+                      {"type":"object","required":["id"],"properties":{"id":{"type":"string"}}}
+                    ]}
+                  }}
+                }
+                """));
+
+        McpToolContract.Tool tool = contract.tools().getFirst();
+        assertThat(tool.inputSchema().path("properties").path("body").path("type").stringValue())
+                .isEqualTo("object");
+        assertThat(tool.outputSchema().path("allOf").get(0).path("type").stringValue())
+                .isEqualTo("object");
+        assertThat(tool.inputSchema().toString()).doesNotContain("$ref");
+        assertThat(tool.outputSchema().toString()).doesNotContain("$ref");
+    }
+
+    @Test
+    void rejectsUnresolvableLocalSchemaReference() {
+        assertThatThrownBy(() -> designer.design(document("""
+                {
+                  "openapi":"3.1.0",
+                  "info":{"title":"Pet Store","version":"1"},
+                  "paths":{"/pets":{"get":{
+                    "operationId":"listPets",
+                    "responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Missing"}}}}}
+                  }}}
+                }
+                """)))
+                .isInstanceOf(OpenApiSourceException.class)
+                .hasMessageContaining("cannot be resolved");
+    }
+
+    @Test
+    void rejectsCircularLocalSchemaReference() {
+        assertThatThrownBy(() -> designer.design(document("""
+                {
+                  "openapi":"3.1.0",
+                  "info":{"title":"Pet Store","version":"1"},
+                  "paths":{"/pets":{"get":{
+                    "operationId":"listPets",
+                    "responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/Pet"}}}}}
+                  }}},
+                  "components":{"schemas":{"Pet":{
+                    "type":"object",
+                    "properties":{"parent":{"$ref":"#/components/schemas/Pet"}}
+                  }}}
+                }
+                """)))
+                .isInstanceOf(OpenApiSourceException.class)
+                .hasMessageContaining("Circular");
     }
 
     private OpenApiSourceDocument document(String json) {

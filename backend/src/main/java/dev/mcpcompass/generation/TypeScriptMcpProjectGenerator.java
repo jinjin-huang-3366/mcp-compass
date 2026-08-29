@@ -96,7 +96,15 @@ class TypeScriptMcpProjectGenerator implements GeneratedProjectProvider {
     }
 
     private static boolean declaredSchema(JsonNode schema) {
-        return schema != null && schema.isObject() && schema.path("type").isString();
+        if (schema == null || !schema.isObject()) {
+            return false;
+        }
+        if (schema.path("type").isString()) {
+            return true;
+        }
+        return List.of("allOf", "anyOf", "oneOf").stream()
+                .map(schema::path)
+                .anyMatch(composition -> composition.isArray() && !composition.isEmpty());
     }
 
     private String packageJson(String projectName) {
