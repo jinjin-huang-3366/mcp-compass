@@ -6,6 +6,7 @@ out/
 # Java
 **/target/
 .m2/
+.codex-m2/
 
 # Node
 web/node_modules/
@@ -15,6 +16,11 @@ web/.env.local
 cli/node_modules/
 cli/dist/
 .npm-cache/
+.codex-npm-cache/
+.codex-vercel-state/
+.codex-docker-config/
+.vercel/
+web/.vercel/
 
 # Python
 __pycache__/
@@ -36,3 +42,4 @@ Thumbs.db
 # Generated artifacts
 generated/
 artifacts/
+/.env.local

@@ -1,0 +1,9 @@
+.git
+.github
+.idea
+.codex-*
+cli
+web
+**/target
+**/node_modules
+*.log

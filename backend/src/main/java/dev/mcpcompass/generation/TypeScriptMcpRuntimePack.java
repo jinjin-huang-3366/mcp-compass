@@ -48,7 +48,12 @@ class TypeScriptMcpRuntimePack {
     }
 
     private static String readResource(String path) {
-        String resourcePath = RESOURCE_ROOT + path;
+        String resourcePath = RESOURCE_ROOT + switch (path) {
+            case ".gitignore" -> "gitignore.template";
+            case ".env.example" -> "env.example.template";
+            case ".github/workflows/ci.yml" -> "github-workflow-ci.yml.template";
+            default -> path;
+        };
         try (InputStream input = TypeScriptMcpRuntimePack.class.getClassLoader().getResourceAsStream(resourcePath)) {
             if (input == null) {
                 throw new IllegalStateException("Missing TypeScript runtime-pack resource: " + resourcePath);
