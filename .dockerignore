@@ -3,7 +3,6 @@
 .idea
 .codex-*
 cli
-validation-worker
 web
 **/target
 **/node_modules
