@@ -126,6 +126,7 @@ query failures fall back to lexical retrieval. See `docs/DEVELOPMENT.md` for con
 - `docs/SECURITY.md`
 - `docs/DEVELOPMENT.md`
 - `docs/DEPLOYMENT.md`
+- `docs/BUGS.md`
 - `docs/IDE_INTEGRATION.md`
 - `docs/AI_AGENT_SETUP.md`
 - `docs/REFERENCES.md`

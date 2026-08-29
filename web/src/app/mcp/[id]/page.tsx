@@ -2,19 +2,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMcpDetail } from "@/lib/api";
 import type { McpServerDetail } from "@/lib/api";
+import { searchReturnUrl } from "@/lib/search-navigation";
 
 type McpDetailPageProps = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function McpDetailPage({ params }: McpDetailPageProps) {
-  const { id } = await params;
+export default async function McpDetailPage({ params, searchParams }: McpDetailPageProps) {
+  const [{ id }, detailSearchParams] = await Promise.all([params, searchParams]);
+  const backHref = searchReturnUrl(detailSearchParams);
   let server: McpServerDetail | null;
 
   try {
     server = await getMcpDetail(id);
   } catch {
-    return <DetailError />;
+    return <DetailError backHref={backHref} />;
   }
 
   if (!server) {
@@ -23,7 +26,7 @@ export default async function McpDetailPage({ params }: McpDetailPageProps) {
 
   return (
     <main className="shell detailShell">
-      <Link className="backLink" href="/">
+      <Link className="backLink" href={backHref}>
         Back to search
       </Link>
 
@@ -68,10 +71,10 @@ export default async function McpDetailPage({ params }: McpDetailPageProps) {
   );
 }
 
-function DetailError() {
+function DetailError({ backHref }: { backHref: string }) {
   return (
     <main className="shell detailShell">
-      <Link className="backLink" href="/">
+      <Link className="backLink" href={backHref}>
         Back to search
       </Link>
       <section className="detailState error" role="alert">
