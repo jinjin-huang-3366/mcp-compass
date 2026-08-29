@@ -11,12 +11,17 @@ RUN ./mvnw -q -f backend/pom.xml package -DskipTests
 
 FROM eclipse-temurin:21-jre-jammy
 
-RUN groupadd --system --gid 10001 mcpcompass \
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends socat \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 10001 mcpcompass \
     && useradd --system --uid 10001 --gid 10001 --create-home mcpcompass
 WORKDIR /app
 COPY --from=build --chown=mcpcompass:mcpcompass /workspace/backend/target/backend-0.1.0-SNAPSHOT.jar /app/app.jar
+COPY --chown=mcpcompass:mcpcompass deploy/vercel-entrypoint.sh /app/vercel-entrypoint.sh
+RUN chmod 0555 /app/vercel-entrypoint.sh
 
 ENV PORT=8080
 EXPOSE 8080
 USER 10001
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+CMD ["/app/vercel-entrypoint.sh"]

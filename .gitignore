@@ -6,6 +6,7 @@ out/
 # Java
 **/target/
 .m2/
+.codex-m2/
 
 # Node
 web/node_modules/
@@ -41,3 +42,4 @@ Thumbs.db
 # Generated artifacts
 generated/
 artifacts/
+/.env.local

@@ -10,7 +10,12 @@
 
 - Use `Dockerfile.vercel` or the current Vercel container entrypoint convention.
 - Build only the backend module and copy only its runnable artifact into a small runtime image.
-- Run as a numeric non-root user and listen on `PORT`.
+- Run as a numeric non-root user, declare the server with OCI `CMD`, and listen on `PORT`.
+- Prefer an absolute runtime executable path in `CMD`; Vercel's certificate-injection wrapper may not preserve an image-specific `PATH`.
+- Set Vercel's Framework Preset to `Container`, enable Fluid compute, and configure `PORT` to a non-privileged value such as `8080`; the generic `Other` preset can skip container detection and the default port 80 cannot be bound by a non-root process.
+- Measure a cold start against Vercel's initialization window. If eager Spring initialization is too slow, set `SPRING_MAIN_LAZY_INITIALIZATION=true`, consider `SPRING_DATA_JPA_REPOSITORIES_BOOTSTRAP_MODE=lazy`, and use startup-oriented JVM flags such as `-XX:TieredStopAtLevel=1 -XX:+UseSerialGC`. Retest the first request as well as later routes that instantiate deferred beans; these settings trade peak throughput for startup latency.
+- When a correct startup remains just beyond the socket deadline, a minimal TCP forwarder may listen on public `PORT` immediately and hold connections until Spring is ready on a private loopback port. Run it non-root, forward only to loopback, keep the Java process as PID 1, and never return a fabricated health response.
+- Do not assume hidden source assets reach the remote Docker context. Store embedded dotfiles and hidden-directory content under visible template names when necessary, then restore their intended paths only in generated output.
 - Do not bake credentials into Docker layers, build arguments, `vercel.json`, or public frontend variables.
 - Configure Spring from `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, and `PGPASSWORD`, or from an explicit JDBC URL. Prefer Neon pooling for autoscaling HTTP instances and keep Hikari's maximum pool small.
 - Verify that required extensions can be created by the migration role. Use a direct connection for administrative migrations if the selected pooler cannot support them.
