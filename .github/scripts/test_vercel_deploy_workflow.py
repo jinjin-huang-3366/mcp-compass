@@ -62,9 +62,14 @@ class VercelDeployWorkflowContractTest(unittest.TestCase):
             if "vercel " in line and " curl " in line
         ]
         self.assertEqual(5, len(invocations))
+        self.assertGreaterEqual(
+            self.workflow.count("VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}"),
+            len(invocations),
+        )
         for invocation in invocations:
             self.assertIn("vercel curl ", invocation)
             self.assertNotIn("--token", invocation)
+
     def test_backend_security_smoke_test_requires_unauthenticated_401(self):
         backend_smoke = self.workflow.split("- name: Smoke test staged backend", 1)[1]
         backend_smoke = backend_smoke.split("- name: Promote backend to production", 1)[0]
