@@ -1,0 +1,4 @@
+interface:
+  display_name: "MCP Vercel Deploy"
+  short_description: "Deploy tested MCP Compass main to Vercel"
+  default_prompt: "Use $mcp-vercel-deploy to deploy the latest CI-green main commit to both MCP Compass production Vercel projects."

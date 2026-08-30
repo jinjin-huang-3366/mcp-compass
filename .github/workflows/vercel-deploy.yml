@@ -1,0 +1,318 @@
+name: MCP Compass Vercel production deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_sha:
+        description: Full commit SHA from the current main branch to deploy
+        required: true
+        type: string
+      target:
+        description: Vercel project or projects to deploy
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - backend
+          - frontend
+      confirm_production:
+        description: Confirm that this run may promote deployments to production
+        required: true
+        default: false
+        type: boolean
+
+concurrency:
+  group: mcp-compass-vercel-production
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  deploy:
+    name: Stage, verify, and promote
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 45
+    steps:
+      - name: Check out the requested commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.git_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify production request and tested main commit
+        env:
+          CONFIRM_PRODUCTION: ${{ inputs.confirm_production }}
+          DEPLOY_SHA: ${{ inputs.git_sha }}
+          GH_TOKEN: ${{ github.token }}
+          TARGET: ${{ inputs.target }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == "refs/heads/main" ]] || {
+            echo "Dispatch this workflow from main, not $GITHUB_REF." >&2
+            exit 1
+          }
+          [[ "$CONFIRM_PRODUCTION" == "true" ]] || {
+            echo "Production deployment was not confirmed." >&2
+            exit 1
+          }
+          [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "git_sha must be a full lowercase commit SHA." >&2
+            exit 1
+          }
+          [[ "$TARGET" == "all" || "$TARGET" == "backend" || "$TARGET" == "frontend" ]] || {
+            echo "Unsupported deployment target: $TARGET" >&2
+            exit 1
+          }
+
+          git fetch --no-tags origin "+refs/heads/main:refs/remotes/origin/main"
+          [[ "$(git rev-parse HEAD)" == "$DEPLOY_SHA" ]] || {
+            echo "Checked-out commit does not match git_sha." >&2
+            exit 1
+          }
+          [[ "$(git rev-parse origin/main)" == "$DEPLOY_SHA" ]] || {
+            echo "git_sha is not the current origin/main head." >&2
+            exit 1
+          }
+
+          successful_ci_runs="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow ci.yml \
+            --commit "$DEPLOY_SHA" \
+            --event push \
+            --limit 10 \
+            --json conclusion \
+            --jq '[.[] | select(.conclusion == "success")] | length')"
+          [[ "$successful_ci_runs" -gt 0 ]] || {
+            echo "No successful main CI run exists for $DEPLOY_SHA." >&2
+            exit 1
+          }
+
+      - name: Verify required Vercel credentials
+        env:
+          TARGET: ${{ inputs.target }}
+          VERCEL_BACKEND_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+          VERCEL_FRONTEND_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ -n "$VERCEL_TOKEN" ]] || { echo "Missing VERCEL_TOKEN." >&2; exit 1; }
+          [[ -n "$VERCEL_ORG_ID" ]] || { echo "Missing VERCEL_ORG_ID." >&2; exit 1; }
+          if [[ "$TARGET" == "all" || "$TARGET" == "backend" ]]; then
+            [[ -n "$VERCEL_BACKEND_PROJECT_ID" ]] || {
+              echo "Missing VERCEL_BACKEND_PROJECT_ID." >&2
+              exit 1
+            }
+          fi
+          if [[ "$TARGET" == "all" || "$TARGET" == "frontend" ]]; then
+            [[ -n "$VERCEL_FRONTEND_PROJECT_ID" ]] || {
+              echo "Missing VERCEL_FRONTEND_PROJECT_ID." >&2
+              exit 1
+            }
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@59.10.0
+
+      - name: Stage backend production deployment
+        if: ${{ inputs.target == 'all' || inputs.target == 'backend' }}
+        id: backend
+        env:
+          DEPLOY_SHA: ${{ inputs.git_sha }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deployment_url="$(vercel deploy \
+            --prod \
+            --skip-domain \
+            --yes \
+            --archive=tgz \
+            --meta githubCommitSha="$DEPLOY_SHA" \
+            --meta githubCommitRef=main \
+            --token="$VERCEL_TOKEN")"
+          [[ "$deployment_url" == https://*.vercel.app ]] || {
+            echo "Vercel did not return a deployment URL." >&2
+            exit 1
+          }
+          echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test staged backend
+        if: ${{ inputs.target == 'all' || inputs.target == 'backend' }}
+        env:
+          DEPLOYMENT_URL: ${{ steps.backend.outputs.url }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          health_file="$(mktemp)"
+          healthy=false
+          for attempt in $(seq 1 18); do
+            if vercel curl /actuator/health \
+              --deployment "$DEPLOYMENT_URL" \
+              --token="$VERCEL_TOKEN" \
+              -- \
+              --fail \
+              --silent \
+              --show-error \
+              --output "$health_file"; then
+              healthy=true
+              break
+            fi
+            sleep 10
+          done
+          [[ "$healthy" == "true" ]] || {
+            echo "Backend health check did not become ready." >&2
+            exit 1
+          }
+          python - "$health_file" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if payload.get("status") != "UP":
+              raise SystemExit(f"Unexpected backend health payload: {payload!r}")
+          PY
+
+          cron_status="$(vercel curl /api/v1/internal/registry/sync \
+            --deployment "$DEPLOYMENT_URL" \
+            --token="$VERCEL_TOKEN" \
+            -- \
+            --silent \
+            --output /dev/null \
+            --write-out '%{http_code}')"
+          [[ "$cron_status" == "401" ]] || {
+            echo "Unauthenticated Registry cron returned $cron_status instead of 401." >&2
+            exit 1
+          }
+
+      - name: Promote backend to production
+        if: ${{ inputs.target == 'all' || inputs.target == 'backend' }}
+        env:
+          DEPLOYMENT_URL: ${{ steps.backend.outputs.url }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel promote "$DEPLOYMENT_URL" --yes --timeout=5m --token="$VERCEL_TOKEN"
+
+      - name: Verify promoted backend
+        if: ${{ inputs.target == 'all' || inputs.target == 'backend' }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel curl /actuator/health --token="$VERCEL_TOKEN" -- --fail --silent --show-error --output /dev/null
+
+      - name: Stage frontend production deployment
+        if: ${{ inputs.target == 'all' || inputs.target == 'frontend' }}
+        id: frontend
+        working-directory: web
+        env:
+          DEPLOY_SHA: ${{ inputs.git_sha }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          deployment_url="$(vercel deploy \
+            --prod \
+            --skip-domain \
+            --yes \
+            --archive=tgz \
+            --meta githubCommitSha="$DEPLOY_SHA" \
+            --meta githubCommitRef=main \
+            --token="$VERCEL_TOKEN")"
+          [[ "$deployment_url" == https://*.vercel.app ]] || {
+            echo "Vercel did not return a deployment URL." >&2
+            exit 1
+          }
+          echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test staged frontend
+        if: ${{ inputs.target == 'all' || inputs.target == 'frontend' }}
+        working-directory: web
+        env:
+          DEPLOYMENT_URL: ${{ steps.frontend.outputs.url }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=false
+          for attempt in $(seq 1 6); do
+            if vercel curl / \
+              --deployment "$DEPLOYMENT_URL" \
+              --token="$VERCEL_TOKEN" \
+              -- \
+              --fail \
+              --silent \
+              --show-error \
+              --output /dev/null; then
+              ready=true
+              break
+            fi
+            sleep 10
+          done
+          [[ "$ready" == "true" ]] || {
+            echo "Frontend smoke test did not become ready." >&2
+            exit 1
+          }
+
+      - name: Promote frontend to production
+        if: ${{ inputs.target == 'all' || inputs.target == 'frontend' }}
+        working-directory: web
+        env:
+          DEPLOYMENT_URL: ${{ steps.frontend.outputs.url }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel promote "$DEPLOYMENT_URL" --yes --timeout=5m --token="$VERCEL_TOKEN"
+
+      - name: Verify promoted frontend
+        if: ${{ inputs.target == 'all' || inputs.target == 'frontend' }}
+        working-directory: web
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel curl / --token="$VERCEL_TOKEN" -- --fail --silent --show-error --output /dev/null
+
+      - name: Publish deployment summary
+        env:
+          BACKEND_URL: ${{ steps.backend.outputs.url }}
+          DEPLOY_SHA: ${{ inputs.git_sha }}
+          FRONTEND_URL: ${{ steps.frontend.outputs.url }}
+          TARGET: ${{ inputs.target }}
+        shell: bash
+        run: |
+          {
+            printf '## Vercel production deployment\n\n'
+            printf -- '- Commit: `%s`\n' "$DEPLOY_SHA"
+            printf -- '- Target: `%s`\n' "$TARGET"
+            if [[ -n "$BACKEND_URL" ]]; then
+              printf -- '- Backend staged and promoted: %s\n' "$BACKEND_URL"
+            fi
+            if [[ -n "$FRONTEND_URL" ]]; then
+              printf -- '- Frontend staged and promoted: %s\n' "$FRONTEND_URL"
+            fi
+            printf -- '- Staged and promoted smoke tests: passed\n'
+          } >> "$GITHUB_STEP_SUMMARY"

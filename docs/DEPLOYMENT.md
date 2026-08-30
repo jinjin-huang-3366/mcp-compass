@@ -42,3 +42,22 @@ Create or link a second Vercel project with `web/` as its root directory. Set `N
 The existing `validation-worker` is not an HTTP service and must not be folded into the Spring Boot container. It continuously claims PostgreSQL jobs and launches generated code only inside isolated Docker containers. Deploy it unchanged only on a dedicated hardened container-runtime host.
 
 Vercel Sandbox is a possible future execution target because it provides isolated microVMs and Docker support, but using it requires a per-job adapter that preserves the current resource limits, network allow-listing, cleanup, and durable result persistence. Until that adapter exists, submitted validation jobs remain queued when no external worker is running.
+
+## Repeatable production deployments
+
+The `MCP Compass Vercel production deployment` GitHub Actions workflow deploys an exact, CI-green `main` commit to the existing projects. It stages each production build without assigning the production domain, runs component smoke tests, and promotes the build only after those checks pass. When both projects are selected, the backend is promoted before the frontend.
+
+Configure these GitHub Actions repository secrets before the first workflow run:
+
+| Secret | Purpose |
+| --- | --- |
+| `VERCEL_TOKEN` | Vercel access token for non-interactive CLI authentication |
+| `VERCEL_ORG_ID` | Account or team ID shared by the two existing projects |
+| `VERCEL_BACKEND_PROJECT_ID` | Project ID for the repository-root container project |
+| `VERCEL_FRONTEND_PROJECT_ID` | Project ID for the `web/` Next.js project |
+
+Retrieve the organization and project IDs by linking each existing project with Vercel CLI and reading its generated `.vercel/project.json`; never commit that directory. Store values under **Settings > Secrets and variables > Actions**. The workflow also targets the GitHub `production` environment, where required reviewers can be configured if desired.
+
+From Codex, invoke `$mcp-vercel-deploy` and explicitly request `all`, `backend`, or `frontend`. The skill resolves the latest remote `main`, requires successful CI for that exact commit, dispatches `.github/workflows/vercel-deploy.yml` from `main`, and monitors staging, smoke tests, and promotion. The workflow will not provision projects, change Vercel or Neon settings, update DNS, or deploy the validation worker.
+
+The workflow pins Vercel CLI `59.10.0`; update that pin deliberately after reviewing Vercel CLI release notes and validating this staged-promotion flow.
