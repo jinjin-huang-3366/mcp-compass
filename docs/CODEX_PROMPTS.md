@@ -44,6 +44,13 @@ $ci-failure-triage
 Diagnose the failing CI check, identify the first causal error, reproduce it with the narrow local command, fix it without weakening tests, and rerun the relevant checks.
 ```
 
+## Deploy current main to Vercel
+
+```text
+$mcp-vercel-deploy
+Deploy the latest CI-green main commit to both production Vercel projects. Monitor staged smoke tests and promotion, report the exact commit and deployment URLs, and do not deploy the validation worker.
+```
+
 ## Later: MCP generation
 
 ```text

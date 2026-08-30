@@ -102,6 +102,10 @@ The local Codex session uses the developer's existing GitHub authentication to p
 
 Conflict freedom is verified at handoff, not guaranteed forever. If the base changes later—for example, after another batch PR merges—the affected task branch must be synchronized and revalidated again before manual merge.
 
+## Automated Vercel production deployments
+
+After CI succeeds on a merged `main` commit, invoke `$mcp-vercel-deploy` to dispatch and monitor `.github/workflows/vercel-deploy.yml`. The manual workflow deploys the existing backend and frontend Vercel projects from that exact commit, smoke-tests staged production builds, and promotes only the builds that pass. Add the four Vercel GitHub Actions secrets documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#repeatable-production-deployments) before the first run. The validation worker remains outside Vercel.
+
 When an exact plan item is supplied, the task workflow validates that it is currently unchecked and adds a machine-readable marker to the pull request. After that pull request is merged, `Mark merged plan item and group complete` changes only the matching `- [ ]` entry to `- [x]` on the base branch and derives the parallel delivery group's `Status` count from all of its canonical task checkboxes. The group is marked complete only after every listed task pull request has been merged. Pull requests without the marker are ignored, and ambiguous or unknown items fail without modifying the plan.
 
 ## Important design constraints

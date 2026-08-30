@@ -16,6 +16,7 @@ Useful project skills:
 - `$mcp-generator` (V0.3+)
 - `$mcp-task-pr-flow`
 - `$mcp-task-batch-flow`
+- `$mcp-vercel-deploy`
 - `$github-pr-workflow`
 - `$ci-failure-triage`
 
@@ -46,6 +47,16 @@ Use $mcp-task-pr-flow for API-05 from PG-01.
 ```
 
 The batch skill confirms every task's dependencies against the latest `main` before creating any branch. Each child then synchronizes with the latest base before dispatch, and the coordinator requires GitHub mergeability plus passing CI on the final PR head. Group membership describes dependency safety, not permanent merge-conflict safety: merging one sibling can advance `main`, so re-synchronize any affected open PR before its manual merge.
+
+### Production deployment
+
+After a change is merged and CI succeeds on the resulting `main` commit, deploy both existing Vercel projects with:
+
+```text
+Use $mcp-vercel-deploy to deploy the latest CI-green main commit to all production Vercel projects.
+```
+
+The command dispatches the manual deployment workflow from `main`. It stages and smoke-tests the backend before promotion, then does the same for the frontend. Request only `backend` or `frontend` for an intentionally component-scoped deployment. Required GitHub Actions secret names and first-time setup are documented in `docs/DEPLOYMENT.md`.
 
 ## GitHub Copilot
 This repo contains `.github/copilot-instructions.md` and path-specific `.github/instructions/*.instructions.md`.
