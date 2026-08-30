@@ -164,9 +164,8 @@ jobs:
           health_file="$(mktemp)"
           healthy=false
           for attempt in $(seq 1 18); do
-            if vercel curl /actuator/health \
+            if vercel --token="$VERCEL_TOKEN" curl /actuator/health \
               --deployment "$DEPLOYMENT_URL" \
-              --token="$VERCEL_TOKEN" \
               -- \
               --fail \
               --silent \
@@ -191,9 +190,8 @@ jobs:
               raise SystemExit(f"Unexpected backend health payload: {payload!r}")
           PY
 
-          cron_status="$(vercel curl /api/v1/internal/registry/sync \
+          cron_status="$(vercel --token="$VERCEL_TOKEN" curl /api/v1/internal/registry/sync \
             --deployment "$DEPLOYMENT_URL" \
-            --token="$VERCEL_TOKEN" \
             -- \
             --silent \
             --output /dev/null \
@@ -218,7 +216,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel curl /actuator/health --token="$VERCEL_TOKEN" -- --fail --silent --show-error --output /dev/null
+        run: vercel --token="$VERCEL_TOKEN" curl /actuator/health -- --fail --silent --show-error --output /dev/null
 
       - name: Stage frontend production deployment
         if: ${{ inputs.target == 'all' || inputs.target == 'frontend' }}
@@ -259,9 +257,8 @@ jobs:
           set -euo pipefail
           ready=false
           for attempt in $(seq 1 6); do
-            if vercel curl / \
+            if vercel --token="$VERCEL_TOKEN" curl / \
               --deployment "$DEPLOYMENT_URL" \
-              --token="$VERCEL_TOKEN" \
               -- \
               --fail \
               --silent \
@@ -294,7 +291,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel curl / --token="$VERCEL_TOKEN" -- --fail --silent --show-error --output /dev/null
+        run: vercel --token="$VERCEL_TOKEN" curl / -- --fail --silent --show-error --output /dev/null
 
       - name: Publish deployment summary
         env:
