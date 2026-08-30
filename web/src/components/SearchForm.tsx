@@ -4,24 +4,12 @@ import { FormEvent, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { searchMcps, SearchResponse } from "@/lib/api";
+import { detailUrl, pageFromUrl, searchUrl } from "@/lib/search-navigation";
 import { CapabilityCoverage } from "@/components/CapabilityCoverage";
 import { RankingExplanation } from "@/components/RankingExplanation";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
 const PAGE_SIZE = 10;
-
-function pageFromUrl(value: string | null) {
-  const page = Number(value);
-  return Number.isInteger(page) && page > 0 ? page : 1;
-}
-
-function searchUrl(pathname: string, requirement: string, page: number) {
-  const params = new URLSearchParams({ q: requirement });
-  if (page > 1) {
-    params.set("page", String(page));
-  }
-  return `${pathname}?${params.toString()}`;
-}
 
 export function SearchForm() {
   const router = useRouter();
@@ -161,7 +149,7 @@ export function SearchForm() {
                 />
                 <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
-                <Link className="detailLink" href={`/mcp/${match.id}`}>
+                <Link className="detailLink" href={detailUrl(match.id, urlRequirement, urlPage)}>
                   View MCP details
                 </Link>
               </article>
