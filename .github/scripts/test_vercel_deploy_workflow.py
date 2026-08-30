@@ -55,6 +55,15 @@ class VercelDeployWorkflowContractTest(unittest.TestCase):
         self.assertEqual(2, self.workflow.count("--skip-domain"))
         self.assertEqual(2, self.workflow.count('vercel promote "$DEPLOYMENT_URL"'))
 
+    def test_vercel_curl_receives_global_auth_before_subcommand(self):
+        invocations = [
+            line.strip()
+            for line in self.workflow.splitlines()
+            if "vercel " in line and " curl " in line
+        ]
+        self.assertEqual(5, len(invocations))
+        for invocation in invocations:
+            self.assertIn('vercel --token="$VERCEL_TOKEN" curl ', invocation)
     def test_backend_security_smoke_test_requires_unauthenticated_401(self):
         backend_smoke = self.workflow.split("- name: Smoke test staged backend", 1)[1]
         backend_smoke = backend_smoke.split("- name: Promote backend to production", 1)[0]
