@@ -35,6 +35,12 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-16 — add CLI surfaces** | `DX-01`, `DX-02` | `VAL-05` and, for `DX-02`, `GEN-06` | Complete (2/2) |
 | **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` | Complete (1/1) |
 | **PG-18 — expose discovered sources** | `FIX-01` | `API-05`, `ENR-01` | Complete (1/1) |
+| **PG-19 — establish demo relevance baseline** | `REL-01` | `SRCH-07`, `DEP-02` | Not started (0/1) |
+| **PG-20 — enrich intent and catalog retrieval** | `REL-02`, `REL-03`, `REL-04` | `REL-01` | Not started (0/3) |
+| **PG-21 — build hybrid relevance** | `REL-05` | `REL-02`, `REL-03`, `REL-04` | Not started (0/1) |
+| **PG-22 — calibrate the demo experience** | `REL-06` | `REL-05` | Not started (0/1) |
+| **PG-23 — activate production relevance** | `DEP-04` | `REL-06` | Not started (0/1) |
+| **PG-24 — pass the demo-quality gate** | `EXIT-05` | `DEP-04` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
@@ -124,6 +130,24 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 
 ### MVP bug fixes
 - [x] **FIX-01** — Expose persisted source repository URLs for discovered MCP servers in search results and detail pages (BUG-003). _(Depends on: API-05, ENR-01)_
+
+## V0.6 — demo-quality search relevance
+
+### Production-grounded evaluation
+- [ ] **REL-01** — Record a Registry snapshot and 30+ labelled requirements covering GitHub no-delete, Twilio SMS, read-only Postgres, web docs, hard negatives, and no-match cases; report Recall@100, NDCG@10, top-three acceptability, forbidden violations, and abstention. _(Depends on: SRCH-07, DEP-02)_
+
+### Intent, retrieval, and enrichment
+- [ ] **REL-02** — Parse negative intent and hard conditions into forbidden capabilities/constraints with deterministic fallback; enforce them before ranking, explain exclusions, and never reward forbidden terms as lexical evidence. _(Depends on: REL-01, REQ-02, REQ-03)_
+- [ ] **REL-03** — Retrieve across server text, normalized tool names/descriptions, and capabilities using deterministic full-text/trigram scoring with stable ordering before the limit; reach 95% Recall@100 on REL-01. _(Depends on: REL-01, SRCH-03, SRCH-06)_
+- [ ] **REL-04** — Ingest bounded README and safely discoverable static tool metadata as untrusted enrichment with provenance, hashes, freshness, idempotent persistence, migrations, and fixtures; never install or execute source/package code. _(Depends on: REL-01, ENR-01, ENR-02)_
+
+### Hybrid ranking and demo behavior
+- [ ] **REL-05** — Build/backfill a versioned search document from service/domain, server metadata, tools, capabilities, and repository enrichment; combine lexical/pgvector retrieval, keep capability coverage dominant, and retain a tested lexical fallback. _(Depends on: REL-02, REL-03, REL-04)_
+- [ ] **REL-06** — Calibrate strong-match confidence and abstention on REL-01; return “no strong match” instead of unrelated results and show parsed intent, constraints, matched/missing capabilities, and abstention reasons in the API/UI. _(Depends on: REL-05, API-04)_
+
+### Production activation and demo gate
+- [ ] **DEP-04** — Enable production LLM analysis, vectors, and GitHub enrichment; finish a bounded Registry resync and search-document/embedding backfill, record corpus/capability/embedding coverage, and smoke-test without exposing credentials. _(Depends on: REL-05, REL-06, DEP-03)_
+- [ ] **EXIT-05** — Pass REL-01 with Recall@100 ≥95%, NDCG@10 ≥0.80, acceptable top-three ≥90%, zero forbidden violations, and correct no-match abstention ≥90%; verify the four named demo searches in production. _(Depends on: DEP-04)_
 
 ## Explicit non-goals for V0.1
 - Agent runtime/orchestrator.
