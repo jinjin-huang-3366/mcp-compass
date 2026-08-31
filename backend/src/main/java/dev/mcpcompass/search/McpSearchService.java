@@ -93,6 +93,7 @@ public class McpSearchService {
                         ranked.server().getDescription(),
                         ranked.server().getVersion(),
                         ranked.server().getStatus(),
+                        ranked.server().getRepositoryUrl(),
                         rounded(ranked.score()),
                         rounded(ranked.qualityScore()),
                         ranked.capabilityCoverage() == null ? null : rounded(ranked.capabilityCoverage()),

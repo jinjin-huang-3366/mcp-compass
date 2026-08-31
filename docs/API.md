@@ -35,6 +35,7 @@ Response shape:
       "title": "Example MCP",
       "description": "...",
       "version": "1.0.0",
+      "repositoryUrl": "https://github.com/example/example-mcp",
       "score": 0.576,
       "qualityScore": 0.2,
       "capabilityCoverage": 0.5,
@@ -84,7 +85,8 @@ explicit (`0.5` for deprecated servers and `1.0` otherwise).
 Returns normalized server detail and basic metadata. `toolSchemaStatus` reports whether bounded,
 statically declared MCP input schemas were `DISCOVERED`, `PARTIAL`, `INVALID`, or
 `NOT_DISCOVERABLE`; `toolSchemaInspectedAt` identifies the Registry ingestion that last inspected
-the metadata. These fields do not imply that MCP code or a server tool was executed.
+the metadata. `repositoryUrl` contains the publisher-declared source repository when one was present
+in the ingested Registry metadata. These fields do not imply that MCP code or a server tool was executed.
 
 ## Local Registry sync
 

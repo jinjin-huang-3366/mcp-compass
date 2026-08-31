@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getMcpDetail } from "@/lib/api";
 import type { McpServerDetail } from "@/lib/api";
 import { searchReturnUrl } from "@/lib/search-navigation";
+import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
 
 type McpDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -55,6 +56,15 @@ export default async function McpDetailPage({ params, searchParams }: McpDetailP
             <div>
               <dt>Status</dt>
               <dd>{server.status || "Active"}</dd>
+            </div>
+            <div>
+              <dt>Source</dt>
+              <dd>
+                <SourceRepositoryLink
+                  repositoryUrl={server.repositoryUrl}
+                  fallback="Not supplied by publisher"
+                />
+              </dd>
             </div>
             <div>
               <dt>First indexed</dt>
