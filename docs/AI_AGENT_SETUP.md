@@ -50,13 +50,13 @@ The batch skill confirms every task's dependencies against the latest `main` bef
 
 ### Production deployment
 
-After a change is merged and CI succeeds on the resulting `main` commit, deploy both existing Vercel projects with:
+Deploy the latest `main` commit to both existing Vercel projects with:
 
 ```text
-Use $mcp-vercel-deploy to deploy the latest CI-green main commit to all production Vercel projects.
+Use $mcp-vercel-deploy to ensure CI passes for the latest main commit, then deploy it to all production Vercel projects.
 ```
 
-The command dispatches the manual deployment workflow from `main`. It stages and smoke-tests the backend before promotion, then does the same for the frontend. Request only `backend` or `frontend` for an intentionally component-scoped deployment. Required GitHub Actions secret names and first-time setup are documented in `docs/DEPLOYMENT.md`.
+The command reuses, waits for, or starts CI for the exact latest `main` commit, rechecks that `main` did not advance, and then dispatches the manual deployment workflow. It stages and smoke-tests the backend before promotion, then does the same for the frontend. Request only `backend` or `frontend` for an intentionally component-scoped deployment. Required GitHub Actions secret names and first-time setup are documented in `docs/DEPLOYMENT.md`.
 
 ## GitHub Copilot
 This repo contains `.github/copilot-instructions.md` and path-specific `.github/instructions/*.instructions.md`.

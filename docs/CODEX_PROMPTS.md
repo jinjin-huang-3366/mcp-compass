@@ -48,7 +48,7 @@ Diagnose the failing CI check, identify the first causal error, reproduce it wit
 
 ```text
 $mcp-vercel-deploy
-Deploy the latest CI-green main commit to both production Vercel projects. Monitor staged smoke tests and promotion, report the exact commit and deployment URLs, and do not deploy the validation worker.
+Ensure CI passes for the latest main commit, then deploy that exact commit to both production Vercel projects. Monitor staged smoke tests and promotion, report the exact commit and deployment URLs, and do not deploy the validation worker.
 ```
 
 ## Later: MCP generation
