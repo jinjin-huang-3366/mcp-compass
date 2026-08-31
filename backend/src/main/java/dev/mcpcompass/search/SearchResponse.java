@@ -19,6 +19,7 @@ public record SearchResponse(
             String description,
             String version,
             String status,
+            String repositoryUrl,
             double score,
             double qualityScore,
             Double capabilityCoverage,

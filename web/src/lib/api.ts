@@ -5,6 +5,7 @@ export type SearchMatch = {
   description: string | null;
   version: string | null;
   status: string | null;
+  repositoryUrl: string | null;
   score: number;
   qualityScore: number;
   capabilityCoverage: number | null;
@@ -44,6 +45,7 @@ export type McpServerDetail = {
   description: string | null;
   version: string | null;
   status: string | null;
+  repositoryUrl: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
 };

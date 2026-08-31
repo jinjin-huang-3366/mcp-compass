@@ -34,6 +34,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-15 — report tool risk** | `VAL-05` | `VAL-03`, `VAL-04` | Complete (1/1) |
 | **PG-16 — add CLI surfaces** | `DX-01`, `DX-02` | `VAL-05` and, for `DX-02`, `GEN-06` | Complete (2/2) |
 | **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` | Complete (1/1) |
+| **PG-18 — expose discovered sources** | `FIX-01` | `API-05`, `ENR-01` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
@@ -120,6 +121,9 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **DEP-01** — Deploy the Next.js frontend and containerized Spring Boot API to Vercel Hobby with Neon PostgreSQL in the London region. _(Depends on: DX-03)_
 - [x] **DEP-02** — Configure authenticated daily Registry sync, production CORS, cold-start handling, Neon migrations, initial Registry bootstrap, and production smoke tests. _(Depends on: DEP-01)_
 - [x] **DEP-03** — Document the deployment runbook and add a reusable Vercel/Spring Boot/Neon skill, including the separate validation-worker hosting limitation. _(Depends on: DEP-02)_
+
+### MVP bug fixes
+- [ ] **FIX-01** — Expose persisted source repository URLs for discovered MCP servers in search results and detail pages (BUG-003). _(Depends on: API-05, ENR-01)_
 
 ## Explicit non-goals for V0.1
 - Agent runtime/orchestrator.

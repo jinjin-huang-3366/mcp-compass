@@ -37,6 +37,7 @@ describe("SearchForm", () => {
         description: "Read GitHub issues",
         version: "1.0.0",
         status: "active",
+        repositoryUrl: "https://github.com/example/github-mcp",
         score: 0.9,
         qualityScore: 0.8,
         capabilityCoverage: 1,
@@ -55,5 +56,7 @@ describe("SearchForm", () => {
 
     expect(await screen.findByRole("link", { name: "View MCP details" }))
       .toHaveAttribute("href", "/mcp/server-1?q=Read+GitHub+issues&page=2");
+    expect(screen.getByRole("link", { name: /Source repository/ }))
+      .toHaveAttribute("href", "https://github.com/example/github-mcp");
   });
 });

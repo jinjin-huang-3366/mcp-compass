@@ -17,3 +17,11 @@ This log records bugs reported by the MCP Compass user during Codex development 
 - **Observed:** After opening an MCP result and pressing **Back to search**, the previous requirement, result page, and visible matches were gone.
 - **Expected:** Returning from an MCP detail page should restore the same requirement and result page.
 - **Resolution:** Carry the active `q` and `page` parameters into detail links and use them to construct the detail page's back link.
+
+## BUG-003 — Discovered MCP servers did not link to their source repositories
+
+- **Reported:** 2026-08-31
+- **Status:** Fix pending review
+- **Observed:** Search results could claim that a public source repository was declared, but neither the result card nor the MCP detail page exposed the persisted repository URL.
+- **Expected:** When the Registry publisher supplies a valid HTTP(S) repository URL, developers should be able to open it from both the search result and MCP detail page.
+- **Resolution:** Add `repositoryUrl` to the search and detail API responses and render guarded external source links. Missing or non-HTTP(S) values remain non-clickable.

@@ -7,6 +7,7 @@ import { searchMcps, SearchResponse } from "@/lib/api";
 import { detailUrl, pageFromUrl, searchUrl } from "@/lib/search-navigation";
 import { CapabilityCoverage } from "@/components/CapabilityCoverage";
 import { RankingExplanation } from "@/components/RankingExplanation";
+import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
 const PAGE_SIZE = 10;
@@ -149,9 +150,12 @@ export function SearchForm() {
                 />
                 <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
-                <Link className="detailLink" href={detailUrl(match.id, urlRequirement, urlPage)}>
-                  View MCP details
-                </Link>
+                <div className="resultActions">
+                  <Link className="detailLink" href={detailUrl(match.id, urlRequirement, urlPage)}>
+                    View MCP details
+                  </Link>
+                  <SourceRepositoryLink repositoryUrl={match.repositoryUrl} />
+                </div>
               </article>
             ))
           )}

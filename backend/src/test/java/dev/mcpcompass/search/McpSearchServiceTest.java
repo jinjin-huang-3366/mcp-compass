@@ -110,6 +110,7 @@ class McpSearchServiceTest {
         McpServerEntity server = server(serverId, "io.example/github");
         when(server.getTitle()).thenReturn("GitHub MCP");
         when(server.getDescription()).thenReturn("GitHub issue tools");
+        when(server.getRepositoryUrl()).thenReturn("https://github.com/example/github-mcp");
         RequirementAnalysis analysis = new RequirementAnalysis(
                 "read and create GitHub issues",
                 List.of("github", "issues"),
@@ -142,6 +143,7 @@ class McpSearchServiceTest {
         SearchResponse response = capabilitySearchService.search(analysis.originalRequirement(), 1, 10);
 
         assertThat(response.matches()).singleElement().satisfies(match -> {
+            assertThat(match.repositoryUrl()).isEqualTo("https://github.com/example/github-mcp");
             assertThat(match.capabilityCoverage()).isEqualTo(0.5);
             assertThat(match.matchedCapabilities()).containsExactly("github.issue.read");
             assertThat(match.missingCapabilities()).containsExactly("github.issue.create");
