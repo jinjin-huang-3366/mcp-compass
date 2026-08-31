@@ -23,7 +23,14 @@ class VercelDeployWorkflowContractTest(unittest.TestCase):
 
         self.assertIn("--workflow ci.yml", verification)
         self.assertIn('--commit "$DEPLOY_SHA"', verification)
+        self.assertIn("--json conclusion,event,headBranch", verification)
+        self.assertIn(
+            '(.event == "push" or .event == "workflow_dispatch")',
+            verification,
+        )
+        self.assertIn('.headBranch == "main"', verification)
         self.assertIn('.conclusion == "success"', verification)
+        self.assertNotIn("--event push", verification)
 
     def test_credentials_are_selected_per_target(self):
         self.assertIn("VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}", self.workflow)

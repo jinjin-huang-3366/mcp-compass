@@ -84,12 +84,15 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --workflow ci.yml \
             --commit "$DEPLOY_SHA" \
-            --event push \
             --limit 10 \
-            --json conclusion \
-            --jq '[.[] | select(.conclusion == "success")] | length')"
+            --json conclusion,event,headBranch \
+            --jq '[.[] | select(
+              (.event == "push" or .event == "workflow_dispatch") and
+              .headBranch == "main" and
+              .conclusion == "success"
+            )] | length')"
           [[ "$successful_ci_runs" -gt 0 ]] || {
-            echo "No successful main CI run exists for $DEPLOY_SHA." >&2
+            echo "No successful push or manual main CI run exists for $DEPLOY_SHA." >&2
             exit 1
           }
 

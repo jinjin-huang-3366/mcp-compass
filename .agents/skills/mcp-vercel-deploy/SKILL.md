@@ -1,6 +1,6 @@
 ---
 name: mcp-vercel-deploy
-description: Deploy the latest CI-green MCP Compass main commit to the existing production Vercel backend and frontend projects through the repository's manual deployment workflow. Use when the user asks to deploy or redeploy MCP Compass production. Do not use this flow to provision projects, change plans or regions, attach databases, or deploy the validation worker.
+description: Ensure CI passes for the latest MCP Compass main commit, then deploy that exact commit to the existing production Vercel backend and frontend projects through the repository's manual deployment workflow. Use when the user asks to deploy or redeploy MCP Compass production. Do not use this flow to provision projects, change plans or regions, attach databases, or deploy the validation worker.
 ---
 
 # MCP Compass Vercel deploy
@@ -20,8 +20,13 @@ An explicit request in the current message to run `$mcp-vercel-deploy` is produc
 1. Read `AGENTS.md`, `docs/DEPLOYMENT.md`, `.agents/skills/vercel-springboot-neon/references/deployment-checklist.md`, and `.github/workflows/vercel-deploy.yml` from current `main`.
 2. Confirm the remote is `jinjin-huang-3366/mcp-compass`, GitHub CLI authentication permits workflow dispatch and run inspection, and the workflow exists on `main`.
 3. Verify these GitHub Actions secret names exist without reading or printing their values: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and the project ID required by the target (`VERCEL_BACKEND_PROJECT_ID`, `VERCEL_FRONTEND_PROJECT_ID`, or both for `all`). If any are missing, stop with the setup steps in `docs/DEPLOYMENT.md`.
-4. Resolve the current remote `main` SHA without changing or including unrelated local work. Require a completed successful `CI` push run for that exact SHA. Wait for active CI rather than dispatching an untested commit; stop if CI fails.
-5. Report the exact SHA and target that will be deployed. Do not provision a Vercel project, attach Neon, alter environment variables, select a paid plan, change DNS, or deploy the validation worker.
+4. Resolve the current remote `main` SHA without changing or including unrelated local work. Inspect `CI` runs for that exact SHA from either a `push` or `workflow_dispatch` event:
+   - reuse a completed successful run;
+   - wait for a queued or active run, with a concise user update at least once per minute;
+   - stop when the latest completed run has a real test failure such as `failure`, `timed_out`, or `action_required`;
+   - when no successful or active run exists, or prior runs were only cancelled or skipped, resolve remote `main` again immediately before dispatch. Restart this check if it changed; otherwise dispatch `ci.yml` once with `gh workflow run ci.yml --ref main`, identify the new run by workflow, actor, `main` ref, SHA, and creation time, and monitor it to completion. If the identified run targets a newer `main` SHA because the branch advanced during dispatch, adopt that SHA and continue with its run. Never redispatch merely because it is queued or slow.
+5. After CI succeeds, resolve remote `main` again. If it advanced, discard the superseded readiness result and repeat the exact-SHA CI check for the new head. Dispatch CI at most once for each observed SHA. Do not dispatch the Vercel workflow until the recorded SHA both equals current remote `main` and has successful CI.
+6. Report the exact SHA and target that will be deployed. Do not provision a Vercel project, attach Neon, alter environment variables, select a paid plan, change DNS, or deploy the validation worker.
 
 ## Dispatch and monitor
 
