@@ -1,6 +1,6 @@
 package dev.mcpcompass.embedding;
 
-import dev.mcpcompass.registry.RegistryClient;
+import dev.mcpcompass.search.SearchDocument;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -26,16 +26,16 @@ class ServerEmbeddingServiceTest {
 
     @Test
     void batchesServerDocumentsAndPersistsEmbeddingsInInputOrder() {
-        RegistryClient.RegistryServerPayload first = server("io.example/github", "GitHub", "Issue tools");
-        RegistryClient.RegistryServerPayload second = server("io.example/slack", "Slack", "Message tools");
+        SearchDocument first = document("io.example/github", "service: GitHub\ntool: list_issues");
+        SearchDocument second = document("io.example/slack", "service: Slack\ntool: send_message");
         EmbeddingVector firstVector = vector(0.1);
         EmbeddingVector secondVector = vector(0.2);
         when(provider.embed(List.of(
-                "io.example/github\nGitHub\nIssue tools",
-                "io.example/slack\nSlack\nMessage tools"
+                "service: GitHub\ntool: list_issues",
+                "service: Slack\ntool: send_message"
         ))).thenReturn(List.of(firstVector, secondVector));
 
-        service.indexServers(List.of(first, second));
+        service.indexDocuments(List.of(first, second));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<ServerEmbeddingStore.IndexedServerEmbedding>> captor =
@@ -74,8 +74,8 @@ class ServerEmbeddingServiceTest {
                 .containsExactly(new ServerEmbeddingService.ServerEmbeddingMatch(serverId, 0.8));
     }
 
-    private static RegistryClient.RegistryServerPayload server(String name, String title, String description) {
-        return new RegistryClient.RegistryServerPayload(name, title, description, "1.0.0", "active", "{}");
+    private static SearchDocument document(String registryName, String content) {
+        return new SearchDocument(UUID.randomUUID(), registryName, 1, content);
     }
 
     private static EmbeddingVector vector(double firstValue) {

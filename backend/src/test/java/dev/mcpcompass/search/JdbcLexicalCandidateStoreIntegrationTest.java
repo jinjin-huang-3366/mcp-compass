@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -27,6 +28,7 @@ class JdbcLexicalCandidateStoreIntegrationTest {
 
     private static JdbcTemplate jdbc;
     private static JdbcLexicalCandidateStore store;
+    private static JdbcSearchDocumentStore documentStore;
 
     @BeforeAll
     static void migrate() {
@@ -36,6 +38,7 @@ class JdbcLexicalCandidateStoreIntegrationTest {
         Flyway.configure().dataSource(dataSource).load().migrate();
         jdbc = new JdbcTemplate(dataSource);
         store = new JdbcLexicalCandidateStore(jdbc);
+        documentStore = new JdbcSearchDocumentStore(new NamedParameterJdbcTemplate(dataSource));
     }
 
     @BeforeEach
@@ -88,6 +91,37 @@ class JdbcLexicalCandidateStoreIntegrationTest {
         assertThat(candidates).extracting(LexicalCandidateStore.LexicalCandidate::serverId)
                 .containsExactly(serverId);
         assertThat(store.findCandidates(List.of("", "  "), 100)).isEmpty();
+    }
+
+    @Test
+    void buildsVersionedDocumentsFromCatalogToolsCapabilitiesAndRepositoryEnrichment() {
+        UUID serverId = server("dev.example/calendar", "Calendar", "Scheduling integration", "active");
+        tool(serverId, "list_events", "List calendar events");
+        capability(serverId, "calendar.events.read");
+        UUID artifactId = UUID.randomUUID();
+        jdbc.update("""
+                INSERT INTO repository_enrichment_artifact
+                    (id, server_id, artifact_type, source_url, media_type, content, content_sha256, fetched_at)
+                VALUES (?, ?, 'README', 'https://github.com/example/calendar/README.md', 'text/markdown',
+                        'Calendaring for team availability', repeat('a', 64), ?)
+                """, artifactId, serverId, Timestamp.from(NOW));
+        jdbc.update("""
+                INSERT INTO repository_enrichment_tool (id, artifact_id, ordinal, name, description)
+                VALUES (?, ?, 0, 'find_free_time', 'Find calendar availability')
+                """, UUID.randomUUID(), artifactId);
+
+        List<SearchDocument> documents = documentStore.buildForRegistryNames(List.of("dev.example/calendar"));
+        documentStore.replace(documents);
+
+        assertThat(documents).singleElement().satisfies(document -> {
+            assertThat(document.version()).isEqualTo(1);
+            assertThat(document.content()).contains("service: dev.example/calendar", "tool: list_events",
+                    "capability: calendar.events.read", "repository tool: find_free_time",
+                    "Calendaring for team availability");
+        });
+        assertThat(store.findCandidates(List.of("availability"), 100))
+                .extracting(LexicalCandidateStore.LexicalCandidate::serverId)
+                .containsExactly(serverId);
     }
 
     private static UUID server(String registryName, String title, String description, String status) {

@@ -9,6 +9,15 @@ Optional vector retrieval adds a 384-dimensional `search_embedding` and its `sea
 identifier prevents comparisons between incompatible embedding spaces. A cosine HNSW index excludes null vectors,
 so servers remain lexically searchable while embeddings are disabled, unavailable, or still being refreshed.
 
+### `mcp_server_search_document`
+
+The versioned, deterministic retrieval document for a server. It combines the Registry service/domain text, declared
+tools and capabilities, repository URL, and bounded REL-04 repository enrichment (README/static tool metadata). The
+document hash prevents unnecessary rewrites; sync refreshes affected documents after enrichment and the local-only
+backfill endpoint repairs documents for existing catalog rows. Lexical retrieval uses this document when present and
+retains the previous normalized server/tool/capability path for rows that have not yet been backfilled. Embeddings use
+the same document, so lexical and pgvector retrieval share one evidence surface.
+
 ### `mcp_tool`
 Normalized tool metadata associated with a server. Registry ingestion populates rows when a server
 declares tools directly or through publisher-provided extension metadata. Standard Registry entries
@@ -87,6 +96,7 @@ Use Registry `name` as the stable public identity and an internal UUID primary k
 
 ## Search
 V0.1 uses trigram-friendly normalized textual fields by default. After the versioned lexical baseline was checked in,
-SRCH-06 added opt-in hybrid retrieval using 384-dimensional OpenAI embeddings and pgvector cosine distance. Registry
-sync writes embeddings after persisted metadata commits; existing rows gain vectors on their next sync. The embedding
+SRCH-06 added opt-in hybrid retrieval using 384-dimensional OpenAI embeddings and pgvector cosine distance. REL-05
+builds the same versioned document for both retrieval modes after persisted metadata and enrichment; existing rows can
+be repaired with a bounded local backfill. The embedding
 model is configurable, but it must support the fixed 384-dimension database contract.
