@@ -54,6 +54,14 @@ GitHub enrichment is enabled; a GitHub failure does not discard Registry metadat
 Search bulk-loads these persisted values to calculate a deterministic trust/quality score alongside
 Registry provenance, installability, and declared-schema status. Missing metrics receive no inferred credit.
 
+### `repository_enrichment_artifact` and `repository_enrichment_tool`
+Bounded README text and tool metadata from a small allow-list of static JSON files in a declared GitHub repository
+are stored as untrusted enrichment. Every artifact records its API source URL, repository blob revision, SHA-256
+content hash, media type, and fetch time; replacement is transactional so a repeated refresh is idempotent and files
+removed upstream do not remain searchable. Parsed tools retain their parent artifact as provenance. Ingestion reads
+GitHub's contents API only, enforces response/content/tool/schema bounds, and never clones repositories, downloads or
+installs packages, runs lifecycle scripts, imports source, or starts an MCP server.
+
 ### `validation_result`
 Future build/protocol/security validation history.
 

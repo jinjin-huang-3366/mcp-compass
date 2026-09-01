@@ -70,7 +70,8 @@ class GithubRepositoryClientTest {
     private GithubEnrichmentProperties properties(String token) {
         return new GithubEnrichmentProperties(true,
                 "http://127.0.0.1:" + server.getAddress().getPort(), token,
-                Duration.ofSeconds(1), Duration.ofSeconds(2));
+                Duration.ofSeconds(1), Duration.ofSeconds(2),
+                262_144, 100, 65_536, java.util.List.of(".mcp/server.json"));
     }
 
     private static void respond(com.sun.net.httpserver.HttpExchange exchange, int status, String body)

@@ -19,15 +19,20 @@ class GithubEnrichmentServiceTest {
     private static final Instant NOW = Instant.parse("2026-08-23T10:00:00Z");
     private final GithubRepositoryClient client = mock(GithubRepositoryClient.class);
     private final GithubRepositoryMetricStore store = mock(GithubRepositoryMetricStore.class);
+    private final GithubRepositoryContentClient contentClient = mock(GithubRepositoryContentClient.class);
+    private final GithubRepositoryEnrichmentStore enrichmentStore = mock(GithubRepositoryEnrichmentStore.class);
 
     @Test
     void springCreatesServiceWithTheProductionConstructor() {
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             GithubEnrichmentProperties properties = new GithubEnrichmentProperties(
-                    false, "https://api.github.com", "", Duration.ofSeconds(1), Duration.ofSeconds(2));
+                    false, "https://api.github.com", "", Duration.ofSeconds(1), Duration.ofSeconds(2),
+                    262_144, 100, 65_536, List.of(".mcp/server.json"));
             context.registerBean(GithubEnrichmentProperties.class, () -> properties);
             context.registerBean(GithubRepositoryClient.class, () -> client);
             context.registerBean(GithubRepositoryMetricStore.class, () -> store);
+            context.registerBean(GithubRepositoryContentClient.class, () -> contentClient);
+            context.registerBean(GithubRepositoryEnrichmentStore.class, () -> enrichmentStore);
             context.register(GithubEnrichmentService.class);
 
             context.refresh();
@@ -41,11 +46,13 @@ class GithubEnrichmentServiceTest {
         GithubRepositoryMetadata metadata = new GithubRepositoryMetadata(NOW, null, false, "MIT");
         GithubRepositoryCoordinates coordinates = new GithubRepositoryCoordinates("example", "server");
         when(client.fetch(coordinates)).thenReturn(metadata);
+        when(contentClient.fetch(coordinates)).thenReturn(List.of());
         GithubEnrichmentService service = service(true);
 
         service.enrichServers(List.of(payload("https://github.com/example/server")));
 
         verify(store).upsert("io.example/server", "https://github.com/example/server", metadata, NOW);
+        verify(enrichmentStore).replace("io.example/server", List.of(), NOW);
     }
 
     @Test
@@ -72,13 +79,15 @@ class GithubEnrichmentServiceTest {
         service(false).enrichServers(List.of(payload("https://github.com/example/server")));
 
         verify(client, never()).fetch(org.mockito.ArgumentMatchers.any());
+        verify(contentClient, never()).fetch(org.mockito.ArgumentMatchers.any());
     }
 
     private GithubEnrichmentService service(boolean enabled) {
         GithubEnrichmentProperties properties = new GithubEnrichmentProperties(
-                enabled, "https://api.github.com", "", Duration.ofSeconds(1), Duration.ofSeconds(2));
+                enabled, "https://api.github.com", "", Duration.ofSeconds(1), Duration.ofSeconds(2),
+                262_144, 100, 65_536, List.of(".mcp/server.json"));
         return new GithubEnrichmentService(
-                properties, client, store, Clock.fixed(NOW, ZoneOffset.UTC));
+                properties, client, store, contentClient, enrichmentStore, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     private static RegistryClient.RegistryServerPayload payload(String repositoryUrl) {

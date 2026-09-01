@@ -44,6 +44,12 @@ app:
       token: ${GITHUB_TOKEN:}
       connect-timeout: 5s
       read-timeout: 15s
+      max-artifact-bytes: 262144
+      max-static-tools: 100
+      max-tool-schema-bytes: 65536
+      static-metadata-paths:
+        - .mcp/server.json
+        - mcp-server.json
   search:
     vector:
       enabled: ${MCP_COMPASS_VECTOR_ENABLED:false}

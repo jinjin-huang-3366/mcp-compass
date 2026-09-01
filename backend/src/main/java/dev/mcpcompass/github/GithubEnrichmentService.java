@@ -16,26 +16,34 @@ public class GithubEnrichmentService {
     private final GithubEnrichmentProperties properties;
     private final GithubRepositoryClient client;
     private final GithubRepositoryMetricStore store;
+    private final GithubRepositoryContentClient contentClient;
+    private final GithubRepositoryEnrichmentStore enrichmentStore;
     private final Clock clock;
 
     @Autowired
     GithubEnrichmentService(
             GithubEnrichmentProperties properties,
             GithubRepositoryClient client,
-            GithubRepositoryMetricStore store
+            GithubRepositoryMetricStore store,
+            GithubRepositoryContentClient contentClient,
+            GithubRepositoryEnrichmentStore enrichmentStore
     ) {
-        this(properties, client, store, Clock.systemUTC());
+        this(properties, client, store, contentClient, enrichmentStore, Clock.systemUTC());
     }
 
     GithubEnrichmentService(
             GithubEnrichmentProperties properties,
             GithubRepositoryClient client,
             GithubRepositoryMetricStore store,
+            GithubRepositoryContentClient contentClient,
+            GithubRepositoryEnrichmentStore enrichmentStore,
             Clock clock
     ) {
         this.properties = properties;
         this.client = client;
         this.store = store;
+        this.contentClient = contentClient;
+        this.enrichmentStore = enrichmentStore;
         this.clock = clock;
     }
 
@@ -48,6 +56,7 @@ public class GithubEnrichmentService {
                 try {
                     GithubRepositoryMetadata metadata = client.fetch(coordinates);
                     store.upsert(server.name(), server.repositoryUrl(), metadata, clock.instant());
+                    enrichmentStore.replace(server.name(), contentClient.fetch(coordinates), clock.instant());
                 } catch (RuntimeException failure) {
                     log.warn("GitHub enrichment failed for Registry server {}: {}",
                             server.name(), failure.getClass().getSimpleName());
