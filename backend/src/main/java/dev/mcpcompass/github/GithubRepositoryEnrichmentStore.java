@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,7 +38,8 @@ class GithubRepositoryEnrichmentStore {
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     artifactId, serverId, artifact.kind().name(), artifact.sourcePath(), artifact.sourceUrl(),
-                    artifact.sourceRevision(), artifact.mediaType(), artifact.content(), artifact.contentSha256(), fetchedAt
+                    artifact.sourceRevision(), artifact.mediaType(), artifact.content(), artifact.contentSha256(),
+                    Timestamp.from(fetchedAt)
             );
             int ordinal = 0;
             for (GithubRepositoryArtifact.StaticTool tool : artifact.tools()) {

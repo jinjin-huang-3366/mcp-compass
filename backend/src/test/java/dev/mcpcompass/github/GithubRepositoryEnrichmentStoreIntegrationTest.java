@@ -11,6 +11,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,7 +46,7 @@ class GithubRepositoryEnrichmentStoreIntegrationTest {
                 INSERT INTO mcp_server (id, registry_name, first_seen_at, last_seen_at)
                 VALUES (?, 'io.example/server', ?, ?)
                 ON CONFLICT (registry_name) DO NOTHING
-                """, SERVER_ID, FETCHED_AT, FETCHED_AT);
+                """, SERVER_ID, Timestamp.from(FETCHED_AT), Timestamp.from(FETCHED_AT));
     }
 
     @Test
