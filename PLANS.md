@@ -37,7 +37,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-18 — expose discovered sources** | `FIX-01` | `API-05`, `ENR-01` | Complete (1/1) |
 | **PG-19 — establish demo relevance baseline** | `REL-01` | `SRCH-07`, `DEP-02` | Complete (1/1) |
 | **PG-20 — enrich intent and catalog retrieval** | `REL-02`, `REL-03`, `REL-04` | `REL-01` | Complete (3/3) |
-| **PG-21 — build hybrid relevance** | `REL-05` | `REL-02`, `REL-03`, `REL-04` | Not started (0/1) |
+| **PG-21 — build hybrid relevance** | `REL-05` | `REL-02`, `REL-03`, `REL-04` | Complete (1/1) |
 | **PG-22 — calibrate the demo experience** | `REL-06` | `REL-05` | Not started (0/1) |
 | **PG-23 — activate production relevance** | `DEP-04` | `REL-06` | Not started (0/1) |
 | **PG-24 — pass the demo-quality gate** | `EXIT-05` | `DEP-04` | Not started (0/1) |
@@ -142,7 +142,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **REL-04** — Ingest bounded README and safely discoverable static tool metadata as untrusted enrichment with provenance, hashes, freshness, idempotent persistence, migrations, and fixtures; never install or execute source/package code. _(Depends on: REL-01, ENR-01, ENR-02)_
 
 ### Hybrid ranking and demo behavior
-- [ ] **REL-05** — Build/backfill a versioned search document from service/domain, server metadata, tools, capabilities, and repository enrichment; combine lexical/pgvector retrieval, keep capability coverage dominant, and retain a tested lexical fallback. _(Depends on: REL-02, REL-03, REL-04)_
+- [x] **REL-05** — Build/backfill a versioned search document from service/domain, server metadata, tools, capabilities, and repository enrichment; combine lexical/pgvector retrieval, keep capability coverage dominant, and retain a tested lexical fallback. _(Depends on: REL-02, REL-03, REL-04)_
 - [ ] **REL-06** — Calibrate strong-match confidence and abstention on REL-01; return “no strong match” instead of unrelated results and show parsed intent, constraints, matched/missing capabilities, and abstention reasons in the API/UI. _(Depends on: REL-05, API-04)_
 
 ### Production activation and demo gate
