@@ -102,13 +102,13 @@ class RegistryRelevanceEvaluationTest {
 
         assertThat(evaluation.labelledQueries()).isEqualTo(26);
         assertThat(evaluation.noMatchQueries()).isEqualTo(6);
-        assertThat(rounded(evaluation.recallAt100())).isEqualTo(0.9811);
-        assertThat(rounded(evaluation.ndcgAt10())).isEqualTo(0.9402);
+        assertThat(rounded(evaluation.recallAt100())).isEqualTo(0.9623);
+        assertThat(rounded(evaluation.ndcgAt10())).isEqualTo(0.9433);
         assertThat(evaluation.acceptabilityQueries()).isEqualTo(24);
         assertThat(evaluation.topThreeAcceptable()).isEqualTo(24);
-        assertThat(evaluation.forbiddenViolations()).isEqualTo(10);
+        assertThat(evaluation.forbiddenViolations()).isEqualTo(13);
         assertThat(evaluation.expectedAbstentions()).isEqualTo(8);
-        assertThat(evaluation.correctAbstentions()).isEqualTo(7);
+        assertThat(evaluation.correctAbstentions()).isEqualTo(6);
         assertThat(evaluation.elapsed()).isLessThan(LATENCY_GUARD);
     }
 

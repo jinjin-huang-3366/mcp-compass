@@ -10,8 +10,18 @@ public record SearchResponse(
         int pageSize,
         int totalMatches,
         int totalPages,
+        int totalExcluded,
+        List<Exclusion> exclusions,
         List<Match> matches
 ) {
+    public record Exclusion(
+            UUID id,
+            String registryName,
+            String title,
+            List<String> reasons
+    ) {
+    }
+
     public record Match(
             UUID id,
             String registryName,

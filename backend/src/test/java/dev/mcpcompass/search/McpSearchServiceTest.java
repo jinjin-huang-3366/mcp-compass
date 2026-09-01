@@ -20,6 +20,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,6 +32,7 @@ class McpSearchServiceTest {
     private final CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
     private final ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
     private final TrustQualitySignalStore trustQualitySignalStore = mock(TrustQualitySignalStore.class);
+    private final CandidateEligibilityPolicy eligibilityPolicy = new CandidateEligibilityPolicy();
     private final McpSearchService searchService = new McpSearchService(
             analyzer,
             repository,
@@ -38,7 +40,8 @@ class McpSearchServiceTest {
             rankingService,
             capabilityStore,
             embeddingService,
-            trustQualitySignalStore
+            trustQualitySignalStore,
+            eligibilityPolicy
     );
 
     @Test
@@ -135,7 +138,8 @@ class McpSearchServiceTest {
                 new RankingService(),
                 capabilityStore,
                 embeddingService,
-                trustQualitySignalStore
+                trustQualitySignalStore,
+                eligibilityPolicy
         );
 
         SearchResponse response = capabilitySearchService.search(analysis.originalRequirement(), 1, 10);
@@ -175,7 +179,8 @@ class McpSearchServiceTest {
                 new RankingService(),
                 capabilityStore,
                 embeddingService,
-                trustQualitySignalStore
+                trustQualitySignalStore,
+                eligibilityPolicy
         );
 
         SearchResponse response = vectorSearchService.search(analysis.originalRequirement(), 1, 10);
@@ -186,6 +191,39 @@ class McpSearchServiceTest {
                 .filteredOn(match -> match.id().equals(vectorId))
                 .singleElement()
                 .satisfies(match -> assertThat(match.reasons()).contains("semantic similarity 80%"));
+    }
+
+    @Test
+    void excludesForbiddenCandidateBeforeRankingAndReturnsReasons() {
+        UUID serverId = UUID.fromString("d48c198b-1f1d-48fa-9248-f5054461b927");
+        McpServerEntity server = server(serverId, "io.example/twilio", "Twilio MCP");
+        when(server.getDescription()).thenReturn("Send SMS and make voice calls");
+        RequirementAnalysis analysis = new RequirementAnalysis(
+                "Send Twilio SMS, but never make voice calls",
+                List.of("send", "twilio", "sms"),
+                new StructuredRequirement(
+                        "1.0", "communication", "twilio", List.of("twilio.sms.send"),
+                        List.of("twilio.voice.call.create"), List.of()
+                )
+        );
+        when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
+        when(repository.findAll(
+                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(), any(Pageable.class)
+        )).thenReturn(new PageImpl<>(List.of(server)));
+        when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(Map.of());
+        when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(Map.of());
+
+        SearchResponse response = searchService.search(analysis.originalRequirement(), 1, 10);
+
+        assertThat(response.totalMatches()).isZero();
+        assertThat(response.totalExcluded()).isEqualTo(1);
+        assertThat(response.exclusions()).singleElement().satisfies(exclusion -> {
+            assertThat(exclusion.registryName()).isEqualTo("io.example/twilio");
+            assertThat(exclusion.reasons()).containsExactly(
+                    "forbidden capability advertised: twilio.voice.call.create (Registry metadata)"
+            );
+        });
+        verify(rankingService, never()).rank(any(), any(), any(), any(), any());
     }
 
     private static McpServerEntity server(String registryName) {
