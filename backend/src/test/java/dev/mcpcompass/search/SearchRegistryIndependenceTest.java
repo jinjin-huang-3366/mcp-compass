@@ -13,9 +13,6 @@ import dev.mcpcompass.requirement.RequirementAnalysis;
 import dev.mcpcompass.requirement.RequirementAnalyzer;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -47,6 +44,7 @@ class SearchRegistryIndependenceTest {
     void userSearchReturnsPersistedCandidatesWithoutRegistryRequestComponents() throws Exception {
         RequirementAnalyzer analyzer = mock(RequirementAnalyzer.class);
         McpServerRepository repository = mock(McpServerRepository.class);
+        LexicalCandidateStore lexicalCandidateStore = mock(LexicalCandidateStore.class);
         CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
         ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
         TrustQualitySignalStore trustQualitySignalStore = mock(TrustQualitySignalStore.class);
@@ -61,16 +59,17 @@ class SearchRegistryIndependenceTest {
         when(persistedServer.getDescription()).thenReturn("Read and update repository issues");
         when(persistedServer.getVersion()).thenReturn("1.0.0");
         when(persistedServer.getStatus()).thenReturn("active");
-        when(repository.findAll(
-                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
-                any(Pageable.class)
-        )).thenReturn(new PageImpl<>(List.of(persistedServer)));
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100)).thenReturn(List.of(
+                new LexicalCandidateStore.LexicalCandidate(serverId, 1.0)
+        ));
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(persistedServer));
         when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
         when(embeddingService.findNearestServers(analysis.originalRequirement())).thenReturn(List.of());
         when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(java.util.Map.of());
         McpSearchService service = new McpSearchService(
                 analyzer,
                 repository,
+                lexicalCandidateStore,
                 new RankingService(),
                 capabilityStore,
                 embeddingService,
@@ -98,10 +97,7 @@ class SearchRegistryIndependenceTest {
                         .value("quality"))
                 .andExpect(jsonPath("$.matches[0].rankingExplanation.contributions[1].contribution")
                         .value(0.03));
-        verify(repository).findAll(
-                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
-                any(Pageable.class)
-        );
+        verify(lexicalCandidateStore).findCandidates(analysis.keywords(), 100);
     }
 
     @Test

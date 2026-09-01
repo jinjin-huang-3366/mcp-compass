@@ -9,12 +9,8 @@ import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
 import dev.mcpcompass.requirement.RequirementAnalysis;
 import dev.mcpcompass.requirement.RequirementAnalyzer;
-import jakarta.persistence.criteria.Predicate;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -28,6 +24,7 @@ public class McpSearchService {
 
     private final RequirementAnalyzer analyzer;
     private final McpServerRepository repository;
+    private final LexicalCandidateStore lexicalCandidateStore;
     private final RankingService rankingService;
     private final CapabilityMetadataStore capabilityStore;
     private final ServerEmbeddingService embeddingService;
@@ -36,6 +33,7 @@ public class McpSearchService {
     public McpSearchService(
             RequirementAnalyzer analyzer,
             McpServerRepository repository,
+            LexicalCandidateStore lexicalCandidateStore,
             RankingService rankingService,
             CapabilityMetadataStore capabilityStore,
             ServerEmbeddingService embeddingService,
@@ -43,6 +41,7 @@ public class McpSearchService {
     ) {
         this.analyzer = analyzer;
         this.repository = repository;
+        this.lexicalCandidateStore = lexicalCandidateStore;
         this.rankingService = rankingService;
         this.capabilityStore = capabilityStore;
         this.embeddingService = embeddingService;
@@ -135,11 +134,16 @@ public class McpSearchService {
     private List<RetrievedCandidate> candidates(String requirement, List<String> keywords) {
         Map<UUID, RetrievedCandidate> candidatesById = new LinkedHashMap<>();
         if (!keywords.isEmpty()) {
-            repository.findAll(candidateSpec(keywords), PageRequest.of(0, MAX_CANDIDATES)).getContent()
-                    .forEach(server -> candidatesById.put(
-                            server.getId(),
-                            new RetrievedCandidate(server, null)
-                    ));
+            List<UUID> lexicalIds = lexicalCandidateStore.findCandidates(keywords, MAX_CANDIDATES).stream()
+                    .map(LexicalCandidateStore.LexicalCandidate::serverId)
+                    .toList();
+            Map<UUID, McpServerEntity> lexicalCandidatesById = serversById(lexicalIds);
+            lexicalIds.forEach(serverId -> {
+                McpServerEntity server = lexicalCandidatesById.get(serverId);
+                if (server != null) {
+                    candidatesById.put(serverId, new RetrievedCandidate(server, null));
+                }
+            });
         }
 
         List<ServerEmbeddingService.ServerEmbeddingMatch> vectorMatches =
@@ -147,9 +151,7 @@ public class McpSearchService {
         List<UUID> vectorIds = vectorMatches.stream()
                 .map(ServerEmbeddingService.ServerEmbeddingMatch::serverId)
                 .toList();
-        Map<UUID, McpServerEntity> vectorCandidatesById = new java.util.HashMap<>();
-        repository.findAllById(vectorIds)
-                .forEach(server -> vectorCandidatesById.put(server.getId(), server));
+        Map<UUID, McpServerEntity> vectorCandidatesById = serversById(vectorIds);
         vectorMatches.forEach(match -> {
             McpServerEntity server = vectorCandidatesById.get(match.serverId());
             if (server != null) {
@@ -165,19 +167,12 @@ public class McpSearchService {
     private record RetrievedCandidate(McpServerEntity server, Double vectorSimilarity) {
     }
 
-    private static Specification<McpServerEntity> candidateSpec(List<String> keywords) {
-        return (root, query, cb) -> {
-            List<Predicate> matches = new ArrayList<>();
-            for (String keyword : keywords) {
-                String pattern = "%" + keyword.toLowerCase() + "%";
-                matches.add(cb.like(cb.lower(root.<String>get("registryName")), pattern));
-                matches.add(cb.like(cb.lower(cb.coalesce(root.<String>get("title"), "")), pattern));
-                matches.add(cb.like(cb.lower(cb.coalesce(root.<String>get("description"), "")), pattern));
-            }
-            Predicate textMatch = cb.or(matches.toArray(Predicate[]::new));
-            Predicate notDeleted = cb.or(cb.isNull(root.<String>get("status")), cb.notEqual(cb.lower(root.<String>get("status")), "deleted"));
-            return cb.and(textMatch, notDeleted);
-        };
+    private Map<UUID, McpServerEntity> serversById(List<UUID> serverIds) {
+        Map<UUID, McpServerEntity> serversById = new java.util.HashMap<>();
+        if (!serverIds.isEmpty()) {
+            repository.findAllById(serverIds).forEach(server -> serversById.put(server.getId(), server));
+        }
+        return serversById;
     }
 
     private static double rounded(double value) {

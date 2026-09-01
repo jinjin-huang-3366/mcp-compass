@@ -11,10 +11,6 @@ import dev.mcpcompass.requirement.RequirementAnalysis;
 import dev.mcpcompass.requirement.RequirementAnalyzer;
 import dev.mcpcompass.requirement.StructuredRequirement;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +26,7 @@ import static org.mockito.Mockito.when;
 class McpSearchServiceTest {
     private final RequirementAnalyzer analyzer = mock(RequirementAnalyzer.class);
     private final McpServerRepository repository = mock(McpServerRepository.class);
+    private final LexicalCandidateStore lexicalCandidateStore = mock(LexicalCandidateStore.class);
     private final RankingService rankingService = mock(RankingService.class);
     private final CapabilityMetadataStore capabilityStore = mock(CapabilityMetadataStore.class);
     private final ServerEmbeddingService embeddingService = mock(ServerEmbeddingService.class);
@@ -37,6 +34,7 @@ class McpSearchServiceTest {
     private final McpSearchService searchService = new McpSearchService(
             analyzer,
             repository,
+            lexicalCandidateStore,
             rankingService,
             capabilityStore,
             embeddingService,
@@ -62,10 +60,10 @@ class McpSearchServiceTest {
                 server("io.example/a")
         );
         when(analyzer.analyze("github")).thenReturn(analysis);
-        when(repository.findAll(
-                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
-                any(Pageable.class)
-        )).thenReturn(new PageImpl<>(servers));
+        List<LexicalCandidateStore.LexicalCandidate> lexicalCandidates = lexicalCandidates(servers);
+        List<UUID> serverIds = servers.stream().map(McpServerEntity::getId).toList();
+        when(lexicalCandidateStore.findCandidates(List.of("github"), 100)).thenReturn(lexicalCandidates);
+        when(repository.findAllById(serverIds)).thenReturn(servers);
         when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
         when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
         servers.forEach(server -> when(rankingService.rank(
@@ -88,10 +86,10 @@ class McpSearchServiceTest {
         RequirementAnalysis analysis = new RequirementAnalysis("github", List.of("github"));
         McpServerEntity server = server("io.example/a");
         when(analyzer.analyze("github")).thenReturn(analysis);
-        when(repository.findAll(
-                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
-                any(Pageable.class)
-        )).thenReturn(new PageImpl<>(List.of(server)));
+        List<LexicalCandidateStore.LexicalCandidate> lexicalCandidates = lexicalCandidates(List.of(server));
+        UUID serverId = server.getId();
+        when(lexicalCandidateStore.findCandidates(List.of("github"), 100)).thenReturn(lexicalCandidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
         when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
         when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
         when(rankingService.rank(server, analysis, Set.of(), null, TrustQualitySignals.unavailable()))
@@ -124,16 +122,16 @@ class McpSearchServiceTest {
                 )
         );
         when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
-        when(repository.findAll(
-                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
-                any(Pageable.class)
-        )).thenReturn(new PageImpl<>(List.of(server)));
+        List<LexicalCandidateStore.LexicalCandidate> lexicalCandidates = lexicalCandidates(List.of(server));
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100)).thenReturn(lexicalCandidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
         when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId)))
                 .thenReturn(Map.of(serverId, Set.of("github.issue.read")));
         when(embeddingService.findNearestServers(analysis.originalRequirement())).thenReturn(List.of());
         McpSearchService capabilitySearchService = new McpSearchService(
                 analyzer,
                 repository,
+                lexicalCandidateStore,
                 new RankingService(),
                 capabilityStore,
                 embeddingService,
@@ -159,10 +157,8 @@ class McpSearchServiceTest {
         McpServerEntity vector = server(vectorId, "io.example/issues", "Issue tracker");
         RequirementAnalysis analysis = new RequirementAnalysis("github issues", List.of("github", "issues"));
         when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
-        when(repository.findAll(
-                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(),
-                any(Pageable.class)
-        )).thenReturn(new PageImpl<>(List.of(lexical)));
+        List<LexicalCandidateStore.LexicalCandidate> lexicalCandidates = lexicalCandidates(List.of(lexical));
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100)).thenReturn(lexicalCandidates);
         when(embeddingService.findNearestServers(analysis.originalRequirement()))
                 .thenReturn(List.of(
                         new ServerEmbeddingService.ServerEmbeddingMatch(lexicalId, 0.9),
@@ -175,6 +171,7 @@ class McpSearchServiceTest {
         McpSearchService vectorSearchService = new McpSearchService(
                 analyzer,
                 repository,
+                lexicalCandidateStore,
                 new RankingService(),
                 capabilityStore,
                 embeddingService,
@@ -233,5 +230,13 @@ class McpSearchServiceTest {
                 ),
                 List.of("text match")
         );
+    }
+
+    private static List<LexicalCandidateStore.LexicalCandidate> lexicalCandidates(
+            List<McpServerEntity> servers
+    ) {
+        return servers.stream()
+                .map(server -> new LexicalCandidateStore.LexicalCandidate(server.getId(), 1.0))
+                .toList();
     }
 }
