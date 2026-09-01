@@ -83,12 +83,12 @@ class RankingEvaluationTest {
         System.out.println("Lexical baseline: " + evaluation);
 
         assertThat(evaluation.labelledQueries()).isEqualTo(18);
-        assertThat(evaluation.top1Acceptable()).isEqualTo(16);
+        assertThat(evaluation.top1Acceptable()).isEqualTo(17);
         assertThat(evaluation.top3Acceptable()).isEqualTo(18);
-        assertThat(evaluation.meanReciprocalRank()).isEqualTo(17.0 / 18.0);
+        assertThat(evaluation.meanReciprocalRank()).isEqualTo(17.5 / 18.0);
         assertThat(evaluation.expectedNoStrongMatch()).isEqualTo(2);
         assertThat(evaluation.correctNoStrongMatchDecisions()).isEqualTo(20);
-        assertThat(evaluation.badMatchesInTop3()).isEqualTo(16);
+        assertThat(evaluation.badMatchesInTop3()).isEqualTo(15);
         assertThat(evaluation.elapsed()).isLessThan(LATENCY_GUARD);
     }
 

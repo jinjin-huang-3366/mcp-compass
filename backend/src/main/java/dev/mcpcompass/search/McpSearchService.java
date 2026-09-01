@@ -32,6 +32,7 @@ public class McpSearchService {
     private final CapabilityMetadataStore capabilityStore;
     private final ServerEmbeddingService embeddingService;
     private final TrustQualitySignalStore trustQualitySignalStore;
+    private final CandidateEligibilityPolicy eligibilityPolicy;
 
     public McpSearchService(
             RequirementAnalyzer analyzer,
@@ -39,7 +40,8 @@ public class McpSearchService {
             RankingService rankingService,
             CapabilityMetadataStore capabilityStore,
             ServerEmbeddingService embeddingService,
-            TrustQualitySignalStore trustQualitySignalStore
+            TrustQualitySignalStore trustQualitySignalStore,
+            CandidateEligibilityPolicy eligibilityPolicy
     ) {
         this.analyzer = analyzer;
         this.repository = repository;
@@ -47,6 +49,7 @@ public class McpSearchService {
         this.capabilityStore = capabilityStore;
         this.embeddingService = embeddingService;
         this.trustQualitySignalStore = trustQualitySignalStore;
+        this.eligibilityPolicy = eligibilityPolicy;
     }
 
     public SearchResponse search(String requirement, int page, int pageSize) {
@@ -63,8 +66,25 @@ public class McpSearchService {
                 candidates.stream().map(candidate -> candidate.server().getId()).toList()
         );
 
+        List<SearchResponse.Exclusion> exclusions = new ArrayList<>();
         List<RankingService.RankedServer> rankedMatches = candidates.stream()
                 .filter(candidate -> !"deleted".equalsIgnoreCase(candidate.server().getStatus()))
+                .filter(candidate -> {
+                    CandidateEligibilityPolicy.Eligibility eligibility = eligibilityPolicy.evaluate(
+                            analysis.structuredRequirement(),
+                            candidate.server(),
+                            capabilitiesByServer.getOrDefault(candidate.server().getId(), Set.of())
+                    );
+                    if (!eligibility.eligible()) {
+                        exclusions.add(new SearchResponse.Exclusion(
+                                candidate.server().getId(),
+                                candidate.server().getRegistryName(),
+                                candidate.server().getTitle(),
+                                eligibility.reasons()
+                        ));
+                    }
+                    return eligibility.eligible();
+                })
                 .map(candidate -> rankingService.rank(
                         candidate.server(),
                         analysis,
@@ -111,6 +131,10 @@ public class McpSearchService {
                 pageSize,
                 totalMatches,
                 totalPages,
+                exclusions.size(),
+                exclusions.stream()
+                        .sorted(Comparator.comparing(SearchResponse.Exclusion::registryName))
+                        .toList(),
                 matches
         );
     }
