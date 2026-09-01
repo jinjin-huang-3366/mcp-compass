@@ -19,44 +19,43 @@ public class JdbcLexicalCandidateStore implements LexicalCandidateStore {
                 FROM UNNEST(CAST(? AS TEXT[])) AS input(term)
                 WHERE BTRIM(input.term) <> ''
             ),
-            server_matches AS (
+            document_matches AS (
                 SELECT server.id AS server_id,
                        3.0 * TS_RANK_CD(
                            TO_TSVECTOR(
                                'simple',
-                               COALESCE(server.registry_name, '') || ' '
-                                   || COALESCE(server.title, '') || ' '
-                                   || COALESCE(server.description, '')
+                               document.content
                            ),
                            PLAINTO_TSQUERY('simple', search_terms.term)
                        )
                        + GREATEST(
-                           SIMILARITY(search_terms.term, LOWER(server.registry_name)),
+                           SIMILARITY(search_terms.term, LOWER(document.content)),
                            STRICT_WORD_SIMILARITY(
                                search_terms.term,
-                               LOWER(
-                                   COALESCE(server.registry_name, '') || ' '
-                                       || COALESCE(server.title, '') || ' '
-                                       || COALESCE(server.description, '')
-                               )
+                               LOWER(document.content)
                            )
                        ) AS match_score
                 FROM mcp_server server
+                JOIN mcp_server_search_document document ON document.server_id = server.id
                 CROSS JOIN search_terms
                 WHERE TO_TSVECTOR(
                           'simple',
-                          COALESCE(server.registry_name, '') || ' '
-                              || COALESCE(server.title, '') || ' '
-                              || COALESCE(server.description, '')
+                          document.content
                       ) @@ PLAINTO_TSQUERY('simple', search_terms.term)
                    OR STRICT_WORD_SIMILARITY(
                           search_terms.term,
-                          LOWER(
-                              COALESCE(server.registry_name, '') || ' '
-                                  || COALESCE(server.title, '') || ' '
-                                  || COALESCE(server.description, '')
-                          )
+                          LOWER(document.content)
                       ) >= 0.3
+            ),
+            server_fallback_matches AS (
+                SELECT server.id AS server_id,
+                       3.0 * TS_RANK_CD(TO_TSVECTOR('simple', COALESCE(server.registry_name, '') || ' ' || COALESCE(server.title, '') || ' ' || COALESCE(server.description, '')), PLAINTO_TSQUERY('simple', search_terms.term))
+                       + STRICT_WORD_SIMILARITY(search_terms.term, LOWER(COALESCE(server.registry_name, '') || ' ' || COALESCE(server.title, '') || ' ' || COALESCE(server.description, ''))) AS match_score
+                FROM mcp_server server
+                CROSS JOIN search_terms
+                WHERE NOT EXISTS (SELECT 1 FROM mcp_server_search_document document WHERE document.server_id = server.id)
+                  AND (TO_TSVECTOR('simple', COALESCE(server.registry_name, '') || ' ' || COALESCE(server.title, '') || ' ' || COALESCE(server.description, '')) @@ PLAINTO_TSQUERY('simple', search_terms.term)
+                       OR STRICT_WORD_SIMILARITY(search_terms.term, LOWER(COALESCE(server.registry_name, '') || ' ' || COALESCE(server.title, '') || ' ' || COALESCE(server.description, ''))) >= 0.3)
             ),
             tool_matches AS (
                 SELECT tool.server_id,
@@ -105,7 +104,9 @@ public class JdbcLexicalCandidateStore implements LexicalCandidateStore {
             scored AS (
                 SELECT matches.server_id, SUM(matches.match_score) AS lexical_score
                 FROM (
-                    SELECT * FROM server_matches
+                    SELECT * FROM document_matches
+                    UNION ALL
+                    SELECT * FROM server_fallback_matches
                     UNION ALL
                     SELECT * FROM tool_matches
                     UNION ALL

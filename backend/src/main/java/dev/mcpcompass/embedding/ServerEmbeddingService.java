@@ -1,6 +1,6 @@
 package dev.mcpcompass.embedding;
 
-import dev.mcpcompass.registry.RegistryClient;
+import dev.mcpcompass.search.SearchDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,28 +27,28 @@ public class ServerEmbeddingService {
         this.properties = properties;
     }
 
-    public void indexServers(List<RegistryClient.RegistryServerPayload> servers) {
-        List<RegistryClient.RegistryServerPayload> namedServers = servers.stream()
-                .filter(server -> server.name() != null && !server.name().isBlank())
+    public void indexDocuments(List<SearchDocument> documents) {
+        List<SearchDocument> namedDocuments = documents.stream()
+                .filter(document -> document.registryName() != null && !document.registryName().isBlank())
                 .toList();
-        if (namedServers.isEmpty()) {
+        if (namedDocuments.isEmpty()) {
             return;
         }
 
         try {
-            List<EmbeddingVector> embeddings = provider.embed(namedServers.stream()
-                    .map(ServerEmbeddingService::searchDocument)
+            List<EmbeddingVector> embeddings = provider.embed(namedDocuments.stream()
+                    .map(SearchDocument::content)
                     .toList());
             if (embeddings.isEmpty()) {
                 return;
             }
-            if (embeddings.size() != namedServers.size()) {
+            if (embeddings.size() != namedDocuments.size()) {
                 throw new IllegalStateException("Embedding provider returned an unexpected result count");
             }
             List<ServerEmbeddingStore.IndexedServerEmbedding> indexed = new ArrayList<>();
-            for (int index = 0; index < namedServers.size(); index++) {
+            for (int index = 0; index < namedDocuments.size(); index++) {
                 indexed.add(new ServerEmbeddingStore.IndexedServerEmbedding(
-                        namedServers.get(index).name(),
+                        namedDocuments.get(index).registryName(),
                         embeddings.get(index)
                 ));
             }
@@ -89,11 +89,4 @@ public class ServerEmbeddingService {
     public record ServerEmbeddingMatch(UUID serverId, double similarity) {
     }
 
-    private static String searchDocument(RegistryClient.RegistryServerPayload server) {
-        return String.join("\n", value(server.name()), value(server.title()), value(server.description()));
-    }
-
-    private static String value(String value) {
-        return value == null ? "" : value;
-    }
 }

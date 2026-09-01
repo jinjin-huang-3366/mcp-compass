@@ -1,7 +1,7 @@
 package dev.mcpcompass.registry;
 
-import dev.mcpcompass.embedding.ServerEmbeddingService;
 import dev.mcpcompass.github.GithubEnrichmentService;
+import dev.mcpcompass.search.SearchDocumentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ public class RegistrySyncService {
     private final RegistryClient client;
     private final RegistrySyncStore store;
     private final RegistrySyncMetrics metrics;
-    private final ServerEmbeddingService embeddingService;
+    private final SearchDocumentService searchDocumentService;
     private final GithubEnrichmentService githubEnrichmentService;
     private final Clock clock;
 
@@ -26,24 +26,24 @@ public class RegistrySyncService {
             RegistryClient client,
             RegistrySyncStore store,
             RegistrySyncMetrics metrics,
-            ServerEmbeddingService embeddingService,
+            SearchDocumentService searchDocumentService,
             GithubEnrichmentService githubEnrichmentService
     ) {
-        this(client, store, metrics, embeddingService, githubEnrichmentService, Clock.systemUTC());
+        this(client, store, metrics, searchDocumentService, githubEnrichmentService, Clock.systemUTC());
     }
 
     RegistrySyncService(
             RegistryClient client,
             RegistrySyncStore store,
             RegistrySyncMetrics metrics,
-            ServerEmbeddingService embeddingService,
+            SearchDocumentService searchDocumentService,
             GithubEnrichmentService githubEnrichmentService,
             Clock clock
     ) {
         this.client = client;
         this.store = store;
         this.metrics = metrics;
-        this.embeddingService = embeddingService;
+        this.searchDocumentService = searchDocumentService;
         this.githubEnrichmentService = githubEnrichmentService;
         this.clock = clock;
     }
@@ -63,8 +63,10 @@ public class RegistrySyncService {
             do {
                 RegistryClient.RegistryPage page = client.fetchServers(cursor, updatedSince);
                 int persistedItems = store.persistPage(page, clock.instant(), syncStartedAt);
-                embeddingService.indexServers(page.servers());
                 githubEnrichmentService.enrichServers(page.servers());
+                searchDocumentService.refreshForRegistryNames(page.servers().stream()
+                        .map(RegistryClient.RegistryServerPayload::name)
+                        .toList());
                 pages++;
                 servers += page.servers().size();
                 metrics.recordPage(persistedItems);

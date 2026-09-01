@@ -207,9 +207,9 @@ class McpSearchServiceTest {
                 )
         );
         when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
-        when(repository.findAll(
-                org.mockito.ArgumentMatchers.<Specification<McpServerEntity>>any(), any(Pageable.class)
-        )).thenReturn(new PageImpl<>(List.of(server)));
+        List<LexicalCandidateStore.LexicalCandidate> candidates = lexicalCandidates(List.of(server));
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100)).thenReturn(candidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
         when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(Map.of());
         when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(Map.of());
 

@@ -15,6 +15,7 @@ GROUP_PATTERN = re.compile(
     r"(?P<status>[^|]+) \|(?P<newline>\r?\n)?$"
 )
 TASK_ID_PATTERN = re.compile(r"`([A-Z]+-\d+)`")
+PLAN_TASK_ID_PATTERN = re.compile(r"^[A-Z]+-\d+$")
 
 
 class PlanItemError(ValueError):
@@ -48,6 +49,24 @@ def extract_plan_item(pr_body: str) -> str | None:
     if len(matches) != 1:
         raise PlanItemError("Expected exactly one MCP Compass plan-item marker.")
 
+    return validate_plan_item(matches[0])
+
+
+def resolve_unchecked_plan_item(plans: str, task_id: str) -> str:
+    """Return the canonical unchecked item for one stable task ID."""
+    if not PLAN_TASK_ID_PATTERN.fullmatch(task_id or ""):
+        raise PlanItemError("Plan task ID must use the stable TASK-01 format.")
+
+    prefix = f"- [ ] **{task_id}** "
+    matches = [
+        line.rstrip("\r\n")[len("- [ ] ") :]
+        for line in plans.splitlines(keepends=True)
+        if line.startswith(prefix)
+    ]
+    if len(matches) != 1:
+        raise PlanItemError(
+            f"Expected one canonical unchecked PLANS.md item for task ID: {task_id}"
+        )
     return validate_plan_item(matches[0])
 
 
@@ -130,14 +149,31 @@ def write_output(name: str, value: str) -> None:
             output.write(f"{name}={value}\n")
 
 
+def write_environment(name: str, value: str) -> None:
+    environment_path = os.environ.get("GITHUB_ENV")
+    if environment_path:
+        with Path(environment_path).open("a", encoding="utf-8") as environment:
+            environment.write(f"{name}={value}\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check-item")
+    parser.add_argument("--task-id")
     args = parser.parse_args()
+
+    if args.check_item is not None and args.task_id is not None:
+        raise PlanItemError("Specify either --check-item or --task-id, not both.")
 
     plans_path = Path("PLANS.md")
     plans = plans_path.read_text(encoding="utf-8")
     item = args.check_item
+    if args.task_id is not None:
+        item = resolve_unchecked_plan_item(plans, args.task_id)
+        write_output("plan_item", item)
+        write_environment("PLAN_ITEM", item)
+        print(f"Resolved canonical unchecked MCP Compass plan item: {item}")
+        return
     if item is None:
         item = extract_plan_item(os.environ.get("PR_BODY", ""))
 
