@@ -94,7 +94,7 @@ For concurrent delivery, use the canonical [parallel delivery groups](PLANS.md#p
 1. Add `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password. No OpenAI API key is required.
 2. Under **Settings > Actions > General**, allow GitHub Actions to create pull requests and grant workflows read/write permissions.
 3. Open **Actions > Codex task pull request > Run workflow**.
-4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, the local Codex summary, one concrete before/after or request/response example, complete task-specific desk-testing guidance, and—when the task matches one unchecked plan entry—the exact `PLANS.md` item text. Desk testing should include ordered commands or actions, expected results, and any steps that could not be run with the reason.
+4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, the local Codex summary, one concrete before/after or request/response example, complete task-specific desk-testing guidance, and—when the task matches one unchecked plan entry—its stable task ID in `plan_task_id`. The workflow derives and validates the exact canonical `PLANS.md` item before adding the marker. `plan_item` remains available for compatible manual handoffs, but do not supply both inputs. Desk testing should include ordered commands or actions, expected results, and any steps that could not be run with the reason.
 5. Review the generated pull request and email summary, then merge the pull request manually when it is ready.
 6. Start another workflow run only when the next task should begin.
 

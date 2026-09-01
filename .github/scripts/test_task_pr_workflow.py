@@ -38,6 +38,12 @@ class TaskPrWorkflowContractTest(unittest.TestCase):
             self.workflow,
         )
 
+    def test_derives_plan_item_from_stable_task_id_when_supplied(self):
+        self.assertIn("      plan_task_id:\n", self.workflow)
+        self.assertIn("Resolve canonical plan item", self.workflow)
+        self.assertIn('mark_plan_item_complete.py --task-id "$PLAN_TASK_ID"', self.workflow)
+        self.assertIn("PLAN_ITEM: ${{ env.PLAN_ITEM }}", self.workflow)
+
     def test_retry_dispatch_updates_the_existing_open_pull_request(self):
         publish = self.workflow.split("- name: Open or update pull request", 1)[1]
         publish = publish.split("- name: Start baseline CI", 1)[0]

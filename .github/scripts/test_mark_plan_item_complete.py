@@ -6,6 +6,7 @@ from mark_plan_item_complete import (
     extract_plan_item,
     format_group_status,
     mark_plan_item_complete,
+    resolve_unchecked_plan_item,
     update_parallel_group_statuses,
 )
 
@@ -48,6 +49,25 @@ class ExtractPlanItemTest(unittest.TestCase):
 
 
 class MarkPlanItemCompleteTest(unittest.TestCase):
+    def test_resolves_canonical_unchecked_item_by_stable_task_id(self) -> None:
+        plans = (
+            "- [x] **TASK-01** â€” Completed. _(Depends on: none)_\n"
+            "- [ ] **TASK-02** â€” Current item. _(Depends on: TASK-01)_\n"
+        )
+
+        self.assertEqual(
+            "**TASK-02** â€” Current item. _(Depends on: TASK-01)_",
+            resolve_unchecked_plan_item(plans, "TASK-02"),
+        )
+
+    def test_rejects_missing_or_completed_task_id(self) -> None:
+        plans = "- [x] **TASK-01** â€” Completed. _(Depends on: none)_\n"
+
+        with self.assertRaises(PlanItemError):
+            resolve_unchecked_plan_item(plans, "TASK-01")
+        with self.assertRaises(PlanItemError):
+            resolve_unchecked_plan_item(plans, "not-a-task")
+
     def test_marks_one_exact_item_and_preserves_newline(self) -> None:
         plans = "# Plan\n- [ ] Add incremental `updated_since` sync.\n"
         updated, changed = mark_plan_item_complete(
