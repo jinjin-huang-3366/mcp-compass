@@ -36,7 +36,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-17 — add IDE integrations** | `DX-03` | `DX-01`, `DX-02` | Complete (1/1) |
 | **PG-18 — expose discovered sources** | `FIX-01` | `API-05`, `ENR-01` | Complete (1/1) |
 | **PG-19 — establish demo relevance baseline** | `REL-01` | `SRCH-07`, `DEP-02` | Complete (1/1) |
-| **PG-20 — enrich intent and catalog retrieval** | `REL-02`, `REL-03`, `REL-04` | `REL-01` | In progress (2/3) |
+| **PG-20 — enrich intent and catalog retrieval** | `REL-02`, `REL-03`, `REL-04` | `REL-01` | Complete (3/3) |
 | **PG-21 — build hybrid relevance** | `REL-05` | `REL-02`, `REL-03`, `REL-04` | Not started (0/1) |
 | **PG-22 — calibrate the demo experience** | `REL-06` | `REL-05` | Not started (0/1) |
 | **PG-23 — activate production relevance** | `DEP-04` | `REL-06` | Not started (0/1) |
@@ -137,7 +137,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **REL-01** — Record a Registry snapshot and 30+ labelled requirements covering GitHub no-delete, Twilio SMS, read-only Postgres, web docs, hard negatives, and no-match cases; report Recall@100, NDCG@10, top-three acceptability, forbidden violations, and abstention. _(Depends on: SRCH-07, DEP-02)_
 
 ### Intent, retrieval, and enrichment
-- [ ] **REL-02** — Parse negative intent and hard conditions into forbidden capabilities/constraints with deterministic fallback; enforce them before ranking, explain exclusions, and never reward forbidden terms as lexical evidence. _(Depends on: REL-01, REQ-02, REQ-03)_
+- [x] **REL-02** — Parse negative intent and hard conditions into forbidden capabilities/constraints with deterministic fallback; enforce them before ranking, explain exclusions, and never reward forbidden terms as lexical evidence. _(Depends on: REL-01, REQ-02, REQ-03)_
 - [x] **REL-03** — Retrieve across server text, normalized tool names/descriptions, and capabilities using deterministic full-text/trigram scoring with stable ordering before the limit; reach 95% Recall@100 on REL-01. _(Depends on: REL-01, SRCH-03, SRCH-06)_
 - [x] **REL-04** — Ingest bounded README and safely discoverable static tool metadata as untrusted enrichment with provenance, hashes, freshness, idempotent persistence, migrations, and fixtures; never install or execute source/package code. _(Depends on: REL-01, ENR-01, ENR-02)_
 
