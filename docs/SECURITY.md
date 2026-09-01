@@ -11,6 +11,10 @@ MCP metadata, package contents, repositories, README text, tool descriptions, ge
 - Search does not execute server tools.
 - Tool-schema enrichment reads bounded, declared JSON metadata only. It does not install or start MCP
   packages, connect to publisher endpoints, or invoke tools; invalid and oversized schemas are discarded.
+- Repository enrichment reads only the GitHub README endpoint and a bounded allow-list of static JSON content paths
+  for declared GitHub repositories. Response bytes, decoded bytes, tool counts, and schemas are capped; content is
+  persisted with provenance, revision, hash, and freshness as untrusted data. The backend never clones the repository,
+  fetches a package archive, installs dependencies, interprets source, runs lifecycle scripts, or executes a server.
 - OpenAPI URL ingestion permits public HTTPS sources only, disables redirects, rejects credentials and
   non-default ports, checks resolved addresses for local/private ranges, and caps response size. Uploaded
   OpenAPI files are subject to the same size bound. Parsing never executes source content.

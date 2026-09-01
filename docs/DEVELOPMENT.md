@@ -56,9 +56,11 @@ user search unavailable.
 ### Optional GitHub repository enrichment
 
 Set `MCP_COMPASS_GITHUB_ENRICHMENT_ENABLED=true` to refresh repository activity, latest release time, archived status,
-and SPDX license in `repo_metrics` after each Registry page is persisted. `GITHUB_TOKEN` is optional for public
-repositories but recommended to obtain a higher API rate limit. GitHub failures are logged per repository and do not
-fail Registry persistence or introduce a dependency in the search request path.
+SPDX license, bounded README text, and static tool metadata after each Registry page is persisted. Content enrichment
+uses only GitHub's README endpoint and the configured allow-list (`.mcp/server.json` and `mcp-server.json` by default),
+with byte, file, tool, and schema limits. `GITHUB_TOKEN` is optional for public repositories but recommended to obtain
+a higher API rate limit. GitHub failures are logged per repository and do not fail Registry persistence or introduce a
+dependency in the search request path. Repository content is untrusted data; this path never clones, installs, or runs it.
 
 Registry sync observability is available through Spring Boot Actuator metrics:
 
