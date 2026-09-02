@@ -28,6 +28,18 @@ button:disabled { opacity: .55; cursor: default; }
 .resultSummary { display: flex; flex-wrap: wrap; gap: 8px 16px; color: #6b7280; font-size: 13px; }
 .keywords { display: flex; flex-wrap: wrap; gap: 8px; }
 .keywords span { background: #f3f4f6; border-radius: 999px; padding: 5px 9px; font-size: 12px; }
+.parsedIntent, .abstention { border-radius: 12px; padding: 16px; background: #f9fafb; }
+.parsedIntent h2, .abstention h2 { margin: 0; font-size: 17px; }
+.parsedIntent dl { display: flex; flex-wrap: wrap; gap: 12px 28px; margin: 14px 0; }
+.parsedIntent dl div { display: grid; gap: 3px; }
+.parsedIntent dt { color: #6b7280; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+.parsedIntent dd { margin: 0; }
+.intentCapabilities { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.intentCapabilities h3 { margin: 0; font-size: 13px; }
+.intentCapabilities p, .abstention p, .abstention li { color: #4b5563; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.abstention { border: 1px solid #f59e0b; background: #fffbeb; }
+.abstention p { margin-bottom: 0; }
+.abstention ul { margin-bottom: 0; }
 .match { border-top: 1px solid #e5e7eb; padding-top: 20px; }
 .matchTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
 .match h2 { margin: 3px 0 5px; font-size: 20px; }
@@ -90,6 +102,7 @@ button:disabled { opacity: .55; cursor: default; }
   .detailHeader { display: grid; }
   .metadataGrid { grid-template-columns: 1fr; }
   .capabilityGroups { grid-template-columns: 1fr; }
+  .intentCapabilities { grid-template-columns: 1fr; }
   .rankingExplanation dl div { grid-template-columns: 1fr; gap: 3px; }
 }
 footer { margin-top: 24px; color: #6b7280; font-size: 13px; }

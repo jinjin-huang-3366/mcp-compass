@@ -18,33 +18,32 @@ publisher metadata, not derived from ranker output.
 | Metric | Baseline |
 | --- | ---: |
 | Recall@100 | 51/53 (96.2%) |
-| NDCG@10 | 0.9433 |
+| NDCG@10 | 0.8620 |
 | Acceptable server in top three | 24/24 (100.0%) |
-| Forbidden-result violations in top three | 13 |
-| Correct abstention when expected | 6/8 (75.0%) |
+| Forbidden-result violations in top three | 0 |
+| Correct abstention when expected | 8/8 (100.0%) |
 | No-match cases | 6 |
 | In-memory evaluation latency guard | less than 2 seconds |
 
 Recall@100 is micro-averaged across all graded relevant servers. NDCG@10 is macro-averaged across the 26 requirements
 with graded relevance labels. Top-three acceptability excludes the two hard-condition gaps and six no-match cases,
 because none has a known acceptable server. Forbidden-result violations count labelled hard-negative occurrences,
-not merely queries containing one. Abstention uses the existing `0.25` strong-match threshold.
+not merely queries containing one. The calibrated result view applies hard-condition eligibility before ranking output
+and returns only candidates at or above the `0.30` strong-match threshold. Retrieval recall remains measured before
+those filters. NDCG is measured over returned candidates, so it decreases when lower-confidence relevant candidates
+are deliberately omitted.
 
-## Observed baseline failures
+## Calibrated behavior and remaining failures
 
 - The SSRF-safe fetch requirement retrieves the purpose-built safe-fetch server but misses the lower-grade generic
   webclaw label; lexical negative-term removal also drops one additional relevant candidate.
-- The Twilio SMS-only requirement ranks all three voice-capable Twilio records above the threshold in this isolated
-  lexical baseline. Production search now applies REL-02 eligibility filtering before ranking; this report remains a
-  retrieval/ranker-only comparison.
-- Seven other top-three positions contain labelled hard negatives from adjacent domains. Examples include a generic
-  docs server for CUDA, a read-only PostgreSQL server for administrative CRUD, and a read-only docs server for
-  Markdown publishing.
-- The GitHub no-delete case does abstain, but for the wrong practical reason: generic lexical matches dilute the
-  relevant GitHub records below the threshold. REL-02 represents and enforces negative intent in the search service.
+- The Twilio SMS-only requirement excludes every voice-capable Twilio record before ranking and abstains.
+- The GitHub no-delete requirement excludes the GitHub management records and the remaining unrelated candidates fall
+  below the calibrated threshold, so it abstains instead of recommending one.
+- All six no-match requirements abstain and labelled forbidden results are absent from the returned top three.
 
-These results establish the current baseline; REL-01 does not tune the analyzer, retrieval, ranker, threshold, or
-labels. Later work should improve the metrics without hiding failures through relabelling.
+REL-06 changes the deterministic result policy and threshold without changing the REL-01 labels. Later work should
+improve retrieval and ranking without hiding failures through relabelling.
 
 ## Limitations
 

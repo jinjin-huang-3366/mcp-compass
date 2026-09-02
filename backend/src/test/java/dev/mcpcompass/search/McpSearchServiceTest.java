@@ -41,7 +41,8 @@ class McpSearchServiceTest {
             capabilityStore,
             embeddingService,
             trustQualitySignalStore,
-            eligibilityPolicy
+            eligibilityPolicy,
+            new StrongMatchPolicy()
     );
 
     @Test
@@ -106,6 +107,44 @@ class McpSearchServiceTest {
     }
 
     @Test
+    void abstainsBelowThresholdAndReturnsParsedIntentAndReason() {
+        RequirementAnalysis analysis = new RequirementAnalysis(
+                "github issues without repository deletion",
+                List.of("github", "issues"),
+                new StructuredRequirement(
+                        "1.0", "source-control", "github", List.of("github.issue.read"),
+                        List.of("github.repository.delete"), List.of()
+                )
+        );
+        McpServerEntity server = server("io.example/issues");
+        UUID serverId = server.getId();
+        List<LexicalCandidateStore.LexicalCandidate> candidates = lexicalCandidates(List.of(server));
+        when(server.getDescription()).thenReturn("Issue tracker");
+        when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100))
+                .thenReturn(candidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
+        when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
+        when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
+        when(rankingService.rank(server, analysis, Set.of(), null, TrustQualitySignals.unavailable()))
+                .thenReturn(ranked(server, 0.29));
+
+        SearchResponse response = searchService.search(analysis.originalRequirement(), 1, 10);
+
+        assertThat(response.strongMatch()).isFalse();
+        assertThat(response.confidenceThreshold()).isEqualTo(0.3);
+        assertThat(response.matches()).isEmpty();
+        assertThat(response.totalMatches()).isZero();
+        assertThat(response.parsedIntent().service()).isEqualTo("github");
+        assertThat(response.parsedIntent().requiredCapabilities()).containsExactly("github.issue.read");
+        assertThat(response.parsedIntent().forbiddenCapabilities())
+                .containsExactly("github.repository.delete");
+        assertThat(response.abstentionReasons()).containsExactly(
+                "Best candidate confidence 29% is below the calibrated strong-match threshold of 30%."
+        );
+    }
+
+    @Test
     void bulkLoadsCapabilitiesAndReturnsCoverageDetails() {
         UUID serverId = UUID.fromString("2d86887d-aa9d-4a4e-9389-41bf89779461");
         McpServerEntity server = server(serverId, "io.example/github");
@@ -139,7 +178,8 @@ class McpSearchServiceTest {
                 capabilityStore,
                 embeddingService,
                 trustQualitySignalStore,
-                eligibilityPolicy
+                eligibilityPolicy,
+                new StrongMatchPolicy()
         );
 
         SearchResponse response = capabilitySearchService.search(analysis.originalRequirement(), 1, 10);
@@ -180,7 +220,8 @@ class McpSearchServiceTest {
                 capabilityStore,
                 embeddingService,
                 trustQualitySignalStore,
-                eligibilityPolicy
+                eligibilityPolicy,
+                new StrongMatchPolicy()
         );
 
         SearchResponse response = vectorSearchService.search(analysis.originalRequirement(), 1, 10);

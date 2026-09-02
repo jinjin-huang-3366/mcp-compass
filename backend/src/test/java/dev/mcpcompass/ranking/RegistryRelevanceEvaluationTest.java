@@ -4,6 +4,8 @@ import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.RegistryClient;
 import dev.mcpcompass.requirement.HeuristicRequirementAnalyzer;
 import dev.mcpcompass.requirement.RequirementAnalysis;
+import dev.mcpcompass.search.CandidateEligibilityPolicy;
+import dev.mcpcompass.search.StrongMatchPolicy;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.ObjectMapper;
 
@@ -34,6 +36,7 @@ class RegistryRelevanceEvaluationTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HeuristicRequirementAnalyzer analyzer = new HeuristicRequirementAnalyzer();
     private final RankingService rankingService = new RankingService();
+    private final CandidateEligibilityPolicy eligibilityPolicy = new CandidateEligibilityPolicy();
 
     @Test
     void corpusIsVersionedProductionGroundedAndInternallyConsistent() throws IOException {
@@ -61,6 +64,7 @@ class RegistryRelevanceEvaluationTest {
         assertThat(dataset.schemaVersion()).isEqualTo("1.0");
         assertThat(dataset.datasetId()).isEqualTo("registry-relevance-v1");
         assertThat(dataset.snapshotId()).isEqualTo(snapshot.snapshotId());
+        assertThat(dataset.strongMatchThreshold()).isEqualTo(StrongMatchPolicy.CONFIDENCE_THRESHOLD);
         assertThat(dataset.queries()).hasSize(32);
         assertThat(dataset.queries()).extracting(QueryLabel::cohort)
                 .contains("github", "twilio", "postgres", "web-docs", "no-match");
@@ -103,12 +107,12 @@ class RegistryRelevanceEvaluationTest {
         assertThat(evaluation.labelledQueries()).isEqualTo(26);
         assertThat(evaluation.noMatchQueries()).isEqualTo(6);
         assertThat(rounded(evaluation.recallAt100())).isEqualTo(0.9623);
-        assertThat(rounded(evaluation.ndcgAt10())).isEqualTo(0.9433);
+        assertThat(rounded(evaluation.ndcgAt10())).isEqualTo(0.8620);
         assertThat(evaluation.acceptabilityQueries()).isEqualTo(24);
         assertThat(evaluation.topThreeAcceptable()).isEqualTo(24);
-        assertThat(evaluation.forbiddenViolations()).isEqualTo(13);
+        assertThat(evaluation.forbiddenViolations()).isZero();
         assertThat(evaluation.expectedAbstentions()).isEqualTo(8);
-        assertThat(evaluation.correctAbstentions()).isEqualTo(6);
+        assertThat(evaluation.correctAbstentions()).isEqualTo(8);
         assertThat(evaluation.elapsed()).isLessThan(LATENCY_GUARD);
     }
 
@@ -133,9 +137,11 @@ class RegistryRelevanceEvaluationTest {
             RequirementAnalysis analysis = analyzer.analyze(query.requirement());
             List<McpServerEntity> retrieved = retrieve(servers.values().stream().toList(), analysis);
             List<RankedLabel> ranked = retrieved.stream()
+                    .filter(candidate -> eligibilityPolicy.evaluate(
+                            analysis.structuredRequirement(), candidate, List.of()).eligible())
                     .map(candidate -> new RankedLabel(
                             candidate.getRegistryName(), rankingService.rank(candidate, analysis).score()))
-                    .filter(result -> result.score() > 0.0)
+                    .filter(result -> result.score() >= dataset.strongMatchThreshold())
                     .sorted(Comparator.comparingDouble(RankedLabel::score).reversed()
                             .thenComparing(RankedLabel::serverName))
                     .toList();

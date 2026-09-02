@@ -121,10 +121,49 @@ export function SearchForm() {
             {visibleResult.keywords.map((keyword) => <span key={keyword}>{keyword}</span>)}
           </div>
 
+          <section className="parsedIntent" aria-labelledby="parsed-intent-heading">
+            <h2 id="parsed-intent-heading">Parsed intent</h2>
+            <dl>
+              <div><dt>Domain</dt><dd>{visibleResult.parsedIntent.domain || "Not identified"}</dd></div>
+              <div><dt>Service</dt><dd>{visibleResult.parsedIntent.service || "Not identified"}</dd></div>
+            </dl>
+            <div className="intentCapabilities">
+              <div>
+                <h3>Required capabilities</h3>
+                <p>{visibleResult.parsedIntent.requiredCapabilities.join(", ") || "None parsed"}</p>
+              </div>
+              <div>
+                <h3>Forbidden capabilities</h3>
+                <p>{visibleResult.parsedIntent.forbiddenCapabilities.join(", ") || "None parsed"}</p>
+              </div>
+              <div>
+                <h3>Hard constraints</h3>
+                <p>{visibleResult.parsedIntent.constraints.length > 0
+                  ? visibleResult.parsedIntent.constraints
+                    .map((constraint) => `${constraint.name} ${constraint.operator} ${constraint.value}`)
+                    .join(", ")
+                  : "None parsed"}</p>
+              </div>
+            </div>
+          </section>
+
+          {!visibleResult.strongMatch && (
+            <section className="abstention" aria-labelledby="abstention-heading">
+              <h2 id="abstention-heading">No strong match</h2>
+              <p>MCP Compass abstained instead of recommending a low-confidence server.</p>
+              <ul>{visibleResult.abstentionReasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>
+              {visibleResult.totalExcluded > 0 && (
+                <p>{visibleResult.totalExcluded} candidate{visibleResult.totalExcluded === 1 ? " was" : "s were"} excluded by hard conditions.</p>
+              )}
+            </section>
+          )}
+
           {visibleResult.matches.length === 0 ? (
             <div className="empty">
-              {visibleResult.totalMatches === 0
-                ? "No local matches yet. Sync Registry data, then search again."
+              {!visibleResult.strongMatch
+                ? `No result met the ${Math.round(visibleResult.confidenceThreshold * 100)}% strong-match threshold.`
+                : visibleResult.totalMatches === 0
+                  ? "No local matches yet. Sync Registry data, then search again."
                 : "This page has no matches. Go to a previous page."}
             </div>
           ) : (

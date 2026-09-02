@@ -63,8 +63,8 @@ Metrics are defined as follows:
 - **Top-three acceptability** is the share of requirements with a known constraint-satisfying server that place one
   in the first three ranked results.
 - **Forbidden-result violations** count explicitly labelled hard-negative result occurrences in the first three.
-- **Abstention** uses the current score threshold and is reported over requirements labelled to abstain, including
-  hard-condition gaps as well as no-match cases.
+- **Abstention** applies hard-condition eligibility and the calibrated `0.30` score threshold, and is reported over
+  requirements labelled to abstain, including hard-condition gaps as well as no-match cases.
 
 Reproduce the V0.6 baseline with:
 

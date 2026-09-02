@@ -24,6 +24,16 @@ Response shape:
 {
   "requirement": "...",
   "keywords": ["github", "issues", "comment", "pull", "requests"],
+  "parsedIntent": {
+    "domain": "source-control",
+    "service": "github",
+    "requiredCapabilities": ["github.issue.read", "github.pull-request.create"],
+    "forbiddenCapabilities": [],
+    "constraints": []
+  },
+  "strongMatch": true,
+  "confidenceThreshold": 0.3,
+  "abstentionReasons": [],
   "page": 1,
   "pageSize": 10,
   "totalMatches": 18,
@@ -53,6 +63,26 @@ Response shape:
       "reasons": ["title matches github", "active Registry status"]
     }
   ]
+}
+```
+
+Only candidates with a deterministic score at or above `confidenceThreshold` are returned. When none survives hard
+condition eligibility and the calibrated threshold, `strongMatch` is `false`, `matches` is empty, and
+`abstentionReasons` explains whether retrieval found nothing, hard constraints excluded everything, or the best
+eligible candidate was too weak. `parsedIntent` exposes the analyzer's domain, service, required and forbidden
+capabilities, and hard constraints. Each returned match continues to expose its matched and missing capabilities.
+
+For example, an unrelated best candidate scoring `0.292` produces:
+
+```json
+{
+  "strongMatch": false,
+  "confidenceThreshold": 0.3,
+  "abstentionReasons": [
+    "Best candidate confidence 29% is below the calibrated strong-match threshold of 30%."
+  ],
+  "totalMatches": 0,
+  "matches": []
 }
 ```
 

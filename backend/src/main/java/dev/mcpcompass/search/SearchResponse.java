@@ -1,11 +1,17 @@
 package dev.mcpcompass.search;
 
+import dev.mcpcompass.requirement.RequirementConstraint;
+
 import java.util.List;
 import java.util.UUID;
 
 public record SearchResponse(
         String requirement,
         List<String> keywords,
+        ParsedIntent parsedIntent,
+        boolean strongMatch,
+        double confidenceThreshold,
+        List<String> abstentionReasons,
         int page,
         int pageSize,
         int totalMatches,
@@ -14,6 +20,15 @@ public record SearchResponse(
         List<Exclusion> exclusions,
         List<Match> matches
 ) {
+    public record ParsedIntent(
+            String domain,
+            String service,
+            List<String> requiredCapabilities,
+            List<String> forbiddenCapabilities,
+            List<RequirementConstraint> constraints
+    ) {
+    }
+
     public record Exclusion(
             UUID id,
             String registryName,

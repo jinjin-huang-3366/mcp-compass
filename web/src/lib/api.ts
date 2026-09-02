@@ -31,11 +31,38 @@ export type RankingFeatureContribution = {
 export type SearchResponse = {
   requirement: string;
   keywords: string[];
+  parsedIntent: ParsedIntent;
+  strongMatch: boolean;
+  confidenceThreshold: number;
+  abstentionReasons: string[];
   page: number;
   pageSize: number;
   totalMatches: number;
   totalPages: number;
+  totalExcluded: number;
+  exclusions: SearchExclusion[];
   matches: SearchMatch[];
+};
+
+export type ParsedIntent = {
+  domain: string;
+  service: string;
+  requiredCapabilities: string[];
+  forbiddenCapabilities: string[];
+  constraints: RequirementConstraint[];
+};
+
+export type RequirementConstraint = {
+  name: string;
+  operator: "EQUALS" | "NOT_EQUALS" | "CONTAINS" | "AT_LEAST" | "AT_MOST";
+  value: string;
+};
+
+export type SearchExclusion = {
+  id: string;
+  registryName: string;
+  title: string | null;
+  reasons: string[];
 };
 
 export type McpServerDetail = {
