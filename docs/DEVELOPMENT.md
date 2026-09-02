@@ -76,6 +76,10 @@ It deliberately restarts one Registry traversal, caps each production run at 20 
 embeddings in provider-safe batches of at most 200, and returns aggregate coverage counts. Do not expose the `local`
 profile publicly; production activation runs this endpoint only on an ephemeral trusted maintenance process.
 
+The equivalent `/api/v1/internal/production-relevance/activate` route is absent unless the maintenance-enabled
+property is explicitly true, requires a constant-time bearer-secret match, and caps each call at 20 Registry pages.
+DEP-04 enables it only on a non-promoted staged Vercel build with a generated short-lived secret.
+
 ## Frontend
 ```bash
 cd web

@@ -168,8 +168,61 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          vercel env run --environment production --project "$VERCEL_PROJECT_ID" --token="$VERCEL_TOKEN" -- \
-            bash .github/scripts/run_production_relevance.sh
+          maintenance_secret="$(openssl rand -hex 32)"
+          echo "::add-mask::$maintenance_secret"
+          cleanup() {
+            vercel env remove MCP_COMPASS_PRODUCTION_RELEVANCE_MAINTENANCE_SECRET production \
+              --yes --token="$VERCEL_TOKEN" >/dev/null 2>&1 || true
+            vercel env remove MCP_COMPASS_PRODUCTION_RELEVANCE_MAINTENANCE_ENABLED production \
+              --yes --token="$VERCEL_TOKEN" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          vercel env add MCP_COMPASS_PRODUCTION_RELEVANCE_MAINTENANCE_ENABLED production \
+            --value true --no-sensitive --force --yes --token="$VERCEL_TOKEN"
+          printf '%s' "$maintenance_secret" | vercel env add \
+            MCP_COMPASS_PRODUCTION_RELEVANCE_MAINTENANCE_SECRET production \
+            --sensitive --force --yes --token="$VERCEL_TOKEN"
+
+          maintenance_url="$(vercel deploy \
+            --prod \
+            --skip-domain \
+            --yes \
+            --archive=tgz \
+            --meta githubCommitSha="${{ inputs.task_sha }}" \
+            --meta githubCommitRef=task/dep-04 \
+            --token="$VERCEL_TOKEN")"
+          [[ "$maintenance_url" == https://*.vercel.app ]] || {
+            echo "Vercel did not return a staged maintenance deployment URL." >&2
+            exit 1
+          }
+
+          vercel curl "/api/v1/internal/production-relevance/activate?maxPages=$MAX_REGISTRY_PAGES&embeddingBatchSize=$EMBEDDING_BATCH_SIZE" \
+            --deployment "$maintenance_url" -- \
+            --fail --silent --show-error --max-time 3000 \
+            --header "Authorization: Bearer $maintenance_secret" \
+            --request POST \
+            --output "$RUNNER_TEMP/activation.json"
+          python - "$RUNNER_TEMP/activation.json" "$GITHUB_OUTPUT" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          coverage = payload["coverage"]
+          corpus = coverage["corpusServers"]
+          if coverage["serversWithSearchDocuments"] != corpus:
+              raise SystemExit("Search-document coverage is incomplete")
+          if coverage["serversWithEmbeddings"] != corpus:
+              raise SystemExit("Embedding coverage is incomplete")
+          with pathlib.Path(sys.argv[2]).open("a", encoding="utf-8") as output:
+              for key in ("registryPages", "registryServers", "backfilledDocuments"):
+                  output.write(f"{key}={payload[key]}\n")
+              output.write(f"registryHasMore={str(payload['registryHasMore']).lower()}\n")
+              for key, value in coverage.items():
+                  output.write(f"{key}={value}\n")
+          print(json.dumps(payload, sort_keys=True))
+          PY
 
       - name: Smoke test production hybrid search
         env:

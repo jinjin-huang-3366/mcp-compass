@@ -77,5 +77,7 @@ does not preserve `delete_repositories` as forbidden intent. Its summary records
 embedding, and GitHub enrichment counts without printing credentials. `OPENAI_API_KEY`, the Vercel credentials, and
 the existing production database variables remain managed by GitHub/Vercel; public GitHub enrichment works without a
 persistent GitHub token, while the bounded resync uses the workflow's short-lived read token for rate-limit headroom.
-Sensitive Vercel variables are injected directly into the ephemeral maintenance process with `vercel env run`; they
-are never downloaded to a file, echoed, or copied into the workflow summary.
+The workflow deploys the task commit as a staged, non-promoted production build so maintenance runs inside Vercel
+with native access to the existing Neon/OpenAI variables. A generated one-run bearer secret protects the conditional
+maintenance endpoint and is removed from the project after the call. The staged build is never assigned the
+production domain, and sensitive variables are never downloaded, echoed, or copied into the workflow summary.
