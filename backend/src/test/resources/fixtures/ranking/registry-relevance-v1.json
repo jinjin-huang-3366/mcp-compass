@@ -2,7 +2,7 @@
   "schemaVersion": "1.0",
   "datasetId": "registry-relevance-v1",
   "snapshotId": "official-registry-2026-08-31-rel01",
-  "strongMatchThreshold": 0.25,
+  "strongMatchThreshold": 0.30,
   "queries": [
     {"id":"github-no-delete","cohort":"github","requirement":"Read GitHub issues and pull requests, add review comments, and never delete repositories or branches.","requiredCapabilities":["github.issue.read","github.pull-request.read","github.pull-request.comment.create"],"forbiddenCapabilities":["github.repository.delete","github.branch.delete"],"constraints":["GitHub only","no delete operations"],"relevance":{"io.github.github/github-mcp-server":3,"ai.smithery/saidsef-mcp-github-pr-issue-analyser":2},"acceptableServerIds":[],"forbiddenServerIds":["io.github.github/github-mcp-server","com.mcparmory/github"],"expectedAbstain":true,"notes":"The snapshot has relevant GitHub management servers, but none advertises a no-delete boundary; the safe answer is to abstain."},
     {"id":"github-pr-analysis","cohort":"github","requirement":"Analyze GitHub pull requests and issues for a code review assistant.","requiredCapabilities":["github.pull-request.analyze","github.issue.read"],"forbiddenCapabilities":[],"constraints":["GitHub"],"relevance":{"ai.smithery/saidsef-mcp-github-pr-issue-analyser":3,"io.github.github/github-mcp-server":2},"acceptableServerIds":["ai.smithery/saidsef-mcp-github-pr-issue-analyser","io.github.github/github-mcp-server"],"forbiddenServerIds":["com.getstarhunt/github-developer-sourcing"],"expectedAbstain":false,"notes":"The analyser is purpose-specific; the developer-sourcing server is a hard negative despite sharing GitHub terms."},

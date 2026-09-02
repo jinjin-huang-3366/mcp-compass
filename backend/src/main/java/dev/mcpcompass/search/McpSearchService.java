@@ -31,6 +31,7 @@ public class McpSearchService {
     private final ServerEmbeddingService embeddingService;
     private final TrustQualitySignalStore trustQualitySignalStore;
     private final CandidateEligibilityPolicy eligibilityPolicy;
+    private final StrongMatchPolicy strongMatchPolicy;
 
     public McpSearchService(
             RequirementAnalyzer analyzer,
@@ -40,7 +41,8 @@ public class McpSearchService {
             CapabilityMetadataStore capabilityStore,
             ServerEmbeddingService embeddingService,
             TrustQualitySignalStore trustQualitySignalStore,
-            CandidateEligibilityPolicy eligibilityPolicy
+            CandidateEligibilityPolicy eligibilityPolicy,
+            StrongMatchPolicy strongMatchPolicy
     ) {
         this.analyzer = analyzer;
         this.repository = repository;
@@ -50,6 +52,7 @@ public class McpSearchService {
         this.embeddingService = embeddingService;
         this.trustQualitySignalStore = trustQualitySignalStore;
         this.eligibilityPolicy = eligibilityPolicy;
+        this.strongMatchPolicy = strongMatchPolicy;
     }
 
     public SearchResponse search(String requirement, int page, int pageSize) {
@@ -100,12 +103,16 @@ public class McpSearchService {
                         .thenComparing(ranked -> ranked.server().getRegistryName()))
                 .toList();
 
-        int totalMatches = rankedMatches.size();
+        StrongMatchPolicy.Assessment assessment = strongMatchPolicy.assess(
+                rankedMatches, candidates.size(), exclusions.size()
+        );
+        List<RankingService.RankedServer> strongMatches = assessment.matches();
+        int totalMatches = strongMatches.size();
         int totalPages = totalMatches == 0 ? 0 : (totalMatches + pageSize - 1) / pageSize;
         int fromIndex = (int) Math.min((long) (page - 1) * pageSize, totalMatches);
         int toIndex = Math.min(fromIndex + pageSize, totalMatches);
 
-        List<SearchResponse.Match> matches = rankedMatches.subList(fromIndex, toIndex).stream()
+        List<SearchResponse.Match> matches = strongMatches.subList(fromIndex, toIndex).stream()
                 .map(ranked -> new SearchResponse.Match(
                         ranked.server().getId(),
                         ranked.server().getRegistryName(),
@@ -127,6 +134,16 @@ public class McpSearchService {
         return new SearchResponse(
                 requirement,
                 analysis.keywords(),
+                new SearchResponse.ParsedIntent(
+                        analysis.structuredRequirement().domain(),
+                        analysis.structuredRequirement().service(),
+                        analysis.structuredRequirement().requiredCapabilities(),
+                        analysis.structuredRequirement().forbiddenCapabilities(),
+                        analysis.structuredRequirement().constraints()
+                ),
+                assessment.strongMatch(),
+                rounded(StrongMatchPolicy.CONFIDENCE_THRESHOLD),
+                assessment.abstentionReasons(),
                 page,
                 pageSize,
                 totalMatches,
