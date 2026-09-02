@@ -57,4 +57,10 @@ class RegistrySyncStateEntity {
     void failed(String error) {
         this.lastError = error;
     }
+
+    void restartFullSync() {
+        this.nextCursor = null;
+        this.updatedSince = null;
+        this.lastError = null;
+    }
 }

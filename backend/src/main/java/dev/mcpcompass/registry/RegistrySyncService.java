@@ -90,6 +90,10 @@ public class RegistrySyncService {
         return new SyncResult(pages, servers, cursor);
     }
 
+    public void restartFullSync() {
+        store.restartFullSync();
+    }
+
     private static boolean hasMore(String cursor) {
         return cursor != null && !cursor.isBlank();
     }

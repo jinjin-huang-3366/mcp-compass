@@ -61,3 +61,19 @@ Retrieve the organization and project IDs by linking each existing project with 
 From Codex, invoke `$mcp-vercel-deploy` and explicitly request `all`, `backend`, or `frontend`. The skill resolves the latest remote `main` and requires successful CI for that exact commit. It reuses or waits for an existing CI run, or dispatches `ci.yml` from `main` when the commit has not been tested. After CI succeeds it rechecks remote `main`, repeating the CI gate if the branch advanced, before dispatching `.github/workflows/vercel-deploy.yml` and monitoring staging, smoke tests, and promotion. The deployment workflow accepts successful `push` or manually dispatched CI for the exact current commit. It will not provision projects, change Vercel or Neon settings, update DNS, or deploy the validation worker.
 
 The workflow pins Vercel CLI `59.10.0`; update that pin deliberately after reviewing Vercel CLI release notes and validating this staged-promotion flow.
+
+## Production relevance activation
+
+`.github/workflows/production-relevance.yml` is the bounded DEP-04 maintenance path. It enables LLM requirement
+analysis, vector retrieval, and GitHub enrichment in the backend Production environment, redeploys the current
+production backend so those settings take effect, and then uses an ephemeral local-profile backend connected to the
+same Neon database to restart and finish a bounded Registry resync and a batched search-document/embedding backfill. The local
+maintenance endpoint is never registered in the deployed production profile.
+
+Dispatch the workflow from the DEP-04 task branch with its full commit SHA, a Registry page ceiling from 1 to 20,
+an embedding batch size from 1 to 200, and `confirm_production=true`. The bounded run persists its continuation cursor
+for later daily cron work. The workflow stops if search-document or embedding coverage is incomplete, health is down, or the representative GitHub no-delete search
+does not preserve `delete_repositories` as forbidden intent. Its summary records corpus, capability, search-document,
+embedding, and GitHub enrichment counts without printing credentials. `OPENAI_API_KEY`, the Vercel credentials, and
+the existing production database variables remain managed by GitHub/Vercel; public GitHub enrichment works without a
+persistent GitHub token, while the bounded resync uses the workflow's short-lived read token for rate-limit headroom.
