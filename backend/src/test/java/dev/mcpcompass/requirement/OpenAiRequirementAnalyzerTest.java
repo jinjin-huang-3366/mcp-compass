@@ -54,6 +54,46 @@ class OpenAiRequirementAnalyzerTest {
     }
 
     @Test
+    void preservesDeterministicNegativeIntentWhenLlmOmitsIt() {
+        String requirement = "Find a GitHub MCP server that can create pull requests but must not delete repositories";
+        when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
+                StructuredRequirement.CURRENT_SCHEMA_VERSION,
+                "source-control",
+                "github",
+                List.of("github.pull-request.create"),
+                List.of(),
+                List.of()
+        ));
+
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+
+        assertThat(analysis.structuredRequirement().requiredCapabilities())
+                .containsExactly("github.pull-request.create");
+        assertThat(analysis.structuredRequirement().forbiddenCapabilities())
+                .containsExactly("github.repository.delete");
+    }
+
+    @Test
+    void deterministicNegativeIntentOverridesConflictingLlmCapability() {
+        String requirement = "Find a GitHub MCP server but never delete repositories";
+        when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
+                StructuredRequirement.CURRENT_SCHEMA_VERSION,
+                "source-control",
+                "",
+                List.of("github.delete_repositories"),
+                List.of(),
+                List.of()
+        ));
+
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+
+        assertThat(analysis.structuredRequirement().service()).isEqualTo("github");
+        assertThat(analysis.structuredRequirement().requiredCapabilities()).isEmpty();
+        assertThat(analysis.structuredRequirement().forbiddenCapabilities())
+                .containsExactly("github.repository.delete");
+    }
+
+    @Test
     void fallsBackToHeuristicAnalysisWhenLlmFails() {
         String requirement = "Read GitHub issues but never delete repositories";
         when(llmClient.analyze(requirement)).thenThrow(

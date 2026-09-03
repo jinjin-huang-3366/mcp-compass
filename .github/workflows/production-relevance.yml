@@ -244,7 +244,7 @@ jobs:
 
           payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
           parsed = payload.get("parsedIntent") or {}
-          if "delete_repositories" not in parsed.get("forbiddenCapabilities", []):
+          if "github.repository.delete" not in parsed.get("forbiddenCapabilities", []):
               raise SystemExit("Production search did not preserve the forbidden delete capability")
           if not isinstance(payload.get("matches"), list):
               raise SystemExit("Production search response did not contain matches")
