@@ -72,8 +72,9 @@ maintenance endpoint is never registered in the deployed production profile.
 
 Dispatch the workflow from the DEP-04 task branch with its full commit SHA, a Registry page ceiling from 1 to 20,
 an embedding batch size from 1 to 200, and `confirm_production=true`. The bounded run persists its continuation cursor
-for later daily cron work. The workflow stops if search-document or embedding coverage is incomplete, health is down, or the representative GitHub no-delete search
-does not preserve canonical `github.repository.delete` forbidden intent. Its summary records corpus, capability, search-document,
+for later daily cron work. The workflow stops if search-document or embedding coverage is incomplete, health is down, or the
+production-connected staged task build does not preserve canonical `github.repository.delete` forbidden intent for the
+representative GitHub no-delete search. Its summary records corpus, capability, search-document,
 embedding, and GitHub enrichment counts without printing credentials. `OPENAI_API_KEY`, the Vercel credentials, and
 the existing production database variables remain managed by GitHub/Vercel; public GitHub enrichment works without a
 persistent GitHub token, while the bounded resync uses the workflow's short-lived read token for rate-limit headroom.
