@@ -74,6 +74,24 @@ class OpenAiRequirementAnalyzerTest {
     }
 
     @Test
+    void preservesRepositoryDeletionWhenLlmReturnsOnlyAnotherProhibition() {
+        String requirement = "Find a GitHub MCP server but never delete repositories or branches";
+        when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
+                StructuredRequirement.CURRENT_SCHEMA_VERSION,
+                "source-control",
+                "github",
+                List.of("github.pull-request.create"),
+                List.of("github.branch.delete"),
+                List.of()
+        ));
+
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+
+        assertThat(analysis.structuredRequirement().forbiddenCapabilities())
+                .containsExactly("github.branch.delete", "github.repository.delete");
+    }
+
+    @Test
     void deterministicNegativeIntentOverridesConflictingLlmCapability() {
         String requirement = "Find a GitHub MCP server but never delete repositories";
         when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(

@@ -245,15 +245,16 @@ jobs:
 
           payload = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
           parsed = payload.get("parsedIntent") or {}
+          summary = {
+              "strongMatch": payload.get("strongMatch"),
+              "totalMatches": payload.get("totalMatches"),
+              "forbiddenCapabilities": parsed.get("forbiddenCapabilities"),
+          }
+          print(json.dumps(summary, sort_keys=True))
           if "github.repository.delete" not in parsed.get("forbiddenCapabilities", []):
               raise SystemExit("Production search did not preserve the forbidden delete capability")
           if not isinstance(payload.get("matches"), list):
               raise SystemExit("Production search response did not contain matches")
-          print(json.dumps({
-              "strongMatch": payload.get("strongMatch"),
-              "totalMatches": payload.get("totalMatches"),
-              "forbiddenCapabilities": parsed.get("forbiddenCapabilities"),
-          }, sort_keys=True))
           PY
 
       - name: Publish redacted activation summary
