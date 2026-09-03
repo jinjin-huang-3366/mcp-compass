@@ -66,6 +66,10 @@ Metrics are defined as follows:
 - **Abstention** applies hard-condition eligibility and the calibrated `0.30` score threshold, and is reported over
   requirements labelled to abstain, including hard-condition gaps as well as no-match cases.
 
+The V0.6 exit thresholds and the authenticated checks for the four named promoted-production demos are recorded in
+`docs/reports/DEMO_QUALITY_GATE_V1.md`. When `EXIT-05` is sent through the task-PR workflow, its dedicated reusable
+quality-gate job reruns the fixed REL-01 test and validates those live responses against the same reviewed labels.
+
 Reproduce the V0.6 baseline with:
 
 ```bash
