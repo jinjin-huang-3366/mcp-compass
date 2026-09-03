@@ -42,6 +42,21 @@ on:
         required: false
         default: ''
         type: string
+      confirm_production_relevance:
+        description: Confirm DEP-04 production relevance activation after PR publication
+        required: false
+        default: false
+        type: boolean
+      production_registry_pages:
+        description: DEP-04 full Registry resync page ceiling
+        required: false
+        default: '5'
+        type: string
+      production_embedding_batch_size:
+        description: DEP-04 embedding provider batch size
+        required: false
+        default: '100'
+        type: string
 
 concurrency:
   group: codex-single-task-flow
@@ -270,3 +285,15 @@ jobs:
           SMTP_USERNAME: ${{ secrets.GMAIL_ADDRESS }}
           TASK_DESCRIPTION: ${{ inputs.task }}
         run: python .github/scripts/send_pr_email.py
+
+  activate-production-relevance:
+    name: Activate DEP-04 production relevance
+    needs: publish
+    if: ${{ inputs.plan_task_id == 'DEP-04' && inputs.confirm_production_relevance }}
+    uses: ./.github/workflows/production-relevance.yml
+    with:
+      task_sha: ${{ github.sha }}
+      max_registry_pages: ${{ inputs.production_registry_pages }}
+      embedding_batch_size: ${{ inputs.production_embedding_batch_size }}
+      confirm_production: true
+    secrets: inherit

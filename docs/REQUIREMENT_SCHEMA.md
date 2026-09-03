@@ -41,14 +41,20 @@ Example:
 }
 ~~~
 
-The heuristic analyzer leaves the structured fields empty because it only extracts lexical search
-keywords. A later analyzer can populate the same result contract without changing search callers.
+The heuristic analyzer extracts lexical keywords plus deterministic negative intent and hard
+constraints for supported patterns. A later analyzer can populate the same result contract without
+changing search callers.
 
 ## Runtime LLM analyzer
 
 The OpenAI-backed analyzer is disabled by default. When enabled, it sends the user's requirement to
 the configured OpenAI Responses API and requests strict JSON-schema output matching version 1.0.
-Deterministic keywords are still extracted locally. If the provider request or structured response
+Deterministic keywords are still extracted locally. When the model returns no forbidden
+capabilities, deterministic forbidden capabilities are retained and override a semantically
+conflicting required capability. The high-confidence repository-deletion prohibition is also
+retained when the model returns other or differently named prohibitions. This keeps the safer
+interpretation for the named no-delete workflow without broadly adding heuristic restrictions to a
+model result that already captured negative intent. If the provider request or structured response
 fails validation, MCP Compass logs the failure type without the requirement text and returns the
 heuristic analysis instead.
 

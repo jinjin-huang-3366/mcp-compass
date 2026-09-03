@@ -71,6 +71,15 @@ Registry sync observability is available through Spring Boot Actuator metrics:
 
 All four metrics carry `source=official-mcp-registry`. A page-limited run that leaves a continuation cursor does not advance the last-success value.
 
+The local-only `POST /api/v1/dev/production-relevance/activate` endpoint supports the DEP-04 operational workflow.
+It deliberately restarts one Registry traversal, caps each production run at 20 pages while preserving its continuation cursor, backfills search documents and
+embeddings in provider-safe batches of at most 200, and returns aggregate coverage counts. Do not expose the `local`
+profile publicly; production activation runs this endpoint only on an ephemeral trusted maintenance process.
+
+The equivalent `/api/v1/internal/production-relevance/activate` route is absent unless the maintenance-enabled
+property is explicitly true, requires a constant-time bearer-secret match, and caps each call at 20 Registry pages.
+DEP-04 enables it only on a non-promoted staged Vercel build with a generated short-lived secret.
+
 ## Frontend
 ```bash
 cd web

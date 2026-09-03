@@ -4,6 +4,7 @@ import dev.mcpcompass.config.CorsProperties;
 import dev.mcpcompass.embedding.EmbeddingProperties;
 import dev.mcpcompass.github.GithubEnrichmentProperties;
 import dev.mcpcompass.generation.OpenApiSourceProperties;
+import dev.mcpcompass.registry.ProductionRelevanceMaintenanceProperties;
 import dev.mcpcompass.registry.RegistryCronProperties;
 import dev.mcpcompass.registry.RegistryProperties;
 import dev.mcpcompass.requirement.RequirementLlmProperties;
@@ -20,6 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         CorsProperties.class,
         RequirementLlmProperties.class,
         EmbeddingProperties.class,
+        ProductionRelevanceMaintenanceProperties.class,
         GithubEnrichmentProperties.class,
         OpenApiSourceProperties.class
 })

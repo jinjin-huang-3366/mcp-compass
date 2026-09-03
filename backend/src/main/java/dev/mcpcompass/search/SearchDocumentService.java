@@ -27,9 +27,20 @@ public class SearchDocumentService {
 
     @Transactional
     public int backfill() {
+        return backfill(100);
+    }
+
+    @Transactional
+    public int backfill(int batchSize) {
+        if (batchSize < 1 || batchSize > 200) {
+            throw new IllegalArgumentException("batchSize must be between 1 and 200");
+        }
         List<SearchDocument> documents = store.buildAll();
-        store.replace(documents);
-        embeddingService.indexDocuments(documents);
+        for (int start = 0; start < documents.size(); start += batchSize) {
+            List<SearchDocument> batch = documents.subList(start, Math.min(start + batchSize, documents.size()));
+            store.replace(batch);
+            embeddingService.indexDocuments(batch);
+        }
         return documents.size();
     }
 }

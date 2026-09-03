@@ -114,6 +114,13 @@ class RegistrySyncServiceTest {
                 .isEqualTo(PREVIOUS_SYNC.getEpochSecond());
     }
 
+    @Test
+    void delegatesFullSyncRestartToTheStore() {
+        service.restartFullSync();
+
+        verify(store).restartFullSync();
+    }
+
     private double counter(String name) {
         return meterRegistry.get(name)
                 .tag(RegistrySyncMetrics.SOURCE_TAG, RegistrySyncStore.SOURCE)

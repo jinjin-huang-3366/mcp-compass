@@ -82,3 +82,7 @@ app:
       enabled: ${MCP_COMPASS_REGISTRY_CRON_ENABLED:false}
       secret: ${CRON_SECRET:}
       max-pages-per-run: ${MCP_COMPASS_REGISTRY_CRON_MAX_PAGES:5}
+  production-relevance:
+    maintenance:
+      enabled: ${MCP_COMPASS_PRODUCTION_RELEVANCE_MAINTENANCE_ENABLED:false}
+      secret: ${MCP_COMPASS_PRODUCTION_RELEVANCE_MAINTENANCE_SECRET:}
