@@ -92,6 +92,24 @@ class OpenAiRequirementAnalyzerTest {
     }
 
     @Test
+    void preservesBranchDeletionWhenLlmReturnsOnlyRepositoryDeletion() {
+        String requirement = "Read GitHub issues and pull requests, add review comments, and never delete repositories or branches.";
+        when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
+                StructuredRequirement.CURRENT_SCHEMA_VERSION,
+                "source-control",
+                "github",
+                List.of("github.issue.read", "github.pull-request.read", "github.pull-request.comment.create"),
+                List.of("github.repository.delete"),
+                List.of()
+        ));
+
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+
+        assertThat(analysis.structuredRequirement().forbiddenCapabilities())
+                .containsExactly("github.repository.delete", "github.branch.delete");
+    }
+
+    @Test
     void deterministicNegativeIntentOverridesConflictingLlmCapability() {
         String requirement = "Find a GitHub MCP server but never delete repositories";
         when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
