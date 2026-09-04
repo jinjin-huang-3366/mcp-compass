@@ -54,6 +54,26 @@ class OpenAiRequirementAnalyzerTest {
     }
 
     @Test
+    void preservesVoiceProhibitionWhenLlmReturnsAnotherProhibition() {
+        String requirement = "Send Twilio SMS messages, but voice calls must never be available";
+        when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
+                StructuredRequirement.CURRENT_SCHEMA_VERSION,
+                "communication",
+                "twilio",
+                List.of("twilio.sms.send", "twilio.voice.call.create"),
+                List.of("twilio.call.recording.create"),
+                List.of()
+        ));
+
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+
+        assertThat(analysis.structuredRequirement().requiredCapabilities())
+                .containsExactly("twilio.sms.send");
+        assertThat(analysis.structuredRequirement().forbiddenCapabilities())
+                .containsExactly("twilio.call.recording.create", "twilio.voice.call.create");
+    }
+
+    @Test
     void preservesDeterministicNegativeIntentWhenLlmOmitsIt() {
         String requirement = "Find a GitHub MCP server that can create pull requests but must not delete repositories";
         when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
