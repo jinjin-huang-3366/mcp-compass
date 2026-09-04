@@ -76,6 +76,13 @@ class TaskPrWorkflowContractTest(unittest.TestCase):
         self.assertIn("run: npm run lint && npm test", self.workflow)
         self.assertIn("`cd cli && npm ci && npm run lint && npm test`", self.workflow)
 
+    def test_exit_05_runs_the_production_search_quality_gate(self):
+        self.assertIn("verify-production-search-quality:", self.workflow)
+        self.assertIn("inputs.plan_task_id == 'EXIT-05'", self.workflow)
+        self.assertIn("uses: ./.github/workflows/production-search-quality-gate.yml", self.workflow)
+        self.assertIn("task_sha: ${{ github.sha }}", self.workflow)
+        self.assertIn("secrets: inherit", self.workflow)
+
 
 if __name__ == "__main__":
     unittest.main()

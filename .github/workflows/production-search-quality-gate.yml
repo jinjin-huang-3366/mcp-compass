@@ -1,0 +1,136 @@
+name: MCP Compass production search quality gate
+
+on:
+  workflow_call:
+    inputs:
+      task_sha:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify REL-01 and production demos
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_BACKEND_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Check out EXIT-05 task commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.task_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify task and production access
+        env:
+          TASK_SHA: ${{ inputs.task_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TASK_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "task_sha must be a full commit SHA." >&2; exit 1; }
+          [[ "$(git rev-parse HEAD)" == "$TASK_SHA" ]] || { echo "Checked-out commit does not match task_sha." >&2; exit 1; }
+          git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
+          git merge-base --is-ancestor origin/main HEAD || { echo "EXIT-05 does not contain current main." >&2; exit 1; }
+          [[ -n "$VERCEL_TOKEN" && -n "$VERCEL_ORG_ID" && -n "$VERCEL_PROJECT_ID" ]] || {
+            echo "Missing required Vercel credential." >&2
+            exit 1
+          }
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Run fixed REL-01 gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./mvnw -pl backend -Dtest=RegistryRelevanceEvaluationTest test | tee "$RUNNER_TEMP/rel01.log"
+          grep -F 'Recall@100=0.9623, NDCG@10=0.8620, top3=24/24, forbiddenViolations=0, abstention=8/8' \
+            "$RUNNER_TEMP/rel01.log"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pinned Vercel CLI
+        run: npm install --global vercel@59.10.0
+
+      - name: Verify promoted production health
+        shell: bash
+        run: |
+          set -euo pipefail
+          vercel curl /actuator/health -- \
+            --fail --silent --show-error --output "$RUNNER_TEMP/health.json"
+          python - "$RUNNER_TEMP/health.json" <<'PY'
+          import json
+          import pathlib
+          import sys
+          if json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")).get("status") != "UP":
+              raise SystemExit("Promoted production backend is not healthy")
+          PY
+
+      - name: Run four named production demo searches
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$RUNNER_TEMP" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          output = pathlib.Path(sys.argv[1])
+          demos = {
+              "github-no-delete": "Read GitHub issues and pull requests, add review comments, and never delete repositories or branches.",
+              "twilio-sms-no-voice": "Send Twilio SMS messages, but voice calls must never be available.",
+              "postgres-read-only": "Query a PostgreSQL database read-only; inserts, updates, deletes, and schema writes are forbidden.",
+              "web-docs-readonly": "Search web documentation and fetch pages as Markdown, read-only and without authentication.",
+          }
+          for demo_id, requirement in demos.items():
+              (output / f"{demo_id}-request.json").write_text(
+                  json.dumps({"requirement": requirement, "pageSize": 3}), encoding="utf-8"
+              )
+          PY
+
+          for demo_id in github-no-delete twilio-sms-no-voice postgres-read-only web-docs-readonly; do
+            vercel curl /api/v1/mcp/search -- \
+              --fail --silent --show-error \
+              --header 'Content-Type: application/json' \
+              --request POST \
+              --data-binary "@$RUNNER_TEMP/$demo_id-request.json" \
+              --output "$RUNNER_TEMP/$demo_id-response.json"
+          done
+
+          python .github/scripts/verify_production_demo_searches.py \
+            --response "github-no-delete=$RUNNER_TEMP/github-no-delete-response.json" \
+            --response "twilio-sms-no-voice=$RUNNER_TEMP/twilio-sms-no-voice-response.json" \
+            --response "postgres-read-only=$RUNNER_TEMP/postgres-read-only-response.json" \
+            --response "web-docs-readonly=$RUNNER_TEMP/web-docs-readonly-response.json"
+
+      - name: Publish quality-gate summary
+        env:
+          TASK_SHA: ${{ inputs.task_sha }}
+        shell: bash
+        run: |
+          {
+            printf '## EXIT-05 search quality gate\n\n'
+            printf -- '- Task commit: `%s`\n' "$TASK_SHA"
+            printf -- '- REL-01 Recall@100: 51/53 (96.2%%; required >=95%%)\n'
+            printf -- '- REL-01 NDCG@10: 0.8620 (required >=0.80)\n'
+            printf -- '- REL-01 acceptable top three: 24/24 (100%%; required >=90%%)\n'
+            printf -- '- REL-01 forbidden-result violations: 0 (required 0)\n'
+            printf -- '- REL-01 correct abstention: 8/8 (100%%; required >=90%%)\n'
+            printf -- '- Promoted production demos: github-no-delete, twilio-sms-no-voice, postgres-read-only, web-docs-readonly passed\n'
+            printf -- '- Production responses were validated in-memory and not uploaded as artifacts\n'
+            printf -- '- Credential values: redacted and never written to the summary\n'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -297,3 +297,12 @@ jobs:
       embedding_batch_size: ${{ inputs.production_embedding_batch_size }}
       confirm_production: true
     secrets: inherit
+
+  verify-production-search-quality:
+    name: Verify EXIT-05 production search quality
+    needs: publish
+    if: ${{ inputs.plan_task_id == 'EXIT-05' }}
+    uses: ./.github/workflows/production-search-quality-gate.yml
+    with:
+      task_sha: ${{ github.sha }}
+    secrets: inherit
