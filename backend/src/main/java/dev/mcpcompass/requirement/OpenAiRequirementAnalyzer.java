@@ -55,7 +55,7 @@ public class OpenAiRequirementAnalyzer implements RequirementAnalyzer {
         var forbiddenCapabilities = new LinkedHashSet<>(llmRequirement.forbiddenCapabilities());
         boolean llmOmittedForbiddenIntent = forbiddenCapabilities.isEmpty();
         deterministicRequirement.forbiddenCapabilities().stream()
-                .filter(capability -> llmOmittedForbiddenIntent || isRepositoryDeletion(capability))
+                .filter(capability -> llmOmittedForbiddenIntent || isHighConfidenceDeletion(capability))
                 .forEach(forbiddenCapabilities::add);
 
         var requiredCapabilities = new LinkedHashSet<>(llmRequirement.requiredCapabilities());
@@ -79,8 +79,13 @@ public class OpenAiRequirementAnalyzer implements RequirementAnalyzer {
         return leftKey != null && leftKey.equals(CapabilityNameNormalizer.matchingKey(right));
     }
 
-    private static boolean isRepositoryDeletion(String capability) {
+    private static boolean isHighConfidenceDeletion(String capability) {
         String key = CapabilityNameNormalizer.matchingKey(capability);
-        return key != null && ("repository.delete".equals(key) || key.endsWith(".repository.delete"));
+        return key != null && (
+                "repository.delete".equals(key)
+                        || key.endsWith(".repository.delete")
+                        || "branch.delete".equals(key)
+                        || key.endsWith(".branch.delete")
+        );
     }
 }

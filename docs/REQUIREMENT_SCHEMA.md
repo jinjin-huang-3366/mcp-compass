@@ -51,9 +51,11 @@ The OpenAI-backed analyzer is disabled by default. When enabled, it sends the us
 the configured OpenAI Responses API and requests strict JSON-schema output matching version 1.0.
 Deterministic keywords are still extracted locally. When the model returns no forbidden
 capabilities, deterministic forbidden capabilities are retained and override a semantically
-conflicting required capability. The high-confidence repository-deletion prohibition is also
-retained when the model returns other or differently named prohibitions. This keeps the safer
-interpretation for the named no-delete workflow without broadly adding heuristic restrictions to a
+conflicting required capability. High-confidence deterministic repository- and branch-deletion
+prohibitions are also retained when the model returns other or differently named prohibitions. For
+example, a GitHub no-delete requirement retains both `github.repository.delete` and
+`github.branch.delete` even when the model returns only one of them. This keeps the safer
+interpretation for explicit deletion boundaries without broadly adding heuristic restrictions to a
 model result that already captured negative intent. If the provider request or structured response
 fails validation, MCP Compass logs the failure type without the requirement text and returns the
 heuristic analysis instead.
