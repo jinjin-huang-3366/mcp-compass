@@ -4,6 +4,7 @@ import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.RegistryClient;
 import dev.mcpcompass.requirement.RequirementAnalysis;
 import dev.mcpcompass.requirement.StructuredRequirement;
+import dev.mcpcompass.search.StrongMatchPolicy;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -64,6 +65,32 @@ class RankingServiceTest {
         assertThat(capabilityRank.score()).isGreaterThan(textOnlyRank.score());
         assertThat(capabilityRank.capabilityCoverage()).isEqualTo(1.0);
         assertThat(textOnlyRank.capabilityCoverage()).isEqualTo(0.0);
+    }
+
+    @Test
+    void unavailableCapabilityEvidenceDoesNotCountAsZeroCoverage() {
+        RequirementAnalysis requirement = structuredRequirement(
+                List.of("postgresql", "query"),
+                List.of("postgres.query.select")
+        );
+        McpServerEntity server = featureRichServer(
+                "capital.hove/read-only-local-postgres-mcp-server",
+                "PostgreSQL MCP",
+                "Read-only PostgreSQL database queries",
+                "active"
+        );
+
+        RankingService.RankedServer ranked = rankingService.rank(
+                server, requirement, null, null, TrustQualitySignals.unavailable()
+        );
+
+        assertThat(ranked.score()).isGreaterThanOrEqualTo(StrongMatchPolicy.CONFIDENCE_THRESHOLD);
+        assertThat(ranked.capabilityCoverage()).isNull();
+        assertThat(ranked.matchedCapabilities()).isEmpty();
+        assertThat(ranked.missingCapabilities()).isEmpty();
+        assertThat(ranked.rankingExplanation().contributions())
+                .extracting(RankingService.RankingFeatureContribution::feature)
+                .doesNotContain("capabilityCoverage");
     }
 
     @Test

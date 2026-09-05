@@ -86,11 +86,12 @@ For example, an unrelated best candidate scoring `0.292` produces:
 }
 ```
 
-When structured required capabilities are available, `capabilityCoverage` is the fraction matched
-by the server's normalized capability metadata. Coverage contributes 80% of the score and text
-overlap contributes 20%. The matched and missing lists make that contribution explicit. For
-heuristic-only requirements with no structured capabilities, `capabilityCoverage` is `null` and
-ranking falls back to deterministic text overlap.
+When structured required capabilities and normalized server capability metadata are both available,
+`capabilityCoverage` is the fraction matched by that metadata. Coverage contributes 80% of the score
+and text overlap contributes 20%. The matched and missing lists make that contribution explicit. If
+the requirement has no structured capabilities, or the Registry supplied no capability evidence for
+that candidate, `capabilityCoverage` is `null` and ranking falls back to deterministic retrieval and
+quality signals instead of treating unknown metadata as confirmed zero coverage.
 
 `qualityScore` is a deterministic value from 0 to 1 built from persisted Registry provenance,
 installability, declared tool-schema coverage, and GitHub enrichment (archive status, license, and
