@@ -74,5 +74,8 @@ class HeuristicRequirementAnalyzerTest {
                 new RequirementConstraint("access-mode", RequirementConstraint.Operator.EQUALS, "read-only"),
                 new RequirementConstraint("authentication", RequirementConstraint.Operator.EQUALS, "none")
         );
+        assertThat(docs.structuredRequirement().forbiddenCapabilities()).containsExactly(
+                "document.publish", "document.edit"
+        );
     }
 }

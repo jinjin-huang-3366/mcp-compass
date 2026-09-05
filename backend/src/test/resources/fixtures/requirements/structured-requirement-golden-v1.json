@@ -35,11 +35,12 @@
       "expected": {
         "schemaVersion": "1.0",
         "domain": "database",
-        "service": "postgresql",
-        "requiredCapabilities": ["postgresql.query.select"],
-        "forbiddenCapabilities": ["postgresql.row.insert", "postgresql.row.update", "postgresql.row.delete"],
+        "service": "postgres",
+        "requiredCapabilities": ["postgres.query.select"],
+        "forbiddenCapabilities": ["postgres.row.insert", "postgres.row.update", "postgres.row.delete", "postgres.row.write"],
         "constraints": [
-          {"name": "transport-security", "operator": "EQUALS", "value": "tls"}
+          {"name": "transport-security", "operator": "EQUALS", "value": "tls"},
+          {"name": "access-mode", "operator": "EQUALS", "value": "read-only"}
         ]
       }
     },

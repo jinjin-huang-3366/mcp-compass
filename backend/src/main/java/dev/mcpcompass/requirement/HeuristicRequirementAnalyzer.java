@@ -23,6 +23,7 @@ public class HeuristicRequirementAnalyzer implements RequirementAnalyzer {
             "(?i)\\b(?:never|must\\s+(?:not|never)|do(?:es)?\\s+not|without|cannot|can't|no(?!\\s+(?:more|larger|less|fewer|named)))\\b"
     );
     private static final Pattern POSTFIX_NEGATIVE_CUE = Pattern.compile("(?i)\\b(?:forbidden|prohibited)\\b");
+    private static final Pattern DOCUMENTATION_INTENT = Pattern.compile("(?i)\\b(?:docs?|documentation)\\b");
     private static final Map<Pattern, String> SERVICES = servicePatterns();
     private static final List<ForbiddenRule> FORBIDDEN_RULES = List.of(
             rule("\\b(?:delet\\w*|remov\\w*)\\b[^.;]*\\brepositor(?:y|ies)\\b|\\brepositor(?:y|ies)\\b[^.;]*\\b(?:delet\\w*|remov\\w*)\\b", "repository.delete"),
@@ -38,8 +39,6 @@ public class HeuristicRequirementAnalyzer implements RequirementAnalyzer {
             rule("\\bvoice\\b|\\bvoice\\s+calls?\\b", "voice.call.create"),
             rule("\\bpublish\\w*\\b", "document.publish"),
             rule("\\bedit\\w*\\b", "document.edit"),
-            rule("\\binserts?\\b", "row.insert"),
-            rule("\\bupdates?\\b", "row.update"),
             rule("\\b(?:delet\\w*|remov\\w*)\\b[^.;]*\\brows?\\b|\\brows?\\b[^.;]*\\b(?:delet\\w*|remov\\w*)\\b", "row.delete"),
             rule("\\bschema\\s+writes?\\b", "schema.write")
     );
@@ -65,10 +64,17 @@ public class HeuristicRequirementAnalyzer implements RequirementAnalyzer {
                 .filter(rule -> rule.pattern().matcher(negativeText).find())
                 .map(rule -> qualify(service, rule.capability()))
                 .forEach(forbiddenCapabilities::add);
-        if ("postgres".equals(service)
-                && Pattern.compile("\\b(?:delet\\w*|remov\\w*)\\b", Pattern.CASE_INSENSITIVE)
-                        .matcher(negativeText).find()) {
-            forbiddenCapabilities.add("postgres.row.delete");
+        if ("postgres".equals(service)) {
+            if (Pattern.compile("\\binserts?\\b", Pattern.CASE_INSENSITIVE).matcher(negativeText).find()) {
+                forbiddenCapabilities.add("postgres.row.insert");
+            }
+            if (Pattern.compile("\\bupdates?\\b", Pattern.CASE_INSENSITIVE).matcher(negativeText).find()) {
+                forbiddenCapabilities.add("postgres.row.update");
+            }
+            if (Pattern.compile("\\b(?:delet\\w*|remov\\w*)\\b", Pattern.CASE_INSENSITIVE)
+                    .matcher(negativeText).find()) {
+                forbiddenCapabilities.add("postgres.row.delete");
+            }
         }
 
         List<RequirementConstraint> constraints = new ArrayList<>();
@@ -76,6 +82,10 @@ public class HeuristicRequirementAnalyzer implements RequirementAnalyzer {
             constraints.add(equalsConstraint("access-mode", "read-only"));
             if ("postgres".equals(service)) {
                 forbiddenCapabilities.add("postgres.row.write");
+            }
+            if (DOCUMENTATION_INTENT.matcher(requirement).find()) {
+                forbiddenCapabilities.add("document.publish");
+                forbiddenCapabilities.add("document.edit");
             }
         }
         if (Pattern.compile("(?i)\\b(?:without|no)\\s+(?:authentication|auth)\\b").matcher(requirement).find()) {
