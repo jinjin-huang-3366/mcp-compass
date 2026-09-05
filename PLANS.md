@@ -40,7 +40,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-21 — build hybrid relevance** | `REL-05` | `REL-02`, `REL-03`, `REL-04` | Complete (1/1) |
 | **PG-22 — calibrate the demo experience** | `REL-06` | `REL-05` | Complete (1/1) |
 | **PG-23 — activate production relevance** | `DEP-04` | `REL-06` | Complete (1/1) |
-| **PG-24 — pass the demo-quality gate** | `EXIT-05` | `DEP-04` | Complete (1/1) |
+| **PG-24 — pass the demo-quality gate** | `EXIT-05` | `DEP-04` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
@@ -147,7 +147,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 
 ### Production activation and demo gate
 - [x] **DEP-04** — Enable production LLM analysis, vectors, and GitHub enrichment; finish a bounded Registry resync and search-document/embedding backfill, record corpus/capability/embedding coverage, and smoke-test without exposing credentials. _(Depends on: REL-05, REL-06, DEP-03)_
-- [x] **EXIT-05** — Pass REL-01 with Recall@100 ≥95%, NDCG@10 ≥0.80, acceptable top-three ≥90%, zero forbidden violations, and correct no-match abstention ≥90%; verify the four named demo searches in production. _(Depends on: DEP-04)_
+- [ ] **EXIT-05** — Pass REL-01 with Recall@100 ≥95%, NDCG@10 ≥0.80, acceptable top-three ≥90%, zero forbidden violations, and correct no-match abstention ≥90%; verify the four named demo searches in production. _(Depends on: DEP-04)_
 
 ## Explicit non-goals for V0.1
 - Agent runtime/orchestrator.
