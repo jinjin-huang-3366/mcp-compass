@@ -49,18 +49,15 @@ changing search callers.
 
 The OpenAI-backed analyzer is disabled by default. When enabled, it sends the user's requirement to
 the configured OpenAI Responses API and requests strict JSON-schema output matching version 1.0.
-Deterministic keywords are still extracted locally. When the model returns no forbidden
-capabilities, deterministic forbidden capabilities are retained and override a semantically
-conflicting required capability. High-confidence deterministic repository-deletion,
-branch-deletion, and voice-call-creation prohibitions are also retained when the model returns other
-or differently named prohibitions. For example, a GitHub no-delete requirement retains both
-`github.repository.delete` and `github.branch.delete` even when the model returns only one of them,
-while a Twilio SMS-only requirement retains `twilio.voice.call.create` even when the model returns a
-different prohibition. This keeps the safer interpretation for explicit deletion and
-communication-channel boundaries without broadly adding heuristic restrictions to a model result
-that already captured negative intent. If the provider request or structured response fails
-validation, MCP Compass logs the failure type without the requirement text and returns the heuristic
-analysis instead.
+Deterministic keywords are still extracted locally. Before search, model output is canonicalized to
+the catalog vocabulary: explicit service aliases such as `postgresql` and generic `database.*`
+capabilities become `postgres`, while common documentation search/page-read variants become
+`documentation.*`. High-confidence deterministic prohibitions and hard constraints override broader
+model wording for supported read-only, no-delete, and no-voice patterns. For example, explicit
+authentication absence is represented as an `authentication EQUALS none` constraint instead of a
+generic forbidden capability. Conflicting required capabilities are then removed. If the provider
+request or structured response fails validation, MCP Compass logs the failure type without the
+requirement text and returns the heuristic analysis instead.
 
 Enable it locally with environment variables before starting the backend:
 

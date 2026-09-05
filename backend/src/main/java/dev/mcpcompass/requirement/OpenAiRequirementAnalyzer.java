@@ -1,13 +1,10 @@
 package dev.mcpcompass.requirement;
 
-import dev.mcpcompass.capability.CapabilityNameNormalizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
-
-import java.util.LinkedHashSet;
 
 @Component
 @Primary
@@ -30,7 +27,8 @@ public class OpenAiRequirementAnalyzer implements RequirementAnalyzer {
     public RequirementAnalysis analyze(String requirement) {
         RequirementAnalysis heuristicAnalysis = heuristicAnalyzer.analyze(requirement);
         try {
-            StructuredRequirement structuredRequirement = preserveDeterministicSafety(
+            StructuredRequirement structuredRequirement = StructuredRequirementCanonicalizer.canonicalize(
+                    requirement,
                     llmClient.analyze(requirement),
                     heuristicAnalysis.structuredRequirement()
             );
@@ -48,46 +46,4 @@ public class OpenAiRequirementAnalyzer implements RequirementAnalyzer {
         }
     }
 
-    private static StructuredRequirement preserveDeterministicSafety(
-            StructuredRequirement llmRequirement,
-            StructuredRequirement deterministicRequirement
-    ) {
-        var forbiddenCapabilities = new LinkedHashSet<>(llmRequirement.forbiddenCapabilities());
-        boolean llmOmittedForbiddenIntent = forbiddenCapabilities.isEmpty();
-        deterministicRequirement.forbiddenCapabilities().stream()
-                .filter(capability -> llmOmittedForbiddenIntent || isHighConfidenceSafetyProhibition(capability))
-                .forEach(forbiddenCapabilities::add);
-
-        var requiredCapabilities = new LinkedHashSet<>(llmRequirement.requiredCapabilities());
-        requiredCapabilities.removeIf(required -> forbiddenCapabilities.stream()
-                .anyMatch(forbidden -> sameCapability(required, forbidden)));
-
-        return new StructuredRequirement(
-                llmRequirement.schemaVersion(),
-                llmRequirement.domain(),
-                llmRequirement.service().isBlank()
-                        ? deterministicRequirement.service()
-                        : llmRequirement.service(),
-                requiredCapabilities.stream().toList(),
-                forbiddenCapabilities.stream().toList(),
-                llmRequirement.constraints()
-        );
-    }
-
-    private static boolean sameCapability(String left, String right) {
-        String leftKey = CapabilityNameNormalizer.matchingKey(left);
-        return leftKey != null && leftKey.equals(CapabilityNameNormalizer.matchingKey(right));
-    }
-
-    private static boolean isHighConfidenceSafetyProhibition(String capability) {
-        String key = CapabilityNameNormalizer.matchingKey(capability);
-        return key != null && (
-                "repository.delete".equals(key)
-                        || key.endsWith(".repository.delete")
-                        || "branch.delete".equals(key)
-                        || key.endsWith(".branch.delete")
-                        || "voice.call.create".equals(key)
-                        || key.endsWith(".voice.call.create")
-        );
-    }
 }

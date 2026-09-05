@@ -150,6 +150,67 @@ class OpenAiRequirementAnalyzerTest {
     }
 
     @Test
+    void canonicalizesGenericDatabaseIntentToTheExplicitPostgresService() {
+        String requirement = "Query a PostgreSQL database read-only; inserts, updates, deletes, and schema writes are forbidden.";
+        when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
+                StructuredRequirement.CURRENT_SCHEMA_VERSION,
+                "database",
+                "database",
+                List.of("database.query.select", "database.schema.inspect"),
+                List.of("database.insert", "database.update", "database.delete", "database.schema.write"),
+                List.of(new RequirementConstraint(
+                        "write-access", RequirementConstraint.Operator.EQUALS, "none"
+                ))
+        ));
+
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+
+        assertThat(analysis.structuredRequirement().service()).isEqualTo("postgres");
+        assertThat(analysis.structuredRequirement().requiredCapabilities()).containsExactly(
+                "postgres.query.select", "postgres.schema.inspect"
+        );
+        assertThat(analysis.structuredRequirement().forbiddenCapabilities()).containsExactly(
+                "postgres.row.insert",
+                "postgres.row.update",
+                "postgres.row.delete",
+                "postgres.schema.write",
+                "postgres.row.write"
+        );
+        assertThat(analysis.structuredRequirement().constraints()).containsExactly(
+                new RequirementConstraint("access-mode", RequirementConstraint.Operator.EQUALS, "read-only")
+        );
+    }
+
+    @Test
+    void canonicalizesReadOnlyDocumentationIntentWithoutGenericAuthenticationCapability() {
+        String requirement = "Search web documentation and fetch pages as Markdown, read-only and without authentication.";
+        when(llmClient.analyze(requirement)).thenReturn(new StructuredRequirement(
+                StructuredRequirement.CURRENT_SCHEMA_VERSION,
+                "web",
+                "",
+                List.of("web.search", "web.page.fetch"),
+                List.of("web.content.write", "authentication.required"),
+                List.of(
+                        new RequirementConstraint("write-access", RequirementConstraint.Operator.EQUALS, "none"),
+                        new RequirementConstraint("auth-required", RequirementConstraint.Operator.EQUALS, "false")
+                )
+        ));
+
+        RequirementAnalysis analysis = analyzer.analyze(requirement);
+
+        assertThat(analysis.structuredRequirement().requiredCapabilities()).containsExactly(
+                "documentation.search", "documentation.page.read"
+        );
+        assertThat(analysis.structuredRequirement().forbiddenCapabilities()).containsExactly(
+                "document.edit", "document.publish"
+        );
+        assertThat(analysis.structuredRequirement().constraints()).containsExactly(
+                new RequirementConstraint("access-mode", RequirementConstraint.Operator.EQUALS, "read-only"),
+                new RequirementConstraint("authentication", RequirementConstraint.Operator.EQUALS, "none")
+        );
+    }
+
+    @Test
     void fallsBackToHeuristicAnalysisWhenLlmFails() {
         String requirement = "Read GitHub issues but never delete repositories";
         when(llmClient.analyze(requirement)).thenThrow(
