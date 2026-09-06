@@ -71,7 +71,7 @@ class McpSearchServiceTest {
         when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
         when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
         servers.forEach(server -> when(rankingService.rank(
-                server, analysis, Set.of(), null, TrustQualitySignals.unavailable()))
+                server, analysis, null, null, TrustQualitySignals.unavailable()))
                 .thenReturn(ranked(server, 0.8)));
 
         SearchResponse response = searchService.search("github", 2, 2);
@@ -96,7 +96,7 @@ class McpSearchServiceTest {
         when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
         when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
         when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
-        when(rankingService.rank(server, analysis, Set.of(), null, TrustQualitySignals.unavailable()))
+        when(rankingService.rank(server, analysis, null, null, TrustQualitySignals.unavailable()))
                 .thenReturn(ranked(server, 0.8));
 
         SearchResponse response = searchService.search("github", 3, 10);
@@ -126,7 +126,7 @@ class McpSearchServiceTest {
         when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
         when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
         when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
-        when(rankingService.rank(server, analysis, Set.of(), null, TrustQualitySignals.unavailable()))
+        when(rankingService.rank(server, analysis, null, null, TrustQualitySignals.unavailable()))
                 .thenReturn(ranked(server, 0.29));
 
         SearchResponse response = searchService.search(analysis.originalRequirement(), 1, 10);
@@ -191,6 +191,49 @@ class McpSearchServiceTest {
             assertThat(match.missingCapabilities()).containsExactly("github.issue.create");
         });
         verify(capabilityStore).findCapabilityNamesByServerIds(List.of(serverId));
+    }
+
+    @Test
+    void fallsBackToRetrievalRankingWhenCapabilityMetadataIsUnavailable() {
+        UUID serverId = UUID.fromString("c91d9e3f-1902-419a-b522-1e70ed8f16cb");
+        McpServerEntity server = server(serverId, "io.example/postgres", "PostgreSQL MCP");
+        when(server.getDescription()).thenReturn("Read-only PostgreSQL database queries");
+        RequirementAnalysis analysis = new RequirementAnalysis(
+                "Query PostgreSQL read-only",
+                List.of("postgresql", "query"),
+                new StructuredRequirement(
+                        "1.0", "database", "postgres", List.of("postgres.query.select"),
+                        List.of(), List.of()
+                )
+        );
+        when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
+        List<LexicalCandidateStore.LexicalCandidate> candidates = lexicalCandidates(List.of(server));
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100))
+                .thenReturn(candidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
+        when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(Map.of());
+        when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(Map.of());
+        McpSearchService metadataSparseSearchService = new McpSearchService(
+                analyzer,
+                repository,
+                lexicalCandidateStore,
+                new RankingService(),
+                capabilityStore,
+                embeddingService,
+                trustQualitySignalStore,
+                eligibilityPolicy,
+                new StrongMatchPolicy()
+        );
+
+        SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
+
+        assertThat(response.strongMatch()).isTrue();
+        assertThat(response.matches()).singleElement().satisfies(match -> {
+            assertThat(match.registryName()).isEqualTo("io.example/postgres");
+            assertThat(match.capabilityCoverage()).isNull();
+            assertThat(match.matchedCapabilities()).isEmpty();
+            assertThat(match.missingCapabilities()).isEmpty();
+        });
     }
 
     @Test

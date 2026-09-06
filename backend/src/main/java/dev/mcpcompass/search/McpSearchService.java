@@ -91,7 +91,7 @@ public class McpSearchService {
                 .map(candidate -> rankingService.rank(
                         candidate.server(),
                         analysis,
-                        capabilitiesByServer.getOrDefault(candidate.server().getId(), Set.of()),
+                        capabilitiesByServer.get(candidate.server().getId()),
                         candidate.vectorSimilarity(),
                         trustSignalsByServer.getOrDefault(
                                 candidate.server().getId(), TrustQualitySignals.unavailable()

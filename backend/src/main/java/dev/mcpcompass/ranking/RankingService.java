@@ -184,6 +184,9 @@ public class RankingService {
             RequirementAnalysis requirement,
             Collection<String> serverCapabilities
     ) {
+        if (serverCapabilities == null) {
+            return new CapabilityCoverage(null, List.of(), List.of());
+        }
         LinkedHashMap<String, String> requiredByKey = new LinkedHashMap<>();
         requirement.structuredRequirement().requiredCapabilities().forEach(capability -> {
             String key = CapabilityNameNormalizer.matchingKey(capability);
