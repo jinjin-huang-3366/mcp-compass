@@ -115,10 +115,11 @@ class RegistrySyncServiceTest {
     }
 
     @Test
-    void delegatesFullSyncRestartToTheStore() {
-        service.restartFullSync();
+    void delegatesFullSyncPreparationToTheStore() {
+        when(store.prepareFullSync()).thenReturn(true);
 
-        verify(store).restartFullSync();
+        assertThat(service.prepareFullSync()).isTrue();
+        verify(store).prepareFullSync();
     }
 
     private double counter(String name) {
