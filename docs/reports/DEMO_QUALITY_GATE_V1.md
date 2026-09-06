@@ -38,11 +38,14 @@ workflow run is the evidence that all four promoted-production checks passed for
 
 ## Production candidate
 
-Backend commit `8a82f04d2837696798d5dfcd7968876900e5e55e` was staged, health/cron-auth checked, promoted, and health checked
-again by [production deployment run 34035218646](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34035218646).
-[production relevance run 34056877693](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34056877693)
-then ingested 100 Registry pages and completed search-document and embedding coverage for all 3,934 corpus servers.
-A post-run production query ranked `capital.hove/read-only-local-postgres-mcp-server` first for the canonical
-`postgres-read-only` requirement while preserving all five parsed write prohibitions.
+Backend commit `c985c3b5d7bcf1256536c317293219c000228dc3` passed
+[exact-main CI run 34058742471](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34058742471), then was
+deployed and health checked by
+[production relevance run 34058811869](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34058811869).
+That run resumed the incomplete full Registry sync for another 100 pages, expanded the corpus from 3,934 to 7,571
+servers, and completed search-document and embedding coverage for all 7,571 rows. Registry continuation remains, but
+the newly ingested corpus contains the reviewed demo evidence: a post-run production query returned `strongMatch=true`
+and ranked `com.shipshapedata/shipshape-data-docs` first for the canonical `web-docs-readonly` requirement while
+preserving the authentication, publish, and edit prohibitions.
 The linked EXIT-05 task workflow must still pass the fixed REL-01 metrics and all four authenticated searches against
 that promoted backend before this acceptance record is merged and the plan item is marked complete.
