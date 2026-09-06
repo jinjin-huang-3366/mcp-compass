@@ -77,8 +77,8 @@ jobs:
           [[ "$(git rev-parse HEAD)" == "$TASK_SHA" ]] || { echo "Checked-out commit does not match task_sha." >&2; exit 1; }
           git fetch --no-tags origin '+refs/heads/main:refs/remotes/origin/main'
           git merge-base --is-ancestor origin/main HEAD || { echo "DEP-04 does not contain current main." >&2; exit 1; }
-          [[ "$MAX_REGISTRY_PAGES" =~ ^[0-9]+$ ]] && (( MAX_REGISTRY_PAGES >= 1 && MAX_REGISTRY_PAGES <= 20 )) || {
-            echo "max_registry_pages must be between 1 and 20." >&2; exit 1;
+          [[ "$MAX_REGISTRY_PAGES" =~ ^[0-9]+$ ]] && (( MAX_REGISTRY_PAGES >= 1 && MAX_REGISTRY_PAGES <= 100 )) || {
+            echo "max_registry_pages must be between 1 and 100." >&2; exit 1;
           }
           [[ "$EMBEDDING_BATCH_SIZE" =~ ^[0-9]+$ ]] && (( EMBEDDING_BATCH_SIZE >= 1 && EMBEDDING_BATCH_SIZE <= 200 )) || {
             echo "embedding_batch_size must be between 1 and 200." >&2; exit 1;
