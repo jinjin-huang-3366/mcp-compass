@@ -351,6 +351,63 @@ class McpSearchServiceTest {
     }
 
     @Test
+    void abstainsFromGenericDatabaseCandidateWithoutPostgresEvidence() {
+        UUID serverId = UUID.fromString("7a42765f-f086-418f-ab96-42a69b59bf27");
+        McpServerEntity server = server(serverId, "ai.mcpmyadmin/mcpmyadmin", "MCP My Admin");
+        when(server.getDescription()).thenReturn(
+                "Query 40 databases from any device. Read-only, encrypted, audited."
+        );
+        RequirementAnalysis analysis = new RequirementAnalysis(
+                "Query a PostgreSQL database read-only; inserts, updates, deletes, and schema writes are forbidden.",
+                List.of("query", "postgresql", "database", "read"),
+                new StructuredRequirement(
+                        "1.0",
+                        "database",
+                        "postgres",
+                        List.of("postgres.query"),
+                        List.of(
+                                "postgres.row.insert",
+                                "postgres.row.update",
+                                "postgres.row.delete",
+                                "postgres.schema.write",
+                                "postgres.row.write"
+                        ),
+                        List.of(new RequirementConstraint(
+                                "access-mode", RequirementConstraint.Operator.EQUALS, "read-only"
+                        ))
+                )
+        );
+        List<LexicalCandidateStore.LexicalCandidate> candidates = lexicalCandidates(List.of(server));
+        when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100)).thenReturn(candidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
+        when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(Map.of());
+        when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(Map.of());
+        McpSearchService metadataSparseSearchService = new McpSearchService(
+                analyzer,
+                repository,
+                lexicalCandidateStore,
+                new RankingService(),
+                capabilityStore,
+                embeddingService,
+                trustQualitySignalStore,
+                eligibilityPolicy,
+                new StrongMatchPolicy()
+        );
+
+        SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
+
+        assertThat(response.strongMatch()).isFalse();
+        assertThat(response.matches()).isEmpty();
+        assertThat(response.totalExcluded()).isEqualTo(1);
+        assertThat(response.exclusions()).singleElement().satisfies(exclusion ->
+                assertThat(exclusion.reasons()).containsExactly(
+                        "required service not evidenced: postgres (normalized capabilities unavailable)"
+                )
+        );
+    }
+
+    @Test
     void mergesVectorCandidatesAfterLexicalCandidatesWithoutDuplicates() {
         UUID lexicalId = UUID.fromString("7303171c-33b8-44f2-9a2a-42d38675b054");
         UUID vectorId = UUID.fromString("832cfe99-4e9f-45fc-9fa4-ed9bc6b2f3ef");
