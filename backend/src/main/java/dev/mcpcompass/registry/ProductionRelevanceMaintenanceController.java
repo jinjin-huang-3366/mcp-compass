@@ -18,6 +18,8 @@ import java.security.MessageDigest;
 @RequestMapping("/api/v1/internal/production-relevance")
 @ConditionalOnProperty(prefix = "app.production-relevance.maintenance", name = "enabled", havingValue = "true")
 class ProductionRelevanceMaintenanceController {
+    private static final int MAX_REGISTRY_PAGES = 100;
+
     private final ProductionRelevanceActivationService service;
     private final ProductionRelevanceMaintenanceProperties properties;
 
@@ -41,7 +43,7 @@ class ProductionRelevanceMaintenanceController {
         if (!authorized(authorization)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
         }
-        return service.activate(Math.min(maxPages, 20), embeddingBatchSize);
+        return service.activate(Math.min(maxPages, MAX_REGISTRY_PAGES), embeddingBatchSize);
     }
 
     private boolean authorized(String authorization) {
