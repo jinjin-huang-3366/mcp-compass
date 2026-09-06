@@ -94,9 +94,10 @@ that candidate, `capabilityCoverage` is `null` and ranking falls back to determi
 quality signals instead of treating unknown metadata as confirmed zero coverage.
 
 Missing capability metadata is not treated as safety evidence. When a requirement forbids repository or branch
-deletion, a candidate without normalized capability evidence is excluded unless its Registry metadata explicitly
-states that the corresponding deletion operation is disabled. This keeps destructive capability uncertainty out of
-the ranked result while retaining the metadata-sparse ranking fallback for ordinary and explicitly bounded cases.
+deletion or requires Twilio SMS without voice calls, a candidate without normalized capability evidence is excluded
+unless its Registry metadata explicitly states that the corresponding operation is disabled. This keeps destructive
+or channel-boundary uncertainty out of the ranked result while retaining the metadata-sparse ranking fallback for
+ordinary and explicitly bounded cases.
 
 `qualityScore` is a deterministic value from 0 to 1 built from persisted Registry provenance,
 installability, declared tool-schema coverage, and GitHub enrichment (archive status, license, and
