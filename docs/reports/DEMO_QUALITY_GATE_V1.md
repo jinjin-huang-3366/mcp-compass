@@ -40,5 +40,9 @@ workflow run is the evidence that all four promoted-production checks passed for
 
 Backend commit `8a82f04d2837696798d5dfcd7968876900e5e55e` was staged, health/cron-auth checked, promoted, and health checked
 again by [production deployment run 34035218646](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34035218646).
+[production relevance run 34056877693](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34056877693)
+then ingested 100 Registry pages and completed search-document and embedding coverage for all 3,934 corpus servers.
+A post-run production query ranked `capital.hove/read-only-local-postgres-mcp-server` first for the canonical
+`postgres-read-only` requirement while preserving all five parsed write prohibitions.
 The linked EXIT-05 task workflow must still pass the fixed REL-01 metrics and all four authenticated searches against
 that promoted backend before this acceptance record is merged and the plan item is marked complete.
