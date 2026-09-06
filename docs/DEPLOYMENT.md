@@ -67,8 +67,9 @@ The workflow pins Vercel CLI `59.10.0`; update that pin deliberately after revie
 `.github/workflows/production-relevance.yml` is the bounded DEP-04 maintenance path. It enables LLM requirement
 analysis, vector retrieval, and GitHub enrichment in the backend Production environment, redeploys the current
 production backend so those settings take effect, and then uses an ephemeral local-profile backend connected to the
-same Neon database to restart and finish a bounded Registry resync and a batched search-document/embedding backfill. The local
-maintenance endpoint is never registered in the deployed production profile.
+same Neon database to resume an incomplete full Registry resync, or start a new full resync when no continuation is
+pending, followed by a batched search-document/embedding backfill. The local maintenance endpoint is never registered
+in the deployed production profile.
 
 Dispatch the workflow from a commit containing current `main` with its full commit SHA, a Registry page ceiling from
 1 to 100, an embedding batch size from 1 to 200, and `confirm_production=true`. Use only the number of pages needed:

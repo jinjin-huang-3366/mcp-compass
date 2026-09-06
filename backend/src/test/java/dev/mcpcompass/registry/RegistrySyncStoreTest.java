@@ -70,4 +70,46 @@ class RegistrySyncStoreTest {
         verify(serverRepository, never()).findByRegistryName(unnamed.name());
         verify(stateRepository).save(any(RegistrySyncStateEntity.class));
     }
+
+    @Test
+    void preservesIncompleteFullSyncCursorWhenPreparing() {
+        RegistrySyncStateEntity state = new RegistrySyncStateEntity(RegistrySyncStore.SOURCE);
+        state.pageSucceeded("cursor-101", NOW, NOW);
+        when(stateRepository.findById(RegistrySyncStore.SOURCE)).thenReturn(Optional.of(state));
+
+        boolean restarted = store.prepareFullSync();
+
+        assertThat(restarted).isFalse();
+        assertThat(state.nextCursor()).isEqualTo("cursor-101");
+        verify(stateRepository, never()).save(any(RegistrySyncStateEntity.class));
+    }
+
+    @Test
+    void restartsFullSyncWhenNoContinuationIsPending() {
+        RegistrySyncStateEntity state = new RegistrySyncStateEntity(RegistrySyncStore.SOURCE);
+        state.pageSucceeded(null, NOW, NOW);
+        when(stateRepository.findById(RegistrySyncStore.SOURCE)).thenReturn(Optional.of(state));
+
+        boolean restarted = store.prepareFullSync();
+
+        assertThat(restarted).isTrue();
+        assertThat(state.nextCursor()).isNull();
+        assertThat(state.updatedSince()).isNull();
+        verify(stateRepository).save(state);
+    }
+
+    @Test
+    void restartsFullSyncWhenIncrementalSyncHasContinuation() {
+        RegistrySyncStateEntity state = new RegistrySyncStateEntity(RegistrySyncStore.SOURCE);
+        state.pageSucceeded(null, NOW, NOW);
+        state.pageSucceeded("incremental-cursor", NOW.plusSeconds(60), NOW.plusSeconds(60));
+        when(stateRepository.findById(RegistrySyncStore.SOURCE)).thenReturn(Optional.of(state));
+
+        boolean restarted = store.prepareFullSync();
+
+        assertThat(restarted).isTrue();
+        assertThat(state.nextCursor()).isNull();
+        assertThat(state.updatedSince()).isNull();
+        verify(stateRepository).save(state);
+    }
 }

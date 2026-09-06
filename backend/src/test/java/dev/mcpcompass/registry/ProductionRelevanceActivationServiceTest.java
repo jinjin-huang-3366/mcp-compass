@@ -34,7 +34,7 @@ class ProductionRelevanceActivationServiceTest {
         assertThat(result.backfilledDocuments()).isEqualTo(12);
         assertThat(result.coverage()).isEqualTo(coverage);
         var ordered = inOrder(registrySyncService, searchDocumentService, coverageStore);
-        ordered.verify(registrySyncService).restartFullSync();
+        ordered.verify(registrySyncService).prepareFullSync();
         ordered.verify(registrySyncService).syncPages(20);
         ordered.verify(registrySyncService).syncPages(5);
         ordered.verify(searchDocumentService).backfill(50);
