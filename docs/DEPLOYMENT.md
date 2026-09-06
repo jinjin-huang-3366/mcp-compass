@@ -70,9 +70,11 @@ production backend so those settings take effect, and then uses an ephemeral loc
 same Neon database to restart and finish a bounded Registry resync and a batched search-document/embedding backfill. The local
 maintenance endpoint is never registered in the deployed production profile.
 
-Dispatch the workflow from the DEP-04 task branch with its full commit SHA, a Registry page ceiling from 1 to 20,
-an embedding batch size from 1 to 200, and `confirm_production=true`. The bounded run persists its continuation cursor
-for later daily cron work. The workflow stops if search-document or embedding coverage is incomplete, health is down, or the
+Dispatch the workflow from a commit containing current `main` with its full commit SHA, a Registry page ceiling from
+1 to 100, an embedding batch size from 1 to 200, and `confirm_production=true`. Use only the number of pages needed:
+larger bounds ingest and enrich more Registry records and can increase runtime and embedding usage. The bounded run
+persists its continuation cursor for later daily cron work. The workflow stops if search-document or embedding
+coverage is incomplete, health is down, or the
 production-connected staged task build does not preserve canonical `github.repository.delete` forbidden intent for the
 representative GitHub no-delete search. Its summary records corpus, capability, search-document,
 embedding, and GitHub enrichment counts without printing credentials. `OPENAI_API_KEY`, the Vercel credentials, and
