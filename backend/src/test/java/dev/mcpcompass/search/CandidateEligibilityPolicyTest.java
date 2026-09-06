@@ -94,6 +94,71 @@ class CandidateEligibilityPolicyTest {
     }
 
     @Test
+    void excludesMetadataSparseGenericDatabaseForNamedPostgresRequirement() {
+        StructuredRequirement requirement = new StructuredRequirement(
+                "1.0",
+                "database",
+                "postgres",
+                List.of("postgres.query"),
+                List.of("postgres.row.write"),
+                List.of(new RequirementConstraint(
+                        "access-mode", RequirementConstraint.Operator.EQUALS, "read-only"
+                ))
+        );
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(
+                requirement,
+                server(
+                        "ai.mcpmyadmin/mcpmyadmin",
+                        "Query 40 databases from any device. Read-only, encrypted, audited."
+                ),
+                null
+        );
+
+        assertThat(result.eligible()).isFalse();
+        assertThat(result.reasons()).containsExactly(
+                "required service not evidenced: postgres (normalized capabilities unavailable)"
+        );
+    }
+
+    @Test
+    void acceptsPostgresqlMetadataAsNamedServiceEvidence() {
+        StructuredRequirement requirement = new StructuredRequirement(
+                "1.0",
+                "database",
+                "postgres",
+                List.of("postgres.query"),
+                List.of("postgres.row.write"),
+                List.of(new RequirementConstraint(
+                        "access-mode", RequirementConstraint.Operator.EQUALS, "read-only"
+                ))
+        );
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(
+                requirement,
+                server("io.example/database-reader", "Read-only PostgreSQL query server; writes refused"),
+                null
+        );
+
+        assertThat(result.eligible()).isTrue();
+    }
+
+    @Test
+    void retainsMetadataFallbackForGenericServiceLabels() {
+        StructuredRequirement requirement = new StructuredRequirement(
+                "1.0", "documentation", "web", List.of("web.page.fetch"), List.of(), List.of()
+        );
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(
+                requirement,
+                server("com.example/docs", "Search documentation and fetch Markdown pages"),
+                null
+        );
+
+        assertThat(result.eligible()).isTrue();
+    }
+
+    @Test
     void enforcesReadOnlyConstraintConservatively() {
         StructuredRequirement requirement = requirement(
                 List.of("postgres.row.write"),
