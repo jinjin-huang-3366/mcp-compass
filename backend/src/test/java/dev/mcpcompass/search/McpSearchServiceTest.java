@@ -124,9 +124,16 @@ class McpSearchServiceTest {
         when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100))
                 .thenReturn(candidates);
         when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
-        when(capabilityStore.findCapabilityNamesByServerIds(any())).thenReturn(Map.of());
+        when(capabilityStore.findCapabilityNamesByServerIds(any()))
+                .thenReturn(Map.of(serverId, Set.of("github.issue.read")));
         when(trustQualitySignalStore.findByServerIds(any())).thenReturn(Map.of());
-        when(rankingService.rank(server, analysis, null, null, TrustQualitySignals.unavailable()))
+        when(rankingService.rank(
+                server,
+                analysis,
+                Set.of("github.issue.read"),
+                null,
+                TrustQualitySignals.unavailable()
+        ))
                 .thenReturn(ranked(server, 0.29));
 
         SearchResponse response = searchService.search(analysis.originalRequirement(), 1, 10);
@@ -234,6 +241,61 @@ class McpSearchServiceTest {
             assertThat(match.matchedCapabilities()).isEmpty();
             assertThat(match.missingCapabilities()).isEmpty();
         });
+    }
+
+    @Test
+    void abstainsFromGithubCandidateWithoutDeletionSafetyEvidence() {
+        UUID serverId = UUID.fromString("f6d18341-798c-4a49-a4ed-231e45ed269b");
+        McpServerEntity server = server(serverId, "ai.smithery/github-analyser", "GitHub PR analyser");
+        when(server.getDescription()).thenReturn("Automated GitHub PR analysis and issue management");
+        RequirementAnalysis analysis = new RequirementAnalysis(
+                "Read GitHub issues and pull requests, add review comments, and never delete repositories or branches.",
+                List.of("read", "github", "issues", "pull", "requests", "add", "review", "comments"),
+                new StructuredRequirement(
+                        "1.0",
+                        "source-control",
+                        "github",
+                        List.of(
+                                "github.issue.read",
+                                "github.pull-request.read",
+                                "github.pull-request.comment.create"
+                        ),
+                        List.of("github.repository.delete", "github.branch.delete"),
+                        List.of()
+                )
+        );
+        List<LexicalCandidateStore.LexicalCandidate> candidates = lexicalCandidates(List.of(server));
+        when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100))
+                .thenReturn(candidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
+        when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(Map.of());
+        when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(Map.of());
+        McpSearchService metadataSparseSearchService = new McpSearchService(
+                analyzer,
+                repository,
+                lexicalCandidateStore,
+                new RankingService(),
+                capabilityStore,
+                embeddingService,
+                trustQualitySignalStore,
+                eligibilityPolicy,
+                new StrongMatchPolicy()
+        );
+
+        SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
+
+        assertThat(response.strongMatch()).isFalse();
+        assertThat(response.matches()).isEmpty();
+        assertThat(response.totalExcluded()).isEqualTo(1);
+        assertThat(response.exclusions()).singleElement().satisfies(exclusion ->
+                assertThat(exclusion.reasons()).containsExactly(
+                        "forbidden capability safety boundary not evidenced: github.repository.delete "
+                                + "(normalized capabilities unavailable)",
+                        "forbidden capability safety boundary not evidenced: github.branch.delete "
+                                + "(normalized capabilities unavailable)"
+                )
+        );
     }
 
     @Test

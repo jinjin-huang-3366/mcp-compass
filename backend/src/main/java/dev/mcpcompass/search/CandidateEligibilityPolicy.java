@@ -26,9 +26,13 @@ public class CandidateEligibilityPolicy {
     ) {
         LinkedHashSet<String> reasons = new LinkedHashSet<>();
         String advertisedText = advertisedText(server);
+        boolean capabilityEvidenceAvailable = serverCapabilities != null;
+        Collection<String> availableCapabilities = capabilityEvidenceAvailable
+                ? serverCapabilities
+                : List.of();
 
         for (String forbidden : requirement.forbiddenCapabilities()) {
-            String capabilityEvidence = serverCapabilities.stream()
+            String capabilityEvidence = availableCapabilities.stream()
                     .filter(available -> violates(forbidden, available))
                     .findFirst()
                     .orElse(null);
@@ -37,6 +41,11 @@ public class CandidateEligibilityPolicy {
                         + capabilityEvidence + ")");
             } else if (advertisesForbidden(forbidden, advertisedText)) {
                 reasons.add("forbidden capability advertised: " + forbidden + " (Registry metadata)");
+            } else if (!capabilityEvidenceAvailable
+                    && requiresDeletionSafetyEvidence(forbidden)
+                    && !advertisesDeletionSafetyBoundary(forbidden, advertisedText)) {
+                reasons.add("forbidden capability safety boundary not evidenced: " + forbidden
+                        + " (normalized capabilities unavailable)");
             }
         }
 
@@ -82,10 +91,16 @@ public class CandidateEligibilityPolicy {
             return containsAny(text, "voice", "make calls", "phone calls");
         }
         if (canonical.endsWith("repository.delete")) {
+            if (advertisesDeletionSafetyBoundary(forbidden, text)) {
+                return false;
+            }
             return containsAny(text, "repository", "repositories", "repo", "repos")
                     && containsAny(text, "delete", "remove", "manage");
         }
         if (canonical.endsWith("branch.delete")) {
+            if (advertisesDeletionSafetyBoundary(forbidden, text)) {
+                return false;
+            }
             return containsAny(text, "branch", "branches") && containsAny(text, "delete", "remove", "manage");
         }
         if (canonical.contains("row.insert")) {
@@ -117,6 +132,37 @@ public class CandidateEligibilityPolicy {
         String action = tokens.getLast();
         String subject = tokens.get(tokens.size() - 2);
         return text.contains(subject) && text.contains(action);
+    }
+
+    private static boolean requiresDeletionSafetyEvidence(String forbidden) {
+        String key = CapabilityNameNormalizer.matchingKey(forbidden);
+        return key != null && ("repository.delete".equals(key)
+                || key.endsWith(".repository.delete")
+                || "branch.delete".equals(key)
+                || key.endsWith(".branch.delete"));
+    }
+
+    private static boolean advertisesDeletionSafetyBoundary(String forbidden, String text) {
+        String key = CapabilityNameNormalizer.matchingKey(forbidden);
+        if (key == null) {
+            return false;
+        }
+        boolean subjectAdvertised = key.endsWith("repository.delete")
+                ? containsAny(text, "repository", "repositories", "repo", "repos")
+                : containsAny(text, "branch", "branches");
+        return subjectAdvertised && containsAny(
+                text,
+                "no delete",
+                "no deletion",
+                "never delete",
+                "cannot delete",
+                "can not delete",
+                "does not delete",
+                "delete disabled",
+                "deletion disabled",
+                "delete unavailable",
+                "deletion unavailable"
+        );
     }
 
     private static String constraintViolation(RequirementConstraint constraint, String text) {

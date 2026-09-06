@@ -80,6 +80,44 @@ class CandidateEligibilityPolicyTest {
         );
     }
 
+    @Test
+    void excludesGithubCandidateWhenDeletionSafetyCannotBeVerified() {
+        StructuredRequirement requirement = requirement(
+                List.of("github.repository.delete", "github.branch.delete"),
+                List.of()
+        );
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(
+                requirement,
+                server("ai.smithery/github-analyser", "Automated GitHub PR analysis and issue management"),
+                null
+        );
+
+        assertThat(result.eligible()).isFalse();
+        assertThat(result.reasons()).containsExactly(
+                "forbidden capability safety boundary not evidenced: github.repository.delete "
+                        + "(normalized capabilities unavailable)",
+                "forbidden capability safety boundary not evidenced: github.branch.delete "
+                        + "(normalized capabilities unavailable)"
+        );
+    }
+
+    @Test
+    void acceptsExplicitDeletionSafetyBoundaryWithoutNormalizedCapabilities() {
+        StructuredRequirement requirement = requirement(
+                List.of("github.repository.delete", "github.branch.delete"),
+                List.of()
+        );
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(
+                requirement,
+                server("io.example/github-safe", "GitHub comments; cannot delete repositories or branches"),
+                null
+        );
+
+        assertThat(result.eligible()).isTrue();
+    }
+
     private static StructuredRequirement requirement(
             List<String> forbidden,
             List<RequirementConstraint> constraints

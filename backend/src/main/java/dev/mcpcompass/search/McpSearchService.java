@@ -76,7 +76,7 @@ public class McpSearchService {
                     CandidateEligibilityPolicy.Eligibility eligibility = eligibilityPolicy.evaluate(
                             analysis.structuredRequirement(),
                             candidate.server(),
-                            capabilitiesByServer.getOrDefault(candidate.server().getId(), Set.of())
+                            capabilitiesByServer.get(candidate.server().getId())
                     );
                     if (!eligibility.eligible()) {
                         exclusions.add(new SearchResponse.Exclusion(
