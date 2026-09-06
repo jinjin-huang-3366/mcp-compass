@@ -242,8 +242,10 @@ developer-reviewed name and description:
 The response has status `APPROVED` and contains only selected tools. Tool names and descriptions
 use the developer's edits; source operation, schemas, authentication requirements, and risk remain
 the values from the proposal. At least one tool must be selected, and selected names must be valid
-and unique. The `/generate` web page provides this review flow. Approval does not persist the
-contract, generate source code, or execute API/MCP code.
+and unique. The home page links to this flow as **Generate a Node.js MCP server from OpenAPI**. The `/generate` page
+guides the developer through tool review and then exports a GitHub-ready Node.js/TypeScript MCP server ZIP. Approval
+does not persist the contract, generate source code by itself, or execute API/MCP code; export remains a separate,
+explicit action after approval.
 
 ## Generate a TypeScript MCP project
 
