@@ -90,8 +90,8 @@ public class RegistrySyncService {
         return new SyncResult(pages, servers, cursor);
     }
 
-    public void restartFullSync() {
-        store.restartFullSync();
+    public boolean prepareFullSync() {
+        return store.prepareFullSync();
     }
 
     private static boolean hasMore(String cursor) {

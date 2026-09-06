@@ -28,7 +28,7 @@ class ProductionRelevanceActivationService {
         if (embeddingBatchSize < 1 || embeddingBatchSize > 200) {
             throw new IllegalArgumentException("embeddingBatchSize must be between 1 and 200");
         }
-        registrySyncService.restartFullSync();
+        registrySyncService.prepareFullSync();
         int pages = 0;
         int servers = 0;
         String nextCursor = null;

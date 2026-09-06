@@ -82,11 +82,17 @@ class RegistrySyncStore {
     }
 
     @Transactional
-    void restartFullSync() {
-        RegistrySyncStateEntity state = stateRepository.findById(SOURCE)
-                .orElseGet(() -> new RegistrySyncStateEntity(SOURCE));
+    boolean prepareFullSync() {
+        RegistrySyncStateEntity state = stateRepository.findById(SOURCE).orElse(null);
+        if (state != null && normalize(state.nextCursor()) != null && state.updatedSince() == null) {
+            return false;
+        }
+        if (state == null) {
+            state = new RegistrySyncStateEntity(SOURCE);
+        }
         state.restartFullSync();
         stateRepository.save(state);
+        return true;
     }
 
     private static String normalize(String cursor) {
