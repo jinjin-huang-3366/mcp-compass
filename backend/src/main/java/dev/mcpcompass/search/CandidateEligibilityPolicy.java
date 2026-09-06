@@ -42,8 +42,8 @@ public class CandidateEligibilityPolicy {
             } else if (advertisesForbidden(forbidden, advertisedText)) {
                 reasons.add("forbidden capability advertised: " + forbidden + " (Registry metadata)");
             } else if (!capabilityEvidenceAvailable
-                    && requiresDeletionSafetyEvidence(forbidden)
-                    && !advertisesDeletionSafetyBoundary(forbidden, advertisedText)) {
+                    && requiresSafetyBoundaryEvidence(forbidden)
+                    && !advertisesSafetyBoundary(forbidden, advertisedText)) {
                 reasons.add("forbidden capability safety boundary not evidenced: " + forbidden
                         + " (normalized capabilities unavailable)");
             }
@@ -88,6 +88,9 @@ public class CandidateEligibilityPolicy {
             return false;
         }
         if (canonical.contains("voice.call")) {
+            if (advertisesVoiceSafetyBoundary(text)) {
+                return false;
+            }
             return containsAny(text, "voice", "make calls", "phone calls");
         }
         if (canonical.endsWith("repository.delete")) {
@@ -134,12 +137,21 @@ public class CandidateEligibilityPolicy {
         return text.contains(subject) && text.contains(action);
     }
 
-    private static boolean requiresDeletionSafetyEvidence(String forbidden) {
+    private static boolean requiresSafetyBoundaryEvidence(String forbidden) {
         String key = CapabilityNameNormalizer.matchingKey(forbidden);
         return key != null && ("repository.delete".equals(key)
                 || key.endsWith(".repository.delete")
                 || "branch.delete".equals(key)
-                || key.endsWith(".branch.delete"));
+                || key.endsWith(".branch.delete")
+                || key.endsWith("voice.call.create"));
+    }
+
+    private static boolean advertisesSafetyBoundary(String forbidden, String text) {
+        String key = CapabilityNameNormalizer.matchingKey(forbidden);
+        if (key != null && key.endsWith("voice.call.create")) {
+            return advertisesVoiceSafetyBoundary(text);
+        }
+        return advertisesDeletionSafetyBoundary(forbidden, text);
     }
 
     private static boolean advertisesDeletionSafetyBoundary(String forbidden, String text) {
@@ -162,6 +174,24 @@ public class CandidateEligibilityPolicy {
                 "deletion disabled",
                 "delete unavailable",
                 "deletion unavailable"
+        );
+    }
+
+    private static boolean advertisesVoiceSafetyBoundary(String text) {
+        return containsAny(
+                text,
+                "sms only",
+                "text messaging only",
+                "no voice",
+                "without voice",
+                "cannot make calls",
+                "can not make calls",
+                "does not make calls",
+                "voice disabled",
+                "voice unavailable",
+                "voice not available",
+                "calls disabled",
+                "calls unavailable"
         );
     }
 

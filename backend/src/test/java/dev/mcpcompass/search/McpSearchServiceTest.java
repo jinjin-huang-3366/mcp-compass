@@ -9,6 +9,7 @@ import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
 import dev.mcpcompass.requirement.RequirementAnalysis;
 import dev.mcpcompass.requirement.RequirementAnalyzer;
+import dev.mcpcompass.requirement.RequirementConstraint;
 import dev.mcpcompass.requirement.StructuredRequirement;
 import org.junit.jupiter.api.Test;
 import java.nio.charset.StandardCharsets;
@@ -293,6 +294,57 @@ class McpSearchServiceTest {
                         "forbidden capability safety boundary not evidenced: github.repository.delete "
                                 + "(normalized capabilities unavailable)",
                         "forbidden capability safety boundary not evidenced: github.branch.delete "
+                                + "(normalized capabilities unavailable)"
+                )
+        );
+    }
+
+    @Test
+    void abstainsFromTwilioCandidateWithoutVoiceSafetyEvidence() {
+        UUID serverId = UUID.fromString("90b363d6-2e4a-43aa-b963-c3042e4876c8");
+        McpServerEntity server = server(serverId, "io.example/twilio-sms", "Twilio SMS");
+        when(server.getDescription()).thenReturn("Send Twilio SMS messages");
+        RequirementAnalysis analysis = new RequirementAnalysis(
+                "Send Twilio SMS messages, but voice calls must never be available.",
+                List.of("send", "twilio", "sms", "messages"),
+                new StructuredRequirement(
+                        "1.0",
+                        "communication",
+                        "twilio",
+                        List.of("twilio.sms.send"),
+                        List.of("twilio.voice.call.create"),
+                        List.of(new RequirementConstraint(
+                                "communication-channel", RequirementConstraint.Operator.EQUALS, "sms"
+                        ))
+                )
+        );
+        List<LexicalCandidateStore.LexicalCandidate> candidates = lexicalCandidates(List.of(server));
+        when(analyzer.analyze(analysis.originalRequirement())).thenReturn(analysis);
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100))
+                .thenReturn(candidates);
+        when(repository.findAllById(List.of(serverId))).thenReturn(List.of(server));
+        when(capabilityStore.findCapabilityNamesByServerIds(List.of(serverId))).thenReturn(Map.of());
+        when(trustQualitySignalStore.findByServerIds(List.of(serverId))).thenReturn(Map.of());
+        McpSearchService metadataSparseSearchService = new McpSearchService(
+                analyzer,
+                repository,
+                lexicalCandidateStore,
+                new RankingService(),
+                capabilityStore,
+                embeddingService,
+                trustQualitySignalStore,
+                eligibilityPolicy,
+                new StrongMatchPolicy()
+        );
+
+        SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
+
+        assertThat(response.strongMatch()).isFalse();
+        assertThat(response.matches()).isEmpty();
+        assertThat(response.totalExcluded()).isEqualTo(1);
+        assertThat(response.exclusions()).singleElement().satisfies(exclusion ->
+                assertThat(exclusion.reasons()).containsExactly(
+                        "forbidden capability safety boundary not evidenced: twilio.voice.call.create "
                                 + "(normalized capabilities unavailable)"
                 )
         );

@@ -54,6 +54,46 @@ class CandidateEligibilityPolicyTest {
     }
 
     @Test
+    void excludesTwilioCandidateWhenVoiceSafetyCannotBeVerified() {
+        StructuredRequirement requirement = requirement(
+                List.of("twilio.voice.call.create"),
+                List.of(new RequirementConstraint(
+                        "communication-channel", RequirementConstraint.Operator.EQUALS, "sms"
+                ))
+        );
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(
+                requirement,
+                server("io.example/twilio", "Send Twilio SMS messages"),
+                null
+        );
+
+        assertThat(result.eligible()).isFalse();
+        assertThat(result.reasons()).containsExactly(
+                "forbidden capability safety boundary not evidenced: twilio.voice.call.create "
+                        + "(normalized capabilities unavailable)"
+        );
+    }
+
+    @Test
+    void acceptsExplicitVoiceSafetyBoundaryWithoutNormalizedCapabilities() {
+        StructuredRequirement requirement = requirement(
+                List.of("twilio.voice.call.create"),
+                List.of(new RequirementConstraint(
+                        "communication-channel", RequirementConstraint.Operator.EQUALS, "sms"
+                ))
+        );
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(
+                requirement,
+                server("io.example/twilio-sms", "Twilio SMS only; voice calls unavailable"),
+                null
+        );
+
+        assertThat(result.eligible()).isTrue();
+    }
+
+    @Test
     void enforcesReadOnlyConstraintConservatively() {
         StructuredRequirement requirement = requirement(
                 List.of("postgres.row.write"),
