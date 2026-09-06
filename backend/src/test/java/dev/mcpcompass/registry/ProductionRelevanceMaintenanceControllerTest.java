@@ -39,4 +39,26 @@ class ProductionRelevanceMaintenanceControllerTest {
 
         verify(service).activate(5, 100);
     }
+
+    @Test
+    void honorsBackendSupportedRegistryPageLimit() throws Exception {
+        mockMvc.perform(post("/api/v1/internal/production-relevance/activate")
+                        .header("Authorization", "Bearer maintenance-secret")
+                        .queryParam("maxPages", "100")
+                        .queryParam("embeddingBatchSize", "100"))
+                .andExpect(status().isOk());
+
+        verify(service).activate(100, 100);
+    }
+
+    @Test
+    void capsRegistryPagesAtBackendSupportedLimit() throws Exception {
+        mockMvc.perform(post("/api/v1/internal/production-relevance/activate")
+                        .header("Authorization", "Bearer maintenance-secret")
+                        .queryParam("maxPages", "101")
+                        .queryParam("embeddingBatchSize", "100"))
+                .andExpect(status().isOk());
+
+        verify(service).activate(100, 100);
+    }
 }
