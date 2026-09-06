@@ -93,6 +93,11 @@ the requirement has no structured capabilities, or the Registry supplied no capa
 that candidate, `capabilityCoverage` is `null` and ranking falls back to deterministic retrieval and
 quality signals instead of treating unknown metadata as confirmed zero coverage.
 
+Missing capability metadata is not treated as safety evidence. When a requirement forbids repository or branch
+deletion, a candidate without normalized capability evidence is excluded unless its Registry metadata explicitly
+states that the corresponding deletion operation is disabled. This keeps destructive capability uncertainty out of
+the ranked result while retaining the metadata-sparse ranking fallback for ordinary and explicitly bounded cases.
+
 `qualityScore` is a deterministic value from 0 to 1 built from persisted Registry provenance,
 installability, declared tool-schema coverage, and GitHub enrichment (archive status, license, and
 activity). It contributes a bounded 15% of secondary ranking so capability coverage remains dominant.
