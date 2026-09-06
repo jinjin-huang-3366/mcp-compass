@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -17,6 +18,19 @@ import java.util.regex.Pattern;
 public class CandidateEligibilityPolicy {
     private static final Set<String> MUTATING_ACTIONS = Set.of(
             "archive", "create", "delete", "edit", "insert", "manage", "publish", "share", "update", "write"
+    );
+    private static final Map<String, List<String>> NAMED_SERVICE_TERMS = Map.ofEntries(
+            Map.entry("github", List.of("github")),
+            Map.entry("twilio", List.of("twilio")),
+            Map.entry("postgres", List.of("postgres", "postgresql")),
+            Map.entry("postgresql", List.of("postgres", "postgresql")),
+            Map.entry("slack", List.of("slack")),
+            Map.entry("jira", List.of("jira")),
+            Map.entry("kubernetes", List.of("kubernetes")),
+            Map.entry("notion", List.of("notion")),
+            Map.entry("stripe", List.of("stripe")),
+            Map.entry("s3", List.of("s3", "amazon s3")),
+            Map.entry("google-drive", List.of("google drive"))
     );
 
     public Eligibility evaluate(
@@ -49,6 +63,13 @@ public class CandidateEligibilityPolicy {
             }
         }
 
+        String missingServiceEvidence = missingNamedServiceEvidence(
+                requirement.service(), advertisedText, capabilityEvidenceAvailable
+        );
+        if (missingServiceEvidence != null) {
+            reasons.add(missingServiceEvidence);
+        }
+
         for (RequirementConstraint constraint : requirement.constraints()) {
             String violation = constraintViolation(constraint, advertisedText);
             if (violation != null) {
@@ -56,6 +77,25 @@ public class CandidateEligibilityPolicy {
             }
         }
         return new Eligibility(reasons.isEmpty(), List.copyOf(reasons));
+    }
+
+    private static String missingNamedServiceEvidence(
+            String requiredService,
+            String advertisedText,
+            boolean capabilityEvidenceAvailable
+    ) {
+        if (capabilityEvidenceAvailable) {
+            return null;
+        }
+        String serviceKey = CapabilityNameNormalizer.canonicalName(requiredService);
+        if (serviceKey == null) {
+            return null;
+        }
+        List<String> evidenceTerms = NAMED_SERVICE_TERMS.get(serviceKey);
+        if (evidenceTerms == null || evidenceTerms.stream().anyMatch(term -> containsPhrase(advertisedText, term))) {
+            return null;
+        }
+        return "required service not evidenced: " + serviceKey + " (normalized capabilities unavailable)";
     }
 
     private static boolean violates(String forbidden, String available) {
@@ -245,6 +285,10 @@ public class CandidateEligibilityPolicy {
             }
         }
         return false;
+    }
+
+    private static boolean containsPhrase(String text, String phrase) {
+        return Pattern.compile("(?:^| )" + Pattern.quote(phrase) + "(?: |$)").matcher(text).find();
     }
 
     private static boolean mutationAdvertised(String text, String... actions) {

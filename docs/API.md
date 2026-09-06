@@ -99,6 +99,10 @@ unless its Registry metadata explicitly states that the corresponding operation 
 or channel-boundary uncertainty out of the ranked result while retaining the metadata-sparse ranking fallback for
 ordinary and explicitly bounded cases.
 
+For metadata-sparse candidates, an explicitly named integration such as PostgreSQL must also be evidenced by the
+candidate's Registry name, title, or description. Generic semantic similarity such as “query databases” cannot by
+itself satisfy a named-service requirement; the exclusion is returned in `exclusions` rather than hidden in scoring.
+
 `qualityScore` is a deterministic value from 0 to 1 built from persisted Registry provenance,
 installability, declared tool-schema coverage, and GitHub enrichment (archive status, license, and
 activity). It contributes a bounded 15% of secondary ranking so capability coverage remains dominant.
