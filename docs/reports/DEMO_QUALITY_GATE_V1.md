@@ -38,7 +38,7 @@ workflow run is the evidence that all four promoted-production checks passed for
 
 ## Production candidate
 
-Backend commit `1e5b0897cd87182bd5d4a1b3f96f1327cd9c523e` was staged, health/cron-auth checked, promoted, and health checked
-again by [production deployment run 34033070550](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34033070550).
+Backend commit `2584bb50881accba54073b6146fb9c0b9a14cdea` was staged, health/cron-auth checked, promoted, and health checked
+again by [production deployment run 34034280937](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34034280937).
 The linked EXIT-05 task workflow must still pass the fixed REL-01 metrics and all four authenticated searches against
 that promoted backend before this acceptance record is merged and the plan item is marked complete.
