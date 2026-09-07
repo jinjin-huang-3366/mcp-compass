@@ -166,7 +166,9 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [ ] **MKT-08** — Prepare the Product Hunt launch. _(Depends on: MKT-04)_
 - [ ] **MKT-09** — Prepare the Hacker News Show HN post. _(Depends on: MKT-04)_
 - [ ] **MKT-10** — Prepare relevant Reddit posts. _(Depends on: MKT-04)_
-- [ ] **MKT-11** — Track referral sources in web analytics. _(Depends on: DEP-01; integration prepared, pending frontend deployment and Vercel Web Analytics activation.)_
+- [ ] **MKT-11** — Track referral sources in web analytics. _(Depends on: DEP-01)_
+
+  Integration prepared; completion requires frontend deployment and Vercel Web Analytics activation.
 - [ ] **MKT-12** — Triage launch feedback into reviewable GitHub issues with source links. _(Depends on: MKT-05, MKT-06, MKT-07, MKT-08, MKT-09, MKT-10, MKT-11)_
 
 ## Explicit non-goals for V0.1
