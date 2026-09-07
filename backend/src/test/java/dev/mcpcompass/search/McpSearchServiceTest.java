@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,7 +46,8 @@ class McpSearchServiceTest {
             embeddingService,
             trustQualitySignalStore,
             eligibilityPolicy,
-            new StrongMatchPolicy()
+            new StrongMatchPolicy(),
+            Runnable::run
     );
 
     @Test
@@ -187,7 +191,8 @@ class McpSearchServiceTest {
                 embeddingService,
                 trustQualitySignalStore,
                 eligibilityPolicy,
-                new StrongMatchPolicy()
+                new StrongMatchPolicy(),
+                Runnable::run
         );
 
         SearchResponse response = capabilitySearchService.search(analysis.originalRequirement(), 1, 10);
@@ -230,7 +235,8 @@ class McpSearchServiceTest {
                 embeddingService,
                 trustQualitySignalStore,
                 eligibilityPolicy,
-                new StrongMatchPolicy()
+                new StrongMatchPolicy(),
+                Runnable::run
         );
 
         SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
@@ -281,7 +287,8 @@ class McpSearchServiceTest {
                 embeddingService,
                 trustQualitySignalStore,
                 eligibilityPolicy,
-                new StrongMatchPolicy()
+                new StrongMatchPolicy(),
+                Runnable::run
         );
 
         SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
@@ -334,7 +341,8 @@ class McpSearchServiceTest {
                 embeddingService,
                 trustQualitySignalStore,
                 eligibilityPolicy,
-                new StrongMatchPolicy()
+                new StrongMatchPolicy(),
+                Runnable::run
         );
 
         SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
@@ -392,7 +400,8 @@ class McpSearchServiceTest {
                 embeddingService,
                 trustQualitySignalStore,
                 eligibilityPolicy,
-                new StrongMatchPolicy()
+                new StrongMatchPolicy(),
+                Runnable::run
         );
 
         SearchResponse response = metadataSparseSearchService.search(analysis.originalRequirement(), 1, 10);
@@ -435,7 +444,8 @@ class McpSearchServiceTest {
                 embeddingService,
                 trustQualitySignalStore,
                 eligibilityPolicy,
-                new StrongMatchPolicy()
+                new StrongMatchPolicy(),
+                Runnable::run
         );
 
         SearchResponse response = vectorSearchService.search(analysis.originalRequirement(), 1, 10);
@@ -479,6 +489,42 @@ class McpSearchServiceTest {
             );
         });
         verify(rankingService, never()).rank(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void overlapsVectorRetrievalWithRequirementAnalysisForInitialSearch() throws InterruptedException {
+        String requirement = "find a postgres MCP";
+        RequirementAnalysis analysis = new RequirementAnalysis(requirement, List.of("postgres"));
+        CountDownLatch vectorRetrievalStarted = new CountDownLatch(1);
+        when(analyzer.analyze(requirement)).thenAnswer(ignored -> {
+            assertThat(vectorRetrievalStarted.await(2, TimeUnit.SECONDS)).isTrue();
+            return analysis;
+        });
+        when(embeddingService.findNearestServers(requirement)).thenAnswer(ignored -> {
+            vectorRetrievalStarted.countDown();
+            return List.of();
+        });
+        when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100)).thenReturn(List.of());
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            McpSearchService concurrentSearchService = new McpSearchService(
+                    analyzer,
+                    repository,
+                    lexicalCandidateStore,
+                    rankingService,
+                    capabilityStore,
+                    embeddingService,
+                    trustQualitySignalStore,
+                    eligibilityPolicy,
+                    new StrongMatchPolicy(),
+                    executor
+            );
+
+            concurrentSearchService.search(requirement, 1, 10);
+        }
+
+        verify(analyzer).analyze(requirement);
+        verify(embeddingService).findNearestServers(requirement);
     }
 
     private static McpServerEntity server(String registryName) {

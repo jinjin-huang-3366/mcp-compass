@@ -1,15 +1,21 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SearchForm } from "./SearchForm";
 import { searchMcps } from "../lib/api";
+import { clearSearchCache } from "../lib/search-cache";
+
+const navigation = vi.hoisted(() => ({
+  push: vi.fn(),
+  search: "q=Read+GitHub+issues&page=2",
+}));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/",
-  useRouter: () => ({ push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams("q=Read+GitHub+issues&page=2"),
+  useRouter: () => ({ push: navigation.push }),
+  useSearchParams: () => new URLSearchParams(navigation.search),
 }));
 
 vi.mock("../lib/api", () => ({
@@ -18,6 +24,8 @@ vi.mock("../lib/api", () => ({
 
 afterEach(() => {
   cleanup();
+  clearSearchCache();
+  navigation.search = "q=Read+GitHub+issues&page=2";
   vi.clearAllMocks();
 });
 
@@ -64,7 +72,7 @@ describe("SearchForm", () => {
       }],
     });
 
-    render(<SearchForm />);
+    const firstVisit = render(<SearchForm />);
 
     expect(await screen.findByRole("link", { name: "View MCP details" }))
       .toHaveAttribute("href", "/mcp/server-1?q=Read+GitHub+issues&page=2");
@@ -72,6 +80,28 @@ describe("SearchForm", () => {
       .toHaveAttribute("href", "https://github.com/example/github-mcp");
     expect(screen.getByRole("heading", { name: "Parsed intent" })).toBeInTheDocument();
     expect(screen.getAllByText("github.issue.read")).toHaveLength(2);
+
+    firstVisit.unmount();
+    render(<SearchForm />);
+
+    expect(await screen.findByRole("link", { name: "View MCP details" })).toBeInTheDocument();
+    expect(searchMcps).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts a new search before updating the shareable URL", () => {
+    navigation.search = "";
+    vi.mocked(searchMcps).mockImplementation(() => new Promise(() => undefined));
+
+    render(<SearchForm />);
+    fireEvent.change(screen.getByLabelText("What does your agent need to do?"), {
+      target: { value: "Find a read-only PostgreSQL MCP" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Find MCP" }));
+
+    expect(searchMcps).toHaveBeenCalledWith("Find a read-only PostgreSQL MCP", 1, 10);
+    expect(navigation.push).toHaveBeenCalledWith("/?q=Find+a+read-only+PostgreSQL+MCP");
+    expect(vi.mocked(searchMcps).mock.invocationCallOrder[0])
+      .toBeLessThan(navigation.push.mock.invocationCallOrder[0]);
   });
 
   it("shows parsed hard conditions and an explicit abstention", async () => {

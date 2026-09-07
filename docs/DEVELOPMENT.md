@@ -88,6 +88,16 @@ npm install
 npm run dev
 ```
 
+The search UI starts a submitted or paginated request before its URL navigation completes. Successful responses are
+kept in a bounded five-minute in-memory cache keyed by requirement, page, and page size, so returning from an MCP
+detail page restores the existing results without repeating the backend search. Submitting **Find MCP** again for the
+same first-page requirement explicitly invalidates that entry and requests fresh results.
+
+For a new search, the backend starts optional vector retrieval concurrently with requirement analysis instead of
+waiting for those two remote-provider calls in sequence. It then loads the union of lexical and vector candidates in
+one repository query before deterministic ranking. With vector retrieval disabled, the same pipeline remains purely
+local after requirement analysis.
+
 ## Tests
 ```bash
 ./mvnw -pl backend,validation-worker test
