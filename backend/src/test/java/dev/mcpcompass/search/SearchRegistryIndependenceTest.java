@@ -75,7 +75,8 @@ class SearchRegistryIndependenceTest {
                 embeddingService,
                 trustQualitySignalStore,
                 new CandidateEligibilityPolicy(),
-                new StrongMatchPolicy()
+                new StrongMatchPolicy(),
+                Runnable::run
         );
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new McpSearchController(service)).build();
 

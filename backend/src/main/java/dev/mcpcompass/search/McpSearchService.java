@@ -9,6 +9,7 @@ import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
 import dev.mcpcompass.requirement.RequirementAnalysis;
 import dev.mcpcompass.requirement.RequirementAnalyzer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -18,6 +19,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 @Service
 public class McpSearchService {
@@ -32,6 +35,7 @@ public class McpSearchService {
     private final TrustQualitySignalStore trustQualitySignalStore;
     private final CandidateEligibilityPolicy eligibilityPolicy;
     private final StrongMatchPolicy strongMatchPolicy;
+    private final Executor searchRetrievalExecutor;
 
     public McpSearchService(
             RequirementAnalyzer analyzer,
@@ -42,7 +46,8 @@ public class McpSearchService {
             ServerEmbeddingService embeddingService,
             TrustQualitySignalStore trustQualitySignalStore,
             CandidateEligibilityPolicy eligibilityPolicy,
-            StrongMatchPolicy strongMatchPolicy
+            StrongMatchPolicy strongMatchPolicy,
+            @Qualifier("searchRetrievalExecutor") Executor searchRetrievalExecutor
     ) {
         this.analyzer = analyzer;
         this.repository = repository;
@@ -53,6 +58,7 @@ public class McpSearchService {
         this.trustQualitySignalStore = trustQualitySignalStore;
         this.eligibilityPolicy = eligibilityPolicy;
         this.strongMatchPolicy = strongMatchPolicy;
+        this.searchRetrievalExecutor = searchRetrievalExecutor;
     }
 
     public SearchResponse search(String requirement, int page, int pageSize) {
@@ -60,8 +66,13 @@ public class McpSearchService {
             throw new IllegalArgumentException("Page and page size must be positive");
         }
 
+        CompletableFuture<List<ServerEmbeddingService.ServerEmbeddingMatch>> vectorMatches =
+                CompletableFuture.supplyAsync(
+                        () -> embeddingService.findNearestServers(requirement),
+                        searchRetrievalExecutor
+                );
         RequirementAnalysis analysis = analyzer.analyze(requirement);
-        List<RetrievedCandidate> candidates = candidates(requirement, analysis.keywords());
+        List<RetrievedCandidate> candidates = candidates(analysis.keywords(), vectorMatches.join());
         Map<UUID, Set<String>> capabilitiesByServer = capabilityStore.findCapabilityNamesByServerIds(
                 candidates.stream().map(candidate -> candidate.server().getId()).toList()
         );
@@ -173,29 +184,30 @@ public class McpSearchService {
         );
     }
 
-    private List<RetrievedCandidate> candidates(String requirement, List<String> keywords) {
-        Map<UUID, RetrievedCandidate> candidatesById = new LinkedHashMap<>();
-        if (!keywords.isEmpty()) {
-            List<UUID> lexicalIds = lexicalCandidateStore.findCandidates(keywords, MAX_CANDIDATES).stream()
-                    .map(LexicalCandidateStore.LexicalCandidate::serverId)
-                    .toList();
-            Map<UUID, McpServerEntity> lexicalCandidatesById = serversById(lexicalIds);
-            lexicalIds.forEach(serverId -> {
-                McpServerEntity server = lexicalCandidatesById.get(serverId);
-                if (server != null) {
-                    candidatesById.put(serverId, new RetrievedCandidate(server, null));
-                }
-            });
-        }
-
-        List<ServerEmbeddingService.ServerEmbeddingMatch> vectorMatches =
-                embeddingService.findNearestServers(requirement);
+    private List<RetrievedCandidate> candidates(
+            List<String> keywords,
+            List<ServerEmbeddingService.ServerEmbeddingMatch> vectorMatches
+    ) {
+        List<UUID> lexicalIds = keywords.isEmpty() ? List.of() : lexicalCandidateStore
+                .findCandidates(keywords, MAX_CANDIDATES).stream()
+                .map(LexicalCandidateStore.LexicalCandidate::serverId)
+                .toList();
         List<UUID> vectorIds = vectorMatches.stream()
                 .map(ServerEmbeddingService.ServerEmbeddingMatch::serverId)
                 .toList();
-        Map<UUID, McpServerEntity> vectorCandidatesById = serversById(vectorIds);
+
+        Set<UUID> candidateIds = new java.util.LinkedHashSet<>(lexicalIds);
+        candidateIds.addAll(vectorIds);
+        Map<UUID, McpServerEntity> serversById = serversById(List.copyOf(candidateIds));
+        Map<UUID, RetrievedCandidate> candidatesById = new LinkedHashMap<>();
+        lexicalIds.forEach(serverId -> {
+            McpServerEntity server = serversById.get(serverId);
+            if (server != null) {
+                candidatesById.put(serverId, new RetrievedCandidate(server, null));
+            }
+        });
         vectorMatches.forEach(match -> {
-            McpServerEntity server = vectorCandidatesById.get(match.serverId());
+            McpServerEntity server = serversById.get(match.serverId());
             if (server != null) {
                 candidatesById.put(
                         match.serverId(),
