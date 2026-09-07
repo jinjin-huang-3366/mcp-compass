@@ -3,7 +3,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { searchMcps, SearchResponse } from "@/lib/api";
+import { SearchResponse } from "@/lib/api";
+import { fetchCachedSearch, getCachedSearch, invalidateCachedSearch } from "@/lib/search-cache";
 import { detailUrl, pageFromUrl, searchUrl } from "@/lib/search-navigation";
 import { CapabilityCoverage } from "@/components/CapabilityCoverage";
 import { RankingExplanation } from "@/components/RankingExplanation";
@@ -21,8 +22,9 @@ export function SearchForm() {
   const searchKey = `${urlRequirement}\n${urlPage}`;
 
   const [requirement, setRequirement] = useState(urlRequirement || EXAMPLE);
-  const [result, setResult] = useState<SearchResponse | null>(null);
-  const [loading, setLoading] = useState(Boolean(urlRequirement));
+  const initialResult = urlRequirement ? getCachedSearch(urlRequirement, urlPage, PAGE_SIZE) : null;
+  const [result, setResult] = useState<SearchResponse | null>(initialResult);
+  const [loading, setLoading] = useState(Boolean(urlRequirement) && !initialResult);
   const [error, setError] = useState<{ key: string; message: string } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -37,15 +39,18 @@ export function SearchForm() {
       return;
     }
 
-    const controller = new AbortController();
-    searchMcps(urlRequirement, urlPage, PAGE_SIZE, controller.signal)
+    let active = true;
+    fetchCachedSearch(urlRequirement, urlPage, PAGE_SIZE)
       .then((response) => {
+        if (!active) {
+          return;
+        }
         setRequirement(urlRequirement);
         setResult(response);
         setError(null);
       })
       .catch((cause: unknown) => {
-        if (cause instanceof DOMException && cause.name === "AbortError") {
+        if (!active) {
           return;
         }
         setError({
@@ -54,12 +59,14 @@ export function SearchForm() {
         });
       })
       .finally(() => {
-        if (!controller.signal.aborted) {
+        if (active) {
           setLoading(false);
         }
       });
 
-    return () => controller.abort();
+    return () => {
+      active = false;
+    };
   }, [refreshKey, searchKey, urlPage, urlRequirement]);
 
   function submit(event: FormEvent) {
@@ -70,6 +77,8 @@ export function SearchForm() {
     }
 
     if (nextRequirement === urlRequirement && urlPage === 1) {
+      invalidateCachedSearch(urlRequirement, urlPage, PAGE_SIZE);
+      setResult(null);
       setLoading(true);
       setError(null);
       setRefreshKey((current) => current + 1);
@@ -77,6 +86,7 @@ export function SearchForm() {
     }
     setLoading(true);
     setError(null);
+    void fetchCachedSearch(nextRequirement, 1, PAGE_SIZE).catch(() => undefined);
     router.push(searchUrl(pathname, nextRequirement, 1));
   }
 
@@ -86,6 +96,7 @@ export function SearchForm() {
     }
     setLoading(true);
     setError(null);
+    void fetchCachedSearch(urlRequirement, page, PAGE_SIZE).catch(() => undefined);
     router.push(searchUrl(pathname, urlRequirement, page));
   }
 

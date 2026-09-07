@@ -88,6 +88,11 @@ npm install
 npm run dev
 ```
 
+The search UI starts a submitted or paginated request before its URL navigation completes. Successful responses are
+kept in a bounded five-minute in-memory cache keyed by requirement, page, and page size, so returning from an MCP
+detail page restores the existing results without repeating the backend search. Submitting **Find MCP** again for the
+same first-page requirement explicitly invalidates that entry and requests fresh results.
+
 ## Tests
 ```bash
 ./mvnw -pl backend,validation-worker test
