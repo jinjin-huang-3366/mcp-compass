@@ -105,7 +105,6 @@ button:disabled { opacity: .55; cursor: default; }
   .intentCapabilities { grid-template-columns: 1fr; }
   .rankingExplanation dl div { grid-template-columns: 1fr; gap: 3px; }
 }
-footer { margin-top: 24px; color: #6b7280; font-size: 13px; }
 .generationLink { display: inline-flex; margin-top: 22px; font-weight: 700; text-underline-offset: 3px; }
 .generationShell { max-width: 960px; }
 .contractReview, .contractEditor, .approvedContract { display: grid; gap: 20px; }

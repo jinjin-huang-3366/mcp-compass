@@ -8,7 +8,7 @@ export default function GeneratePage() {
       <section className="hero">
         <div className="eyebrow">CONTRACT-FIRST GENERATION</div>
         <h1>Review the tools before generating code.</h1>
-        <p>Upload an OpenAPI document, choose the operations the MCP should expose, and edit their developer-facing tool names and descriptions.</p>
+        <p>Upload an OpenAPI document, choose and review the operations to expose as tools, then download a GitHub-ready Node.js/TypeScript MCP server.</p>
       </section>
       <ContractReview />
     </main>
