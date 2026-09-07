@@ -41,7 +41,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-22 — calibrate the demo experience** | `REL-06` | `REL-05` | Complete (1/1) |
 | **PG-23 — activate production relevance** | `DEP-04` | `REL-06` | Complete (1/1) |
 | **PG-24 — pass the demo-quality gate** | `EXIT-05` | `DEP-04` | Complete (1/1) |
-| **PG-25 — establish launch operations** | `MKT-01`, `MKT-11` | `EXIT-05` and, for `MKT-11`, `DEP-01` | In progress (1/2) |
+| **PG-25 — establish launch operations** | `MKT-01`, `MKT-11` | `EXIT-05` and, for `MKT-11`, `DEP-01` | Complete (2/2) |
 | **PG-26 — prepare launch content pipeline** | `MKT-02`, `MKT-03` | `MKT-01` | Not started (0/2) |
 | **PG-27 — gate external publishing** | `MKT-04` | `MKT-02`, `MKT-03` | Not started (0/1) |
 | **PG-28 — launch across developer channels** | `MKT-05`, `MKT-06`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` | Not started (0/6) |
@@ -166,9 +166,10 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [ ] **MKT-08** — Prepare the Product Hunt launch. _(Depends on: MKT-04)_
 - [ ] **MKT-09** — Prepare the Hacker News Show HN post. _(Depends on: MKT-04)_
 - [ ] **MKT-10** — Prepare relevant Reddit posts. _(Depends on: MKT-04)_
-- [ ] **MKT-11** — Track referral sources in web analytics. _(Depends on: DEP-01)_
+- [x] **MKT-11** — Track referral sources in web analytics. _(Depends on: DEP-01)_
 
-  Integration prepared; completion requires frontend deployment and Vercel Web Analytics activation.
+  Production evidence: commit `9ab1c47b8e3885bc983103738f7ac54d3ba8d61d` was deployed by Vercel workflow
+  run `34166221323`, its frontend smoke tests passed, and Web Analytics was enabled for the frontend project.
 - [ ] **MKT-12** — Triage launch feedback into reviewable GitHub issues with source links. _(Depends on: MKT-05, MKT-06, MKT-07, MKT-08, MKT-09, MKT-10, MKT-11)_
 
 ## Explicit non-goals for V0.1
