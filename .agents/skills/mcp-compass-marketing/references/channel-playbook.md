@@ -41,4 +41,8 @@ Select communities only after checking their current self-promotion and flair ru
 
 ## Measurement and feedback
 
-Use stable source/medium/campaign values across links when analytics is configured, with content identifiers only where variants need comparison. Preserve publication URLs. Group feedback by theme, link to the original source, and separate bugs, feature requests, questions, and positioning signals before proposing GitHub issues.
+MCP Compass uses Vercel Web Analytics for cookie-free page views and initial-page referrers. The current Hobby
+dashboard reports referrer domains but does not expose UTM dimensions, so measure this launch by source domain and
+preserve every publication URL. UTM-tagged links may still be prepared for portability, but do not claim those
+dimensions are visible until the analytics plan supports them. Group feedback by theme, link to the original source,
+and separate bugs, feature requests, questions, and positioning signals before proposing GitHub issues.

@@ -37,6 +37,11 @@ The backend image runs as a non-root user and starts a small `socat` gate on Ver
 
 Create or link a second Vercel project with `web/` as its root directory. Set `NEXT_PUBLIC_API_BASE_URL` to the backend production URL for Production and the desired Preview environments, then redeploy. After the frontend URL is stable, replace any broad preview CORS pattern with the exact production origin and redeploy the backend.
 
+Enable Web Analytics for the frontend project in the Vercel dashboard. The root layout includes
+`@vercel/analytics`, which records cookie-free page views and initial-page referrers after the feature is enabled and
+the frontend is redeployed. The Hobby dashboard supports referrer reporting but not UTM-parameter dimensions; do not
+claim campaign-level UTM attribution unless the project gains a plan that exposes it.
+
 ## Validation worker
 
 The existing `validation-worker` is not an HTTP service and must not be folded into the Spring Boot container. It continuously claims PostgreSQL jobs and launches generated code only inside isolated Docker containers. Deploy it unchanged only on a dedicated hardened container-runtime host.
