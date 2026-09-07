@@ -1,0 +1,4 @@
+interface:
+  display_name: "MCP Compass Marketing"
+  short_description: "Prepare and coordinate developer launch campaigns"
+  default_prompt: "Use $mcp-compass-marketing to prepare a launch campaign from verified MCP Compass release evidence."

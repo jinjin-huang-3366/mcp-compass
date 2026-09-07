@@ -41,6 +41,11 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-22 — calibrate the demo experience** | `REL-06` | `REL-05` | Complete (1/1) |
 | **PG-23 — activate production relevance** | `DEP-04` | `REL-06` | Complete (1/1) |
 | **PG-24 — pass the demo-quality gate** | `EXIT-05` | `DEP-04` | Complete (1/1) |
+| **PG-25 — establish launch operations** | `MKT-01`, `MKT-11` | `EXIT-05` and, for `MKT-11`, `DEP-01` | In progress (1/2) |
+| **PG-26 — prepare launch content pipeline** | `MKT-02`, `MKT-03` | `MKT-01` | Not started (0/2) |
+| **PG-27 — gate external publishing** | `MKT-04` | `MKT-02`, `MKT-03` | Not started (0/1) |
+| **PG-28 — launch across developer channels** | `MKT-05`, `MKT-06`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` | Not started (0/6) |
+| **PG-29 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-06`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
@@ -148,6 +153,21 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 ### Production activation and demo gate
 - [x] **DEP-04** — Enable production LLM analysis, vectors, and GitHub enrichment; finish a bounded Registry resync and search-document/embedding backfill, record corpus/capability/embedding coverage, and smoke-test without exposing credentials. _(Depends on: REL-05, REL-06, DEP-03)_
 - [x] **EXIT-05** — Pass REL-01 with Recall@100 ≥95%, NDCG@10 ≥0.80, acceptable top-three ≥90%, zero forbidden violations, and correct no-match abstention ≥90%; verify the four named demo searches in production. _(Depends on: DEP-04)_
+
+## V0.7 — Developer Launch & Feedback
+
+- [x] **MKT-01** — Create the `mcp-compass-marketing` Agent Skill. _(Depends on: EXIT-05)_
+- [ ] **MKT-02** — Integrate Typefully MCP for managed social drafts and publishing. _(Depends on: MKT-01)_
+- [ ] **MKT-03** — Generate launch content from verified release notes and repository evidence. _(Depends on: MKT-01)_
+- [ ] **MKT-04** — Add human approval of exact channel copy and schedule before publishing. _(Depends on: MKT-02, MKT-03)_
+- [ ] **MKT-05** — Launch on X. _(Depends on: MKT-04)_
+- [ ] **MKT-06** — Launch on LinkedIn. _(Depends on: MKT-04)_
+- [ ] **MKT-07** — Launch on Bluesky. _(Depends on: MKT-04)_
+- [ ] **MKT-08** — Prepare the Product Hunt launch. _(Depends on: MKT-04)_
+- [ ] **MKT-09** — Prepare the Hacker News Show HN post. _(Depends on: MKT-04)_
+- [ ] **MKT-10** — Prepare relevant Reddit posts. _(Depends on: MKT-04)_
+- [ ] **MKT-11** — Track referral sources in web analytics. _(Depends on: DEP-01)_
+- [ ] **MKT-12** — Triage launch feedback into reviewable GitHub issues with source links. _(Depends on: MKT-05, MKT-06, MKT-07, MKT-08, MKT-09, MKT-10, MKT-11)_
 
 ## Explicit non-goals for V0.1
 - Agent runtime/orchestrator.
