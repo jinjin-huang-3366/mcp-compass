@@ -1,3 +1,11 @@
 # Project-scoped Codex settings. Codex loads project .codex configuration only for trusted projects.
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
+
+# Typefully is optional until an operator completes OAuth with `codex mcp login typefully`.
+# Prompt for every tool invocation because even creating a remote draft changes external state.
+[mcp_servers.typefully]
+url = "https://mcp.typefully.com/mcp"
+auth = "oauth"
+required = false
+default_tools_approval_mode = "prompt"

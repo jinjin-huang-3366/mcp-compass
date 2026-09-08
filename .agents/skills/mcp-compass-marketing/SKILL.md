@@ -32,7 +32,15 @@ Ask for a release, tag, commit range, or launch scope only when it cannot be inf
 
 ## Typefully boundary
 
-Use Typefully MCP only when its tools are available and the requested account/channel is connected. Creating a remote draft, scheduling, editing a scheduled post, or publishing changes external state: state the intended action and obtain authorization for it. Publishing always requires approval of the exact final copy and schedule immediately beforehand.
+The repository configures the optional `typefully` remote MCP server. Before using it, confirm that the server is
+available and authenticated and identify the requested social set/account and connected channel. Follow
+[`docs/MARKETING.md`](../../../docs/MARKETING.md) for first-time OAuth setup and connection checks. Never place an API
+key or OAuth token in repository files.
+
+Creating a remote draft, scheduling, editing a scheduled post, or publishing changes external state: state the exact
+intended action and obtain authorization for it. Publishing always requires approval of the exact final copy and
+schedule immediately beforehand. A request to prepare copy or an approval package is not authorization to create a
+Typefully draft.
 
 If Typefully MCP is unavailable or does not support a requested channel, produce an import-ready draft package and report the missing integration. Do not silently switch to browser automation or post directly through another service.
 

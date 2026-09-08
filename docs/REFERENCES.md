@@ -5,6 +5,7 @@ Checked when this starter was generated (2026-08-10).
 - Codex AGENTS.md: https://developers.openai.com/codex/guides/agents-md
 - Codex skills: https://developers.openai.com/codex/build-skills
 - Codex config: https://developers.openai.com/codex/config-basic
+- Codex MCP configuration: https://developers.openai.com/codex/mcp
 - GitHub Copilot custom instructions: https://docs.github.com/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot
 - GitHub Copilot agent skills: https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills
 - MCP Registry aggregators: https://modelcontextprotocol.io/registry/registry-aggregators
@@ -19,3 +20,4 @@ Checked when this starter was generated (2026-08-10).
 - OpenAI embeddings API: https://developers.openai.com/api/reference/resources/embeddings/methods/create
 - React versions: https://react.dev/versions
 - React npm package: https://www.npmjs.com/package/react
+- Typefully MCP server: https://support.typefully.com/en/articles/13128440-typefully-mcp-server
