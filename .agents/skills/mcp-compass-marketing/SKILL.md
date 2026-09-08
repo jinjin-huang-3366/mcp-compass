@@ -20,6 +20,12 @@ Write for agent and MCP developers. Preserve MCP Compass's core positioning:
 
 Ask for a release, tag, commit range, or launch scope only when it cannot be inferred safely. For a full multi-channel campaign, read [references/channel-playbook.md](references/channel-playbook.md).
 
+When generating launch content, create an evidence ledger before writing copy. Give each public claim a stable ID,
+link it to a release note and at least one primary repository or workflow source, and record whether it is deployed,
+merged but not deployed, or planned. Copy may use only deployed claim IDs. If there is no GitHub release, use an
+exact deployed commit as the release boundary and say that explicitly; do not imply that a tag or release exists.
+Keep time-varying measurements qualified with the date or workflow run that observed them.
+
 ## Campaign workflow
 
 1. Verify the release boundary and whether it is deployed.
@@ -29,6 +35,10 @@ Ask for a release, tag, commit range, or launch scope only when it cannot be inf
 5. Present an approval package with exact copy, media/link references, account/channel, and proposed timing.
 6. Publish or schedule only after the user explicitly approves that exact package. Any material copy, link, channel, account, or schedule change invalidates the prior approval.
 7. Return publication URLs and a concise record of what was published. Never claim success from a draft or queued action.
+
+The checked-in [launch package](../../../docs/marketing/LAUNCH_PACKAGE_V1.md) is the initial developer-launch fact
+sheet and draft set. Re-verify its release boundary and evidence links before requesting approval; it is not a record
+of approval or publication.
 
 ## Typefully boundary
 
