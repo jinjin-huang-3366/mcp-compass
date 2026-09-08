@@ -17,6 +17,7 @@ Useful project skills:
 - `$mcp-task-pr-flow`
 - `$mcp-task-batch-flow`
 - `$mcp-vercel-deploy`
+- `$mcp-compass-marketing`
 - `$github-pr-workflow`
 - `$ci-failure-triage`
 
@@ -57,6 +58,12 @@ Use $mcp-vercel-deploy to ensure CI passes for the latest main commit, then depl
 ```
 
 The command reuses, waits for, or starts CI for the exact latest `main` commit, rechecks that `main` did not advance, and then dispatches the manual deployment workflow. It stages and smoke-tests the backend before promotion, then does the same for the frontend. Request only `backend` or `frontend` for an intentionally component-scoped deployment. Required GitHub Actions secret names and first-time setup are documented in `docs/DEPLOYMENT.md`.
+
+### Marketing connector
+
+The optional project-scoped `typefully` MCP server provides the managed social draft and publishing connection. Launch
+operators complete OAuth locally; no Typefully credential belongs in the repository. Setup, verification, safe draft
+boundaries, and fallback behavior are documented in [Marketing operations](MARKETING.md).
 
 ## GitHub Copilot
 This repo contains `.github/copilot-instructions.md` and path-specific `.github/instructions/*.instructions.md`.
