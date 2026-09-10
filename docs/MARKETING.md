@@ -42,6 +42,40 @@ Preparing local copy or an approval package does not authorize creating a remote
 of the exact final copy, destinations, links or media, and schedule immediately beforehand. If any of those details
 change, obtain fresh approval. Never publish merely because a draft was approved.
 
+### Exact-copy approval gate
+
+Before a scheduling or publishing call, present one final, independently reviewable package for each post. Include a
+stable package label and revision, intended action, exact social set/account and destination, complete copy, every
+link and media/alt-text value, and the schedule as an ISO 8601 timestamp with UTC offset plus a named timezone. For a
+publish-now action, use `immediately after approval` instead of a scheduled timestamp. State `none` rather than
+leaving optional media or links ambiguous.
+
+Ask the human to approve that exact revision for the stated action. Approval must be explicit and occur in the
+current conversation after the complete package is shown. An approved local draft, an approved unscheduled remote
+draft, a checked-in package, silence, or a general earlier instruction to launch does not authorize scheduling or
+publishing.
+
+Immediately before the external call, compare the account, channel, action, copy, links, media, alt text, and schedule
+with the approved package. Any change, including a new time or destination, invalidates approval and requires the
+revised complete package to be shown again. Stop for fresh approval if the scheduled time has passed or the platform
+would materially transform the content. The operational checklist and reusable approval prompt are in
+[`approval-gate.md`](../.agents/skills/mcp-compass-marketing/references/approval-gate.md).
+
+Example final gate (illustrative only; it is not an approval):
+
+```text
+Package: X-LAUNCH revision 3
+Action: schedule
+Account/channel: MCP Compass social set / X
+Copy: <the complete final post>
+Links: https://example.test/final
+Media and alt text: none
+Schedule: 2026-09-15T16:00:00+01:00 (Europe/London)
+
+Approve this exact revision for the stated account, copy, media, and schedule? Reply with explicit approval or
+request changes. No external action occurs without it.
+```
+
 Example safe handoff:
 
 ```text

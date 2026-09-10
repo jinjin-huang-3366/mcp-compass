@@ -1,6 +1,6 @@
 # MCP Compass developer launch package v1
 
-Status: draft only; not approved, scheduled, or published.
+Status: draft only; not approved, scheduled, or published. This file is source material, not an approval record.
 
 ## Release boundary
 
@@ -153,3 +153,9 @@ MKT-04 must replace the immutable Vercel deployment URL if a verified stable can
 the exact accounts and communities, verify current platform limits and community rules, attach final media and alt
 text, and record an exact schedule. Any edit to copy, link, account, channel, media, or schedule requires approval of
 the resulting package. No Typefully or platform action has been taken by this task.
+
+For each channel, turn the selected material into a separate package using the
+[exact-copy approval gate](../../.agents/skills/mcp-compass-marketing/references/approval-gate.md). The package must
+name its intended action and revision and use an ISO 8601 timestamp with UTC offset plus a named timezone. Show the
+entire package and obtain explicit human approval in the current conversation immediately before scheduling or
+publishing. Neither this launch package nor approval of an unscheduled draft grants publishing authority.
