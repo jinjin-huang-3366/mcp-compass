@@ -32,8 +32,8 @@ Keep time-varying measurements qualified with the date or workflow run that obse
 2. Produce a short brief containing audience, problem, shipped proof points, limitations, call to action, canonical link, and measurement plan.
 3. Draft native copy for only the requested channels. Avoid identical cross-posts and unsupported superlatives.
 4. Add consistent referral parameters when analytics support is verified; otherwise identify tracking as a dependency instead of fabricating it.
-5. Present an approval package with exact copy, media/link references, account/channel, and proposed timing.
-6. Publish or schedule only after the user explicitly approves that exact package. Any material copy, link, channel, account, or schedule change invalidates the prior approval.
+5. Present an approval package with exact copy, media/link references, account/channel, intended external action, and an ISO 8601 schedule including its UTC offset. Follow [the approval gate](references/approval-gate.md) and include its explicit approval prompt.
+6. Publish or schedule only after the user explicitly approves that exact package in the current conversation. Approval of a draft, an earlier version, a partial package, or a repository file is not publishing approval. Any material copy, link, channel, account, action, media, or schedule change invalidates the prior approval.
 7. Return publication URLs and a concise record of what was published. Never claim success from a draft or queued action.
 
 The checked-in [launch package](../../../docs/marketing/LAUNCH_PACKAGE_V1.md) is the initial developer-launch fact
