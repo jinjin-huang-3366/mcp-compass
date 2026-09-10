@@ -43,7 +43,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-24 — pass the demo-quality gate** | `EXIT-05` | `DEP-04` | Complete (1/1) |
 | **PG-25 — establish launch operations** | `MKT-01`, `MKT-11` | `EXIT-05` and, for `MKT-11`, `DEP-01` | Complete (2/2) |
 | **PG-26 — prepare launch content pipeline** | `MKT-02`, `MKT-03` | `MKT-01` | Complete (2/2) |
-| **PG-27 — gate external publishing** | `MKT-04` | `MKT-02`, `MKT-03` | Not started (0/1) |
+| **PG-27 — gate external publishing** | `MKT-04` | `MKT-02`, `MKT-03` | Complete (1/1) |
 | **PG-28 — launch across developer channels** | `MKT-05`, `MKT-06`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` | Not started (0/6) |
 | **PG-29 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-06`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
 
@@ -159,7 +159,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **MKT-01** — Create the `mcp-compass-marketing` Agent Skill. _(Depends on: EXIT-05)_
 - [x] **MKT-02** — Integrate Typefully MCP for managed social drafts and publishing. _(Depends on: MKT-01)_
 - [x] **MKT-03** — Generate launch content from verified release notes and repository evidence. _(Depends on: MKT-01)_
-- [ ] **MKT-04** — Add human approval of exact channel copy and schedule before publishing. _(Depends on: MKT-02, MKT-03)_
+- [x] **MKT-04** — Add human approval of exact channel copy and schedule before publishing. _(Depends on: MKT-02, MKT-03)_
 - [ ] **MKT-05** — Launch on X. _(Depends on: MKT-04)_
 - [ ] **MKT-06** — Launch on LinkedIn. _(Depends on: MKT-04)_
 - [ ] **MKT-07** — Launch on Bluesky. _(Depends on: MKT-04)_
