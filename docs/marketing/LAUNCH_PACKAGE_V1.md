@@ -62,24 +62,6 @@ Try it: <https://mcp-compass-69v2ogw2j-jinjin-huang-3366s-projects.vercel.app/>
 
 Claims used: C1, C4. Proposed format: standalone post. Media: none selected. Account and timing: awaiting approval.
 
-### LinkedIn
-
-MCP server discovery still asks developers to translate an agent requirement into catalog searches, compare tool
-descriptions, and decide whether a result is safe enough for the intended workflow.
-
-We built MCP Compass around the requirement instead. It searches a locally synchronized MCP Registry index, ranks
-candidate servers, and explains parsed constraints plus matched and missing capabilities. In the fixed evaluation,
-it reached 0.8620 NDCG@10, returned an acceptable server in the top three for 24/24 match cases, and correctly
-abstained in 8/8 no-match cases.
-
-Reuse comes first. When no existing server is adequate, the separate generation flow starts with a reviewed
-OpenAPI-derived tool contract before producing a TypeScript project.
-
-Try a real requirement and tell us where the evidence is still missing:
-<https://mcp-compass-69v2ogw2j-jinjin-huang-3366s-projects.vercel.app/>
-
-Claims used: C1, C2, C3, C4. Media: none selected. Account and timing: awaiting approval.
-
 ### Bluesky
 
 Describe what your agent needs. MCP Compass ranks matching MCP servers and explains the capabilities and constraints
