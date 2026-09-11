@@ -1,6 +1,6 @@
 # MCP Compass developer launch package v1
 
-Status: draft only; not approved, scheduled, or published. This file is source material, not an approval record.
+Status: the X launch was published on 2026-09-11. The remaining channel material is draft only.
 
 ## Release boundary
 
@@ -11,8 +11,9 @@ not an inferred version number. [CI run 34166079085](https://github.com/jinjin-h
 passed for that commit, and [deployment run 34166221323](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166221323)
 staged, smoke-tested, and promoted its backend and frontend on 2026-09-07.
 
-The canonical call to action for this package is the promoted frontend deployment:
-<https://mcp-compass-69v2ogw2j-jinjin-huang-3366s-projects.vercel.app/>. A stable custom domain has not been verified.
+The canonical call to action for this package is the public production frontend:
+<https://mcp-compass-iota.vercel.app/>. Anonymous access and a production search were verified on 2026-09-11. A
+custom domain has not been configured.
 
 ## Release notes and evidence ledger
 
@@ -37,30 +38,34 @@ or has unmeasured adoption. Do not turn C3 or C6 into an unqualified current-pro
 - **Problem:** finding an MCP server that actually meets required capabilities and restrictions takes manual catalog,
   README, and tool-schema comparison.
 - **Shipped proof points:** C1, C2, C3, and C4.
-- **Material limitations:** C5; Registry coverage is a synchronized snapshot, not the entire ecosystem; a stable custom
-  domain is not yet verified.
+- **Material limitations:** C5; Registry coverage is a synchronized snapshot, not the entire ecosystem; a custom domain
+  is not configured.
 - **Call to action:** try one real agent requirement in the promoted web app and inspect why each result matched or
   why MCP Compass abstained.
 - **Measurement:** preserve each publication URL and compare initial-page referrer domains in Vercel Web Analytics.
   UTM dimensions are not exposed by the current Hobby dashboard, so the links below carry no fabricated attribution
   promise.
 
-## Draft launch content
+## Channel launch content
 
-These drafts are inputs to the MKT-04 exact-copy approval gate. The account, final link, media, and publication time
-must be filled in and the complete package approved before any remote draft, schedule, or publication is created.
+The X section records the exact approved launch package. The remaining drafts are inputs to the MKT-04 exact-copy
+approval gate: the account, final link, media, and publication time must be filled in and the complete package approved
+before any remote draft, schedule, or publication is created.
 
 ### X
 
-Finding an MCP server should start with what your agent needs, not a directory scroll.
+Describe what your agent needs—not a directory scroll.
 
-MCP Compass turns a capability requirement into ranked matches, shows the matched and missing capabilities, and
-abstains when the evidence is weak. If reuse is inadequate, you can review an OpenAPI-derived tool contract before
-exporting a TypeScript server.
+MCP Compass ranks MCP servers, explains fit and gaps, and abstains when evidence is weak.
 
-Try it: <https://mcp-compass-69v2ogw2j-jinjin-huang-3366s-projects.vercel.app/>
+No strong match? Provide an OpenAPI document, review the tool contract, and generate a TypeScript MCP server.
 
-Claims used: C1, C4. Proposed format: standalone post. Media: none selected. Account and timing: awaiting approval.
+Try it: <https://mcp-compass-iota.vercel.app/>
+
+Claims used: C1, C4. Format: standalone X post. Media: none. Account: `@jhuang3366`. Approved as package
+`X-LAUNCH` revision 6 and scheduled through Typefully draft `10716573` for `2026-09-11T01:30:00+01:00`
+(Europe/London). Typefully reported publication at `2026-09-11T01:30:02+01:00`:
+<https://x.com/jhuang3366/status/2098207401514299864>.
 
 ### Bluesky
 
@@ -68,7 +73,7 @@ Describe what your agent needs. MCP Compass ranks matching MCP servers and expla
 behind each result. Weak evidence? It can say no strong match instead of filling the page with unrelated servers.
 
 Reuse first; reviewed-contract generation second.
-<https://mcp-compass-69v2ogw2j-jinjin-huang-3366s-projects.vercel.app/>
+<https://mcp-compass-iota.vercel.app/>
 
 Claims used: C1, C4. Media: none selected. Account and timing: awaiting approval.
 
@@ -102,7 +107,7 @@ The design is reuse-first. If no existing server is adequate, the generation pat
 OpenAPI-derived tool contract before exporting a TypeScript MCP project. One rough edge: generated-project validation
 needs a separately hosted isolated worker, so jobs can remain queued in the current hosted setup.
 
-Demo: <https://mcp-compass-69v2ogw2j-jinjin-huang-3366s-projects.vercel.app/>
+Demo: <https://mcp-compass-iota.vercel.app/>
 
 I would appreciate technical feedback on requirements that should abstain, ranking explanations that are not useful,
 and MCP metadata that the index handles poorly.
@@ -121,7 +126,7 @@ OpenAPI-derived tool contract.
 The hosted setup has an important limitation: generated-project validation requires a separate isolated worker, so
 queued validation should not be read as a security certification.
 
-Demo: <https://mcp-compass-69v2ogw2j-jinjin-huang-3366s-projects.vercel.app/>
+Demo: <https://mcp-compass-iota.vercel.app/>
 
 I would value a concrete requirement that existing MCP directories make hard to evaluate.
 
@@ -131,10 +136,10 @@ approval.
 
 ## Approval handoff
 
-MKT-04 must replace the immutable Vercel deployment URL if a verified stable canonical domain is available, select
-the exact accounts and communities, verify current platform limits and community rules, attach final media and alt
-text, and record an exact schedule. Any edit to copy, link, account, channel, media, or schedule requires approval of
-the resulting package. No Typefully or platform action has been taken by this task.
+For each remaining channel, select the exact account or community, verify current platform limits and community rules,
+attach final media and alt text, and record an exact schedule. Any edit to copy, link, account, channel, media, or
+schedule requires approval of the resulting package. The X approval and Typefully action do not authorize another
+channel action.
 
 For each channel, turn the selected material into a separate package using the
 [exact-copy approval gate](../../.agents/skills/mcp-compass-marketing/references/approval-gate.md). The package must
