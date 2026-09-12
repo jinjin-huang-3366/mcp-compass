@@ -1,0 +1,60 @@
+name: Feature request
+description: Propose one focused improvement for agent or MCP developers
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        MCP Compass prefers reuse before generation. Describe the developer outcome before proposing an implementation.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Developer problem
+      description: What agent or MCP workflow is difficult today, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Give one concrete before/after, request/response, or user-visible scenario.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Most relevant surface
+      options:
+        - Search and ranking
+        - Registry ingestion and enrichment
+        - Explanations and trust
+        - Contract-first generation
+        - Isolated validation
+        - Web UI
+        - CLI or IDE integration
+        - Documentation or automation
+    validations:
+      required: true
+  - type: textarea
+    id: reuse
+    attributes:
+      label: Reuse and alternatives
+      description: Can an existing MCP server, API, command, or documented workflow already solve this?
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and non-goals
+      description: Include security, compatibility, performance, or scope boundaries that matter.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and did not find the same request.
+          required: true
+        - label: I did not include credentials, private tool schemas, or proprietary API documents.
+          required: true

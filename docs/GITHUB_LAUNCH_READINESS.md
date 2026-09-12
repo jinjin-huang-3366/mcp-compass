@@ -6,7 +6,7 @@ the launch work is done.
 
 ## Audit snapshot
 
-Checked on 2026-09-12 against the repository and its GitHub metadata:
+Checked on 2026-09-12 against the repository and its GitHub metadata before MKT-13:
 
 - the README explains the architecture and local setup, but it does not lead with a public demo call to action or
   show the product;
@@ -15,8 +15,8 @@ Checked on 2026-09-12 against the repository and its GitHub metadata:
 - the existing agent-task issue template is useful for planned engineering work, but there are no public bug report
   or feature request forms;
 - the GitHub repository has no Topics or homepage URL, Discussions is disabled, and no tagged release exists;
-- the launch package links to a working immutable Vercel deployment, but a stable canonical demo URL has not been
-  verified.
+- the initially selected frontend alias loads the same deployed bundle as `https://mcp-compass-iota.vercel.app/`, but
+  the production API CORS policy rejects the former origin and allows the `iota` origin.
 
 Repository settings and release state can change independently of the code. Recheck them during MKT-14 and MKT-15
 and record dated evidence rather than relying on this snapshot.
@@ -40,6 +40,19 @@ and record dated evidence rather than relying on this snapshot.
 
 Exit evidence: the MKT-13 pull request includes the files and images, desktop/mobile rendering checks, link-check
 results, and any asset size or accessibility trade-offs.
+
+MKT-13 evidence captured on 2026-09-12:
+
+- `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, public YAML bug/feature forms, and issue-template configuration were
+  added without changing GitHub repository settings;
+- three optimized still PNGs cover desktop ranking/explanation, mobile abstention, and contract review; their
+  provenance, viewport, size, and alt-text choices are recorded in `docs/assets/launch/README.md`; a GIF was omitted
+  because motion added no clarity;
+- both frontend aliases served the same bundle targeting `https://mcp-compass-api.vercel.app`; an `mt5` preflight and
+  search from `https://mcp-compass-iota.vercel.app` returned HTTP 200 with the matching CORS origin, while the
+  initially selected project alias was rejected with HTTP 403. The README now uses the verified `iota` URL;
+- final link, YAML, desktop/mobile render, asset-size, and repository validation results are recorded in the linked
+  MKT-13 pull request rather than asserted by this checklist alone.
 
 ## MKT-14 — GitHub metadata and community settings
 
