@@ -16,6 +16,7 @@ GROUP_PATTERN = re.compile(
 )
 TASK_ID_PATTERN = re.compile(r"`([A-Z]+-\d+)`")
 PLAN_TASK_ID_PATTERN = re.compile(r"^[A-Z]+-\d+$")
+MAX_PLAN_ITEM_LENGTH = 1000
 
 
 class PlanItemError(ValueError):
@@ -25,14 +26,15 @@ class PlanItemError(ValueError):
 def validate_plan_item(item: str) -> str:
     if (
         not item
-        or len(item) > 300
+        or len(item) > MAX_PLAN_ITEM_LENGTH
         or item != item.strip()
         or "\n" in item
         or "\r" in item
         or "-->" in item
     ):
         raise PlanItemError(
-            "Plan item must be 1-300 trimmed characters without newlines or '-->'."
+            f"Plan item must be 1-{MAX_PLAN_ITEM_LENGTH} trimmed characters "
+            "without newlines or '-->'."
         )
     return item
 

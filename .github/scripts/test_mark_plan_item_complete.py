@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 
 from mark_plan_item_complete import (
+    MAX_PLAN_ITEM_LENGTH,
     PlanItemError,
     extract_plan_item,
     format_group_status,
@@ -87,6 +88,19 @@ class MarkPlanItemCompleteTest(unittest.TestCase):
     def test_rejects_missing_item(self) -> None:
         with self.assertRaises(PlanItemError):
             mark_plan_item_complete("- [ ] Another item.\n", "Missing item.")
+
+    def test_accepts_long_canonical_item_within_bound(self) -> None:
+        description = "x" * 350
+        item = f"**TASK-02** — {description} _(Depends on: TASK-01)_"
+        plans = f"- [ ] {item}\n"
+
+        self.assertEqual(item, resolve_unchecked_plan_item(plans, "TASK-02"))
+
+    def test_rejects_item_over_expanded_bound(self) -> None:
+        item = "x" * (MAX_PLAN_ITEM_LENGTH + 1)
+
+        with self.assertRaisesRegex(PlanItemError, f"1-{MAX_PLAN_ITEM_LENGTH}"):
+            mark_plan_item_complete(f"- [ ] {item}\n", item)
 
 
 class UpdateParallelGroupStatusesTest(unittest.TestCase):
