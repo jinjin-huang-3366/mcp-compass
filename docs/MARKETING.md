@@ -1,5 +1,9 @@
 # Marketing operations
 
+Complete the dependency-ordered [GitHub launch readiness checklist](GITHUB_LAUNCH_READINESS.md) before publishing
+the approved external channel packages. Repository assets, GitHub settings, and the tagged release require separate
+evidence; a draft launch package does not satisfy those gates.
+
 MCP Compass uses Typefully's remote MCP server as the managed path for social drafts, scheduling, and publishing. The
 project-scoped Codex configuration names the server `typefully`, uses Typefully's shared Streamable HTTP endpoint, and
 keeps authentication in Codex's OAuth credential store rather than this repository.
