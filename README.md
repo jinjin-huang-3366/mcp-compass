@@ -1,146 +1,159 @@
 # MCP Compass
 
-MCP Compass is a developer-focused MCP intelligence tool:
+**Find the right MCP server from what your agent needs—not from a directory scroll.**
 
-> Describe the capability your agent needs. MCP Compass finds and ranks the best existing MCP server. If no server is good enough, it can turn an approved API/OpenAPI tool contract into a TypeScript MCP server project.
+[![CI](https://github.com/jinjin-huang-3366/mcp-compass/actions/workflows/ci.yml/badge.svg)](https://github.com/jinjin-huang-3366/mcp-compass/actions/workflows/ci.yml)
 
-## Current status
+MCP Compass turns a natural-language agent capability requirement into ranked existing MCP server matches. It shows
+the parsed intent, required and forbidden capabilities, and the evidence behind each score. When the evidence is too
+weak, it abstains. Only when reuse is inadequate does the separate generation path begin—with a reviewed tool
+contract before any source code is produced.
 
-This repository has a working discovery vertical slice plus contract-first generation foundations:
+[Open the deployed UI](https://mcp-compass-jinjin-huang-3366s-projects.vercel.app/) ·
+[Read the API](docs/API.md) ·
+[Contribute](CONTRIBUTING.md)
 
-1. ingest public MCP Registry metadata into PostgreSQL;
-2. normalize searchable MCP server metadata;
-3. analyse a developer's natural-language requirement;
-4. retrieve candidate MCP servers;
-5. rank and explain matches;
-6. expose the result through a REST API and a simple Next.js UI;
-7. accept OpenAPI sources, review an MCP tool contract, and generate an in-memory TypeScript project manifest from a
-   versioned, data-driven runtime pack with locked dependencies and generated unit tests verified in CI;
-8. download the approved project as a GitHub-ready ZIP with repository ignores and its own CI workflow.
-9. queue an approved generated project snapshot and consume it from a separate validation worker that uses MCP
-   Inspector to validate the generated stdio server only in an ephemeral container;
-10. retrieve a conservative tool-risk and sandbox security report without invoking server tools.
+> **Launch-candidate demo:** the stable frontend URL above was reachable on 2026-09-12. Its deployed search action
+> still targets a protected immutable backend URL, so use the local quick start for an end-to-end search today.
+> Resolving and re-verifying that public-demo path is the explicit MKT-14 launch gate.
 
-Production runtime-endpoint isolation remains an operational requirement. Vector candidate retrieval is available
-as an opt-in, benchmark-gated extension to the default lexical search path.
+## See the workflow
 
-## Stack
+### Requirement → ranked, explained match
 
-- Java 21
-- Spring Boot 4.1
-- Maven
-- PostgreSQL 18 + pgvector
-- Flyway
-- Next.js 16 / React 19 / TypeScript
-- Docker Compose
+![MCP Compass search showing parsed read-only PostgreSQL intent, a ranked server, capability coverage, and score contributions](docs/assets/launch/search-ranking.png)
 
-## Open in IntelliJ IDEA
+Search is performed against locally persisted MCP Registry data—not by proxying every user query to the public
+Registry. Deterministic ranking keeps capability coverage dominant and exposes retrieval, quality, and trust signals.
 
-1. Unzip/open the repository root in IntelliJ IDEA.
-2. IntelliJ should detect the root `pom.xml` and the `backend` Maven module.
-3. Use Java 21 as the project SDK.
-4. Start infrastructure:
+### Weak or unsafe evidence → abstain
 
-   ```bash
-   docker compose up -d db
-   ```
+![Mobile MCP Compass result preserving GitHub delete prohibitions and showing a no-strong-match explanation](docs/assets/launch/search-abstention-mobile.png)
 
-5. Run the backend from IntelliJ using `McpCompassApplication`, or:
+Hard prohibitions are applied before ranking. A low-confidence or policy-conflicting candidate does not become a
+recommendation just because it shares keywords.
 
-   ```bash
-   ./mvnw -pl backend spring-boot:run
-   ```
+### Reuse inadequate → review a contract before generation
 
-   The Maven development runner activates the `local` Spring profile automatically. For an IntelliJ run configuration, add `local` under **Active profiles** so the local-only Registry sync endpoint is registered.
+![MCP Compass contract review showing selected GET and POST tools, editable names, descriptions, and risk labels](docs/assets/launch/contract-review.png)
 
-6. In another terminal:
+An OpenAPI source first becomes an editable MCP tool contract. After approval, MCP Compass can export a GitHub-ready
+TypeScript project with locked dependencies and CI. See the [capture provenance and accessibility notes](docs/assets/launch/README.md).
 
-   ```bash
-   cd web
-   npm install
-   npm run dev
-   ```
+No GIF is included: the three states are understandable as still images, which are smaller, easier to inspect, and do
+not make motion the only source of information.
 
-7. Open `http://localhost:3000`.
+## What is ready
 
-For local Registry sync, confirm the startup log lists `local` as active, then POST to:
+- Requirement analysis with explicit required capabilities, forbidden capabilities, and hard constraints.
+- Local Registry ingestion, enriched search documents, lexical/optional vector retrieval, deterministic ranking, and
+  score explanations.
+- Strong-match confidence and an explicit no-match abstention path.
+- MCP detail pages, shareable search URLs, CLI search/generation commands, and IDE launch integration.
+- Contract-first OpenAPI ingestion, review, TypeScript generation, and GitHub-ready ZIP export.
+- Queued validation with a separate container worker, MCP Inspector protocol checks, and conservative tool-risk reports.
+
+The fixed 53-judgement demo-quality gate recorded 96.2% Recall@100, 0.8620 NDCG@10, 24/24 top-three acceptance,
+zero forbidden-result violations in the top three, and 8/8 correct abstentions. These are point-in-time evaluation
+results, not a claim about every MCP server. Read the [quality report](docs/reports/DEMO_QUALITY_GATE_V1.md).
+
+## Quick start
+
+Prerequisites: Java 21, Node.js 22+, Docker, and Git.
+
+```bash
+git clone https://github.com/jinjin-huang-3366/mcp-compass.git
+cd mcp-compass
+docker compose up -d db
+./mvnw -pl backend spring-boot:run
+```
+
+In a second terminal:
+
+```bash
+cd web
+cp .env.local.example .env.local
+npm install
+npm run dev
+```
+
+Open <http://localhost:3000>. To seed a local Registry page, confirm the backend started with the `local` profile,
+then run:
 
 ```bash
 curl -X POST "http://localhost:8080/api/v1/dev/registry/sync?maxPages=1"
 ```
 
-## AI-agent setup
+Windows PowerShell equivalents and configuration details are in the [development guide](docs/DEVELOPMENT.md).
 
-Start with:
+### CLI
 
-- `AGENTS.md` — repository-wide instructions for Codex and other coding agents.
-- `PLANS.md` — living implementation plan and V0.1 backlog.
-- `.agents/skills/` — repo-scoped Agent Skills. This is the current Codex-supported location and is also supported by GitHub Copilot agent skills.
-- `.codex/config.toml` — conservative project-level Codex settings.
-- `.github/copilot-instructions.md` — GitHub Copilot repository instructions.
-- `.github/instructions/` — path-specific Copilot guidance.
-- `docs/AI_AGENT_SETUP.md` — how to use the supplied skills.
+With the backend running:
 
-The `.agent/` directory exists only to explain the older/singular naming. Do not put Codex project skills there.
+```bash
+cd cli
+npm install
+npm run build
+node dist/src/index.js find "Query PostgreSQL read-only; forbid inserts, updates, deletes, and schema writes"
+```
+
+See [CLI search](docs/CLI_FIND.md) and [CLI generation](docs/CLI_GENERATE.md) for complete usage.
+
+## Architecture
+
+MCP Compass is a modular monolith: a Next.js/TypeScript frontend, a Java 21/Spring Boot backend, and PostgreSQL with
+pgvector. External systems sit behind clients, and the user search path reads the local database. Generated or
+third-party MCP code never executes in the backend JVM; validation belongs to a separate, ephemeral container worker.
+
+```text
+requirement → capability extraction → local candidate retrieval → deterministic ranking → explanation
+                                                                           ↓ no adequate reuse
+OpenAPI source → proposed tool contract → developer review → TypeScript project → isolated validation
+```
+
+Start with [architecture](docs/ARCHITECTURE.md), [security reporting](SECURITY.md), and the
+[security model](docs/SECURITY.md), plus the
+[deployment runbook](docs/DEPLOYMENT.md).
+
+## Current limitations
+
+- Registry coverage is a synchronized snapshot and is not the entire MCP ecosystem.
+- Optional LLM analysis, embeddings, and GitHub enrichment require configured providers; lexical search remains the
+  tested fallback.
+- The stable deployed frontend currently has the public-demo backend URL mismatch described above.
+- Production validation jobs remain queued unless the separately hosted validation worker is running. Validation is
+  bounded evidence, not a security certification.
+- Generated projects target the repository-owned TypeScript runtime pack; other language targets are not implemented.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Use the public
+[bug report](https://github.com/jinjin-huang-3366/mcp-compass/issues/new?template=bug_report.yml) or
+[feature request](https://github.com/jinjin-huang-3366/mcp-compass/issues/new?template=feature_request.yml) forms.
+Do not publish vulnerabilities in an issue; use GitHub's
+[private security advisory flow](https://github.com/jinjin-huang-3366/mcp-compass/security/advisories/new).
 
 ## Automated task pull requests
 
-The `Codex task pull request` workflow validates one task branch already implemented and pushed by the active local Codex session, opens a pull request without merging it, and emails the local Codex summary. It never calls the OpenAI API, selects another backlog task, or starts follow-up work automatically.
+`$mcp-task-pr-flow` implements and publishes exactly one planned task. The local Codex session branches from `main`,
+synchronizes and validates the implementation, pushes without force, then dispatches
+`.github/workflows/task-pr.yml`. The workflow revalidates the branch, opens (but never merges) a pull request, starts
+baseline CI, and emails the handoff using repository secrets. `$mcp-task-batch-flow PG-##` coordinates independent
+group members while preserving one branch, workflow, plan marker, email, and pull request per task.
 
-From Codex, invoke `$mcp-task-pr-flow` with the task description. Codex creates a branch from the requested base, implements the task, synchronizes with the latest base, validates the combined result, commits and pushes only the intended changes, then dispatches and monitors this workflow.
+Maintainers must configure `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD`, allow GitHub Actions to create pull requests,
+and review every generated PR manually. The workflow needs no OpenAI API key. Exact plan items remain unchecked on
+task branches; `.github/workflows/plan-completion.yml` marks one complete only after its linked PR is manually merged.
+See [PLANS.md](PLANS.md#parallel-delivery-groups) for the delivery groups and conflict-at-handoff guarantee.
 
-For concurrent delivery, use the canonical [parallel delivery groups](PLANS.md#parallel-delivery-groups). Invoke `$mcp-task-batch-flow` with one `PG-*` ID to coordinate the whole ready group, or start one isolated `$mcp-task-pr-flow` session per task ID. The batch skill still gives every task its own branch, workflow run, email, plan marker, and pull request.
+## Project map
 
-1. Add `GMAIL_ADDRESS` and `GMAIL_APP_PASSWORD` repository secrets under **Settings > Secrets and variables > Actions**. Use a Google App Password rather than the Gmail account password. No OpenAI API key is required.
-2. Under **Settings > Actions > General**, allow GitHub Actions to create pull requests and grant workflows read/write permissions.
-3. Open **Actions > Codex task pull request > Run workflow**.
-4. Enter the task instructions, the existing pushed task branch, the base branch, the pull request title, the local Codex summary, one concrete before/after or request/response example, complete task-specific desk-testing guidance, and—when the task matches one unchecked plan entry—its stable task ID in `plan_task_id`. The workflow derives and validates the exact canonical `PLANS.md` item before adding the marker. `plan_item` remains available for compatible manual handoffs, but do not supply both inputs. Desk testing should include ordered commands or actions, expected results, and any steps that could not be run with the reason.
-5. Review the generated pull request and email summary, then merge the pull request manually when it is ready.
-6. Start another workflow run only when the next task should begin.
+- `backend/` — search, ranking, generation, and validation APIs.
+- `web/` — developer-oriented Next.js UI.
+- `cli/` — `find`, `generate`, and IDE launch commands.
+- `validation-worker/` — isolated container validation control plane.
+- `docs/` — architecture, API, development, deployment, security, evaluation, and decision records.
+- `.agents/skills/` — repository-scoped MCP Compass workflows for coding agents.
 
-The local Codex session uses the developer's existing GitHub authentication to push the task branch. GitHub supplies the short-lived `GITHUB_TOKEN` used to open the pull request and start baseline CI; no personal access token or OpenAI API key is stored as a repository secret. The workflow checks that the task branch differs from the base and contains the latest fetched base commit both before validation and immediately before pull request creation. It runs the backend tests plus frontend lint and build, and copies the concrete example and complete desk-testing guidance into both the pull request and email summary. On failure, Codex may retry twice after diagnosing a transient cause or applying an in-scope correction. Retry runs update the existing matching pull request instead of opening duplicates. Codex completes the handoff only after GitHub reports the final pull request head mergeable against the current base and CI passes on that head. It automatically prepends steps to start PostgreSQL, the backend, and the frontend; check both services are ready; and stop them after testing.
-
-Conflict freedom is verified at handoff, not guaranteed forever. If the base changes later—for example, after another batch PR merges—the affected task branch must be synchronized and revalidated again before manual merge.
-
-## Automated Vercel production deployments
-
-Invoke `$mcp-vercel-deploy` to deploy the latest `main` commit. The skill reuses or waits for successful CI on that exact commit and starts CI when no qualifying run exists; if `main` advances while CI runs, it repeats the gate for the new head. It then dispatches and monitors `.github/workflows/vercel-deploy.yml`, which deploys the existing backend and frontend Vercel projects from the verified commit, smoke-tests staged production builds, and promotes only the builds that pass. Add the four Vercel GitHub Actions secrets documented in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#repeatable-production-deployments) before the first run. The validation worker remains outside Vercel.
-
-When an exact plan item is supplied, the task workflow validates that it is currently unchecked and adds a machine-readable marker to the pull request. After that pull request is merged, `Mark merged plan item and group complete` changes only the matching `- [ ]` entry to `- [x]` on the base branch and derives the parallel delivery group's `Status` count from all of its canonical task checkboxes. The group is marked complete only after every listed task pull request has been merged. Pull requests without the marker are ignored, and ambiguous or unknown items fail without modifying the plan.
-
-## Important design constraints
-
-- **Reuse before generate.** Never generate a new MCP if a strong existing server satisfies the requirement.
-- Keep V0.x as a **modular monolith**.
-- Do not execute untrusted MCP code in the main backend process.
-- The public Registry is an ingestion source, not a synchronous dependency for end-user searches.
-- LLMs should perform semantic tasks; deterministic code should perform scoring, validation, persistence, and policy enforcement.
-
-Vector retrieval remains disabled by default. When enabled, Registry sync batches server name/title/description
-embeddings into PostgreSQL and search merges cosine-nearest candidates with lexical candidates. Provider or vector
-query failures fall back to lexical retrieval. See `docs/DEVELOPMENT.md` for configuration and
-`docs/reports/LEXICAL_RANKING_BASELINE_V1.md` for the baseline that must be preserved when evaluating a provider.
-
-## Documentation
-
-- `docs/ARCHITECTURE.md`
-- `docs/PROJECT_PLAN.md`
-- `docs/DATA_MODEL.md`
-- `docs/API.md`
-- `docs/SECURITY.md`
-- `docs/DEVELOPMENT.md`
-- `docs/DEPLOYMENT.md`
-- `docs/GITHUB_LAUNCH_READINESS.md`
-- `docs/BUGS.md`
-- `docs/IDE_INTEGRATION.md`
-- `docs/AI_AGENT_SETUP.md`
-- `docs/REFERENCES.md`
-
-## First Codex prompt
-
-From the repo root, a good first task is:
-
-```text
-$mcp-compass-development
-Read AGENTS.md, PLANS.md and docs/ARCHITECTURE.md. Implement the next unchecked V0.1 task in PLANS.md. Keep the change small, run the relevant tests, and update PLANS.md with what changed.
-```
+Release-facing changes are curated in [CHANGELOG.md](CHANGELOG.md); implementation sequencing lives in
+[PLANS.md](PLANS.md).

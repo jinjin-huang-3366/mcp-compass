@@ -1,0 +1,75 @@
+name: Bug report
+description: Report a reproducible MCP Compass defect
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve MCP Compass. Do not include credentials, private API specifications, or security vulnerabilities here.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observable defect and its impact on your agent or MCP workflow.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Web UI
+        - Search or ranking API
+        - Registry ingestion or enrichment
+        - Contract review or generation
+        - Validation worker
+        - CLI or IDE integration
+        - Documentation or automation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Provide the smallest safe input and ordered commands or actions that reproduce the issue.
+      placeholder: |
+        1. Start ...
+        2. Submit ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include commit/tag, OS, Java and Node versions, browser or CLI version, and local versus deployed use.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized evidence
+      description: Add bounded logs or screenshots after removing credentials, private data, cookies, and tokens.
+      render: shell
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed secrets and private data, and this is not a security vulnerability.
+          required: true
