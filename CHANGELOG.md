@@ -1,9 +1,13 @@
 # Changelog
 
 Notable user-facing changes to MCP Compass are documented here. This is a curated release record, not a copy of the
-internal milestone plan. The first public version and date will be chosen during the tagged-release task.
+internal milestone plan.
 
 ## Unreleased
+
+No user-facing changes have been recorded since the first public release.
+
+## [0.1.0] - 2026-09-12
 
 ### Added
 
@@ -27,8 +31,7 @@ internal milestone plan. The first public version and date will be chosen during
 ### Known limitations
 
 - Registry data is a synchronized snapshot, not complete live ecosystem coverage.
-- The public demo is a Vercel alias rather than a custom domain and must be re-verified during MKT-14 before external
-  launch.
+- The public demo uses a Vercel alias rather than a custom domain.
 - Hosted validation requires a separately operated isolated worker; queued jobs and reports are not security
   certification.
 - Generation currently targets the repository-owned TypeScript runtime pack.
@@ -36,3 +39,5 @@ internal milestone plan. The first public version and date will be chosen during
 
 See the [demo-quality report](docs/reports/DEMO_QUALITY_GATE_V1.md) for dated evaluation evidence and
 [PLANS.md](PLANS.md) for implementation status.
+
+[0.1.0]: https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0

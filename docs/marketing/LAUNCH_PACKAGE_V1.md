@@ -4,15 +4,15 @@ Status: the X launch was published on 2026-09-11. The remaining channel material
 
 ## Release boundary
 
-No GitHub release or tag existed when this package was prepared on 2026-09-08. The release boundary is therefore
-the exact production commit
-[`9ab1c47b8e3885bc983103738f7ac54d3ba8d61d`](https://github.com/jinjin-huang-3366/mcp-compass/commit/9ab1c47b8e3885bc983103738f7ac54d3ba8d61d),
-not an inferred version number. [CI run 34166079085](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166079085)
-passed for that commit, and [deployment run 34166221323](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166221323)
-staged, smoke-tested, and promoted its backend and frontend on 2026-09-07.
+The launch boundary is the public
+[`v0.1.0` release](https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0) at exact source commit
+[`9ca1212a902639dd279cf90e7628974314135f6d`](https://github.com/jinjin-huang-3366/mcp-compass/commit/9ca1212a902639dd279cf90e7628974314135f6d).
+[CI run 34709603842](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709603842) passed for that
+commit, and [deployment run 34709693340](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709693340)
+staged, smoke-tested, promoted, and rechecked its backend and frontend on 2026-09-12.
 
 The canonical call to action for this package is the public production frontend:
-<https://mcp-compass-iota.vercel.app/>. Anonymous access and a production search were verified on 2026-09-11. A
+<https://mcp-compass-iota.vercel.app/>. Anonymous access and a production search were verified on 2026-09-12. A
 custom domain has not been configured.
 
 ## Release notes and evidence ledger
@@ -22,11 +22,11 @@ the implementation details in the linked sources.
 
 | ID | Release note / permitted claim | State | Primary evidence |
 | --- | --- | --- | --- |
-| C1 | Developers can describe an agent capability and receive ranked MCP server matches with explanations of parsed intent, constraints, and matched or missing capabilities. | **Deployed** | [README product flow](../../README.md#current-status), [search API](../API.md), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166221323) |
-| C2 | MCP Compass searches locally persisted public Registry metadata rather than calling the public Registry in the user search path. | **Deployed** | [architecture](../ARCHITECTURE.md#product-flow), [ADR 0002](../DECISIONS/0002-local-registry-index.md), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166221323) |
-| C3 | The fixed 53-judgement evaluation recorded 96.2% Recall@100, 0.8620 NDCG@10, 24/24 top-three acceptance, zero forbidden-result violations in the top three, and 8/8 correct abstentions. | **Deployed**; measured in the linked fixed gate | [quality report](../reports/DEMO_QUALITY_GATE_V1.md#exit-thresholds), [EXIT-05 PR](https://github.com/jinjin-huang-3366/mcp-compass/pull/71), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166221323) |
-| C4 | When reuse is inadequate, developers can review an OpenAPI-derived tool contract before exporting a GitHub-ready TypeScript MCP server project. | **Deployed** | [README status](../../README.md#current-status), [contract review API](../API.md#review-and-approve-an-mcp-tool-contract), [ADR 0003](../DECISIONS/0003-reuse-before-generate.md), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166221323) |
-| C5 | Generated-project validation is isolated from the backend, but submitted production jobs remain queued unless a separately hosted validation worker is running. Validation is bounded evidence, not a security certification. | **Deployed limitation** | [deployment limitation](../DEPLOYMENT.md#validation-worker), [security model](../SECURITY.md), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34166221323) |
+| C1 | Developers can describe an agent capability and receive ranked MCP server matches with explanations of parsed intent, constraints, and matched or missing capabilities. | **Deployed** | [README product flow](../../README.md#current-status), [search API](../API.md), [v0.1.0 release](https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709693340) |
+| C2 | MCP Compass searches locally persisted public Registry metadata rather than calling the public Registry in the user search path. | **Deployed** | [architecture](../ARCHITECTURE.md#product-flow), [ADR 0002](../DECISIONS/0002-local-registry-index.md), [v0.1.0 release](https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709693340) |
+| C3 | The fixed 53-judgement evaluation recorded 96.2% Recall@100, 0.8620 NDCG@10, 24/24 top-three acceptance, zero forbidden-result violations in the top three, and 8/8 correct abstentions. | **Deployed**; measured in the linked fixed gate | [quality report](../reports/DEMO_QUALITY_GATE_V1.md#exit-thresholds), [EXIT-05 PR](https://github.com/jinjin-huang-3366/mcp-compass/pull/71), [v0.1.0 release](https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709693340) |
+| C4 | When reuse is inadequate, developers can review an OpenAPI-derived tool contract before exporting a GitHub-ready TypeScript MCP server project. | **Deployed** | [README status](../../README.md#current-status), [contract review API](../API.md#review-and-approve-an-mcp-tool-contract), [ADR 0003](../DECISIONS/0003-reuse-before-generate.md), [v0.1.0 release](https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709693340) |
+| C5 | Generated-project validation is isolated from the backend, but submitted production jobs remain queued unless a separately hosted validation worker is running. Validation is bounded evidence, not a security certification. | **Deployed limitation** | [deployment limitation](../DEPLOYMENT.md#validation-worker), [security model](../SECURITY.md), [v0.1.0 release](https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0), [production deployment](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709693340) |
 | C6 | The activation run observed 7,571 indexed servers with complete search-document and embedding coverage on 2026-09-06. This is historical run evidence, not a live inventory claim. | **Deployed**; point-in-time measurement | [quality report](../reports/DEMO_QUALITY_GATE_V1.md#production-candidate), [activation run](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34058811869) |
 
 Do not claim that MCP Compass covers every MCP server, guarantees safety, executes validation in the hosted web app,
