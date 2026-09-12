@@ -44,8 +44,11 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-25 — establish launch operations** | `MKT-01`, `MKT-11` | `EXIT-05` and, for `MKT-11`, `DEP-01` | Complete (2/2) |
 | **PG-26 — prepare launch content pipeline** | `MKT-02`, `MKT-03` | `MKT-01` | Complete (2/2) |
 | **PG-27 — gate external publishing** | `MKT-04` | `MKT-02`, `MKT-03` | Complete (1/1) |
-| **PG-28 — launch across developer channels** | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` | Not started (0/5) |
-| **PG-29 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
+| **PG-28 — prepare the GitHub launch surface** | `MKT-13` | `EXIT-05` and `DEP-01` | Not started (0/1) |
+| **PG-29 — configure GitHub launch metadata** | `MKT-14` | `MKT-13` | Not started (0/1) |
+| **PG-30 — publish the first tagged release** | `MKT-15` | `MKT-14` | Not started (0/1) |
+| **PG-31 — launch across developer channels** | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` and `MKT-15` | Not started (0/5) |
+| **PG-32 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
@@ -160,15 +163,18 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **MKT-02** — Integrate Typefully MCP for managed social drafts and publishing. _(Depends on: MKT-01)_
 - [x] **MKT-03** — Generate launch content from verified release notes and repository evidence. _(Depends on: MKT-01)_
 - [x] **MKT-04** — Add human approval of exact channel copy and schedule before publishing. _(Depends on: MKT-02, MKT-03)_
-- [ ] **MKT-05** — Launch on X. _(Depends on: MKT-04)_
-- [ ] **MKT-07** — Launch on Bluesky. _(Depends on: MKT-04)_
-- [ ] **MKT-08** — Prepare the Product Hunt launch. _(Depends on: MKT-04)_
-- [ ] **MKT-09** — Prepare the Hacker News Show HN post. _(Depends on: MKT-04)_
-- [ ] **MKT-10** — Prepare relevant Reddit posts. _(Depends on: MKT-04)_
+- [ ] **MKT-05** — Launch on X. _(Depends on: MKT-04, MKT-15)_
+- [ ] **MKT-07** — Launch on Bluesky. _(Depends on: MKT-04, MKT-15)_
+- [ ] **MKT-08** — Prepare the Product Hunt launch. _(Depends on: MKT-04, MKT-15)_
+- [ ] **MKT-09** — Prepare the Hacker News Show HN post. _(Depends on: MKT-04, MKT-15)_
+- [ ] **MKT-10** — Prepare relevant Reddit posts. _(Depends on: MKT-04, MKT-15)_
 - [x] **MKT-11** — Track referral sources in web analytics. _(Depends on: DEP-01)_
 
   Production evidence: commit `9ab1c47b8e3885bc983103738f7ac54d3ba8d61d` was deployed by Vercel workflow
   run `34166221323`, its frontend smoke tests passed, and Web Analytics was enabled for the frontend project.
+- [ ] **MKT-13** — Polish the repository launch surface: rewrite the README around the developer workflow and verified demo, add representative accessible screenshots (plus an optimized GIF only if motion adds clarity), add `CONTRIBUTING.md`, public bug/feature issue forms, and a curated `CHANGELOG.md`, and verify every public link. _(Depends on: EXIT-05, DEP-01)_
+- [ ] **MKT-14** — Configure the GitHub repository homepage and focused Topics around the verified public demo, and enable Discussions only with launch categories, contribution guidance, and an identified moderation owner. Record the final settings and URLs in the launch checklist. _(Depends on: MKT-13)_
+- [ ] **MKT-15** — From a CI- and deployment-verified `main` commit, choose the public version independently of internal milestone numbers, create the immutable tag and GitHub Release, publish evidence-backed release notes from `CHANGELOG.md`, and verify the release and demo links before channel launch. _(Depends on: MKT-14)_
 - [ ] **MKT-12** — Triage launch feedback into reviewable GitHub issues with source links. _(Depends on: MKT-05, MKT-07, MKT-08, MKT-09, MKT-10, MKT-11)_
 
 ## Explicit non-goals for V0.1
