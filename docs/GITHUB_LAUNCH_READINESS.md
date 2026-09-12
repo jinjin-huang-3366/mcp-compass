@@ -108,6 +108,21 @@ MKT-14 evidence captured on 2026-09-12:
 Exit evidence: the GitHub Release and demo are publicly reachable, the tag resolves to the recorded verified SHA,
 and the evidence record contains no credentials or private operational data.
 
+MKT-15 evidence captured on 2026-09-12:
+
+- public version: `v0.1.0`, selected as the first early-stage public SemVer release independently of internal V0.7
+  planning chronology;
+- immutable tag/source SHA: `v0.1.0` at `9ca1212a902639dd279cf90e7628974314135f6d`;
+- exact-source CI: [run 34709603842](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709603842)
+  passed backend, web, CLI, and automation jobs;
+- exact-source production deployment: [run 34709693340](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/34709693340)
+  staged, smoke-tested, promoted, and rechecked both backend and frontend;
+- release: [MCP Compass v0.1.0](https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0), published
+  as a non-draft, non-prerelease release with evidence-backed notes from `CHANGELOG.md`;
+- signed-out verification covered the release page, tag target, ZIP and tarball source archives, canonical demo,
+  three version-pinned screenshots, contributor guide, evaluation report, and commit-history link. The canonical demo
+  returned HTTP 200, and an `mt5` production search returned HTTP 200 with 40 matches and `strongMatch=true`.
+
 ## Channel launch gate
 
 MKT-05, MKT-07, MKT-08, MKT-09, and MKT-10 remain behind both the exact-copy approval gate in
