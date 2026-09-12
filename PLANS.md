@@ -46,7 +46,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-27 — gate external publishing** | `MKT-04` | `MKT-02`, `MKT-03` | Complete (1/1) |
 | **PG-28 — prepare the GitHub launch surface** | `MKT-13` | `EXIT-05` and `DEP-01` | Complete (1/1) |
 | **PG-29 — configure GitHub launch metadata** | `MKT-14` | `MKT-13` | Complete (1/1) |
-| **PG-30 — publish the first tagged release** | `MKT-15` | `MKT-14` | Not started (0/1) |
+| **PG-30 — publish the first tagged release** | `MKT-15` | `MKT-14` | Complete (1/1) |
 | **PG-31 — launch across developer channels** | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` and `MKT-15` | Not started (0/5) |
 | **PG-32 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
 
@@ -174,7 +174,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
   run `34166221323`, its frontend smoke tests passed, and Web Analytics was enabled for the frontend project.
 - [x] **MKT-13** — Polish the repository launch surface: rewrite the README around the developer workflow and verified demo, add representative accessible screenshots (plus an optimized GIF only if motion adds clarity), add `CONTRIBUTING.md`, public bug/feature issue forms, and a curated `CHANGELOG.md`, and verify every public link. _(Depends on: EXIT-05, DEP-01)_
 - [x] **MKT-14** — Configure the GitHub repository homepage and focused Topics around the verified public demo, and enable Discussions only with launch categories, contribution guidance, and an identified moderation owner. Record the final settings and URLs in the launch checklist. _(Depends on: MKT-13)_
-- [ ] **MKT-15** — From a CI- and deployment-verified `main` commit, choose the public version independently of internal milestone numbers, create the immutable tag and GitHub Release, publish evidence-backed release notes from `CHANGELOG.md`, and verify the release and demo links before channel launch. _(Depends on: MKT-14)_
+- [x] **MKT-15** — From a CI- and deployment-verified `main` commit, choose the public version independently of internal milestone numbers, create the immutable tag and GitHub Release, publish evidence-backed release notes from `CHANGELOG.md`, and verify the release and demo links before channel launch. _(Depends on: MKT-14)_
 - [ ] **MKT-12** — Triage launch feedback into reviewable GitHub issues with source links. _(Depends on: MKT-05, MKT-07, MKT-08, MKT-09, MKT-10, MKT-11)_
 
 ## Explicit non-goals for V0.1
