@@ -7,7 +7,8 @@ The two frontend aliases checked during capture served the same JavaScript bundl
 `https://mcp-compass-api.vercel.app/`. The production API accepted an `mt5` preflight and search from the `iota`
 origin with HTTP 200 and a matching `Access-Control-Allow-Origin` header, while it rejected the initially selected
 project alias with HTTP 403. The screenshots render that production frontend bundle with responses from the stable
-production API. MKT-14 must independently re-verify the canonical public demo before launch.
+production API. MKT-14 independently re-verified the canonical public demo on 2026-09-12; the dated HTTP and GitHub
+settings evidence is recorded in the [launch checklist](../../GITHUB_LAUNCH_READINESS.md).
 
 | Asset | Viewport | Demonstrated state | Accessibility/size choice |
 | --- | --- | --- | --- |

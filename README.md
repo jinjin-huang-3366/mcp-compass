@@ -13,8 +13,8 @@ contract before any source code is produced.
 [Read the API](docs/API.md) ·
 [Contribute](CONTRIBUTING.md)
 
-> **Launch-candidate demo:** the public URL above completed the `mt5` search against the production API on
-> 2026-09-12. MKT-14 must re-verify it before configuring the repository homepage and launch metadata.
+> **Verified public demo:** the canonical URL above loaded successfully and completed an `mt5` search against the
+> production API on 2026-09-12.
 
 ## See the workflow
 
@@ -119,7 +119,6 @@ Start with [architecture](docs/ARCHITECTURE.md), [security reporting](SECURITY.m
 - Registry coverage is a synchronized snapshot and is not the entire MCP ecosystem.
 - Optional LLM analysis, embeddings, and GitHub enrichment require configured providers; lexical search remains the
   tested fallback.
-- The stable deployed frontend currently has the public-demo backend URL mismatch described above.
 - Production validation jobs remain queued unless the separately hosted validation worker is running. Validation is
   bounded evidence, not a security certification.
 - Generated projects target the repository-owned TypeScript runtime pack; other language targets are not implemented.
