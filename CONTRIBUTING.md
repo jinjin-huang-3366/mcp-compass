@@ -5,6 +5,19 @@ workflow or its reuse-first, contract-first generation path without weakening th
 
 ## Before opening an issue
 
+Use [GitHub Discussions](https://github.com/jinjin-huang-3366/mcp-compass/discussions) for community conversations:
+
+- **Q&A** for usage and setup questions;
+- **Ideas** for early proposals that are not ready to become scoped work;
+- **Show and tell** for MCP Compass integrations, experiments, and demos;
+- **General** for project-relevant conversation that does not fit those categories;
+- **Polls** only for focused community choices; and
+- **Announcements** for maintainer-authored project updates.
+
+Use an issue instead when there is a reproducible defect or a focused, actionable feature request. Repository owner
+[`@jinjin-huang-3366`](https://github.com/jinjin-huang-3366) owns launch moderation and will recategorize, lock, or
+remove conversations that expose secrets, duplicate tracked work, or fall outside the developer-tool scope.
+
 - Use the [bug report form](https://github.com/jinjin-huang-3366/mcp-compass/issues/new?template=bug_report.yml)
   for reproducible defects.
 - Use the [feature request form](https://github.com/jinjin-huang-3366/mcp-compass/issues/new?template=feature_request.yml)

@@ -70,6 +70,29 @@ MKT-13 evidence captured on 2026-09-12:
 Exit evidence: the MKT-14 task records the GitHub URLs and settings observed after mutation. A source change alone
 does not prove that repository settings were applied.
 
+MKT-14 evidence captured on 2026-09-12:
+
+- canonical demo/homepage: `https://mcp-compass-iota.vercel.app/`; the frontend returned HTTP 200, the production
+  API accepted its CORS preflight with HTTP 200 and `Access-Control-Allow-Origin` set to that origin, and an `mt5`
+  search returned HTTP 200 with a strong match;
+- repository: `https://github.com/jinjin-huang-3366/mcp-compass`; homepage set to the canonical demo and Topics set
+  to `ai-agents`, `developer-tools`, `mcp`, `mcp-registry`, `mcp-server`, `model-context-protocol`, `nextjs`, and
+  `spring-boot`; GitHub's repository API accepted and returned the complete lowercase set;
+- Discussions: enabled at `https://github.com/jinjin-huang-3366/mcp-compass/discussions` with GitHub's bounded launch
+  categories [Announcements](https://github.com/jinjin-huang-3366/mcp-compass/discussions/categories/announcements),
+  [General](https://github.com/jinjin-huang-3366/mcp-compass/discussions/categories/general),
+  [Ideas](https://github.com/jinjin-huang-3366/mcp-compass/discussions/categories/ideas),
+  [Polls](https://github.com/jinjin-huang-3366/mcp-compass/discussions/categories/polls),
+  [Q&A](https://github.com/jinjin-huang-3366/mcp-compass/discussions/categories/q-a), and
+  [Show and tell](https://github.com/jinjin-huang-3366/mcp-compass/discussions/categories/show-and-tell). Their intended
+  uses and issue-routing boundary are documented in `CONTRIBUTING.md`;
+- moderation owner/operator: repository owner
+  [`@jinjin-huang-3366`](https://github.com/jinjin-huang-3366), whose admin permission was verified before enabling
+  Discussions;
+- verification used public HTTP responses and authenticated GitHub API reads after mutation. Visual signed-out
+  browser verification was not performed because the local in-app browser runtime failed to initialize; it remains
+  part of MKT-15's release-and-demo verification gate.
+
 ## MKT-15 — tagged GitHub release
 
 - Start only after MKT-13 is merged and MKT-14 settings are verified.
