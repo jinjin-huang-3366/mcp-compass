@@ -15,8 +15,8 @@ Checked on 2026-09-12 against the repository and its GitHub metadata before MKT-
 - the existing agent-task issue template is useful for planned engineering work, but there are no public bug report
   or feature request forms;
 - the GitHub repository has no Topics or homepage URL, Discussions is disabled, and no tagged release exists;
-- the stable frontend alias loads publicly, but its deployed search action still targets a protected immutable
-  backend URL; the stable backend alias responds successfully, so the canonical demo is not end-to-end verified.
+- the initially selected frontend alias loads the same deployed bundle as `https://mcp-compass-iota.vercel.app/`, but
+  the production API CORS policy rejects the former origin and allows the `iota` origin.
 
 Repository settings and release state can change independently of the code. Recheck them during MKT-14 and MKT-15
 and record dated evidence rather than relying on this snapshot.
@@ -48,9 +48,9 @@ MKT-13 evidence captured on 2026-09-12:
 - three optimized still PNGs cover desktop ranking/explanation, mobile abstention, and contract review; their
   provenance, viewport, size, and alt-text choices are recorded in `docs/assets/launch/README.md`; a GIF was omitted
   because motion added no clarity;
-- the frontend and backend stable aliases both returned HTTP 200, but the browser search failed because the deployed
-  frontend references a protected immutable backend URL. This remains a launch blocker for MKT-14, and the README
-  does not describe the demo as fully working;
+- both frontend aliases served the same bundle targeting `https://mcp-compass-api.vercel.app`; an `mt5` preflight and
+  search from `https://mcp-compass-iota.vercel.app` returned HTTP 200 with the matching CORS origin, while the
+  initially selected project alias was rejected with HTTP 403. The README now uses the verified `iota` URL;
 - final link, YAML, desktop/mobile render, asset-size, and repository validation results are recorded in the linked
   MKT-13 pull request rather than asserted by this checklist alone.
 

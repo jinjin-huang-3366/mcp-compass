@@ -27,8 +27,8 @@ internal milestone plan. The first public version and date will be chosen during
 ### Known limitations
 
 - Registry data is a synchronized snapshot, not complete live ecosystem coverage.
-- The stable deployed frontend loads publicly, but its search action currently targets a protected immutable backend
-  deployment. MKT-14 must correct and verify the canonical public demo before external launch.
+- The public demo is a Vercel alias rather than a custom domain and must be re-verified during MKT-14 before external
+  launch.
 - Hosted validation requires a separately operated isolated worker; queued jobs and reports are not security
   certification.
 - Generation currently targets the repository-owned TypeScript runtime pack.

@@ -1,13 +1,13 @@
 # Launch screenshot provenance
 
 These screenshots are repository documentation assets captured on 2026-09-12 from the deployed MCP Compass frontend
-at `https://mcp-compass-jinjin-huang-3366s-projects.vercel.app/`.
+bundle now linked through the working public alias at `https://mcp-compass-iota.vercel.app/`.
 
-The deployed frontend's browser search currently calls a protected immutable backend deployment. To avoid presenting
-that broken browser path as verified, the capture rendered the production frontend while fulfilling its requests
-with responses fetched directly from the stable production API alias at
-`https://mcp-compass-api-jinjin-huang-3366s-projects.vercel.app/`. MKT-14 must correct and independently verify the
-canonical public demo before launch.
+The two frontend aliases checked during capture served the same JavaScript bundle targeting
+`https://mcp-compass-api.vercel.app/`. The production API accepted an `mt5` preflight and search from the `iota`
+origin with HTTP 200 and a matching `Access-Control-Allow-Origin` header, while it rejected the initially selected
+project alias with HTTP 403. The screenshots render that production frontend bundle with responses from the stable
+production API. MKT-14 must independently re-verify the canonical public demo before launch.
 
 | Asset | Viewport | Demonstrated state | Accessibility/size choice |
 | --- | --- | --- | --- |

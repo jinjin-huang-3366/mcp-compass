@@ -9,13 +9,12 @@ the parsed intent, required and forbidden capabilities, and the evidence behind 
 weak, it abstains. Only when reuse is inadequate does the separate generation path begin—with a reviewed tool
 contract before any source code is produced.
 
-[Open the deployed UI](https://mcp-compass-jinjin-huang-3366s-projects.vercel.app/) ·
+[Open the deployed UI](https://mcp-compass-iota.vercel.app/) ·
 [Read the API](docs/API.md) ·
 [Contribute](CONTRIBUTING.md)
 
-> **Launch-candidate demo:** the stable frontend URL above was reachable on 2026-09-12. Its deployed search action
-> still targets a protected immutable backend URL, so use the local quick start for an end-to-end search today.
-> Resolving and re-verifying that public-demo path is the explicit MKT-14 launch gate.
+> **Launch-candidate demo:** the public URL above completed the `mt5` search against the production API on
+> 2026-09-12. MKT-14 must re-verify it before configuring the repository homepage and launch metadata.
 
 ## See the workflow
 
