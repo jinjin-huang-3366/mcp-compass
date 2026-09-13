@@ -79,20 +79,13 @@ Claims used: C1, C4. Media: none selected. Account and timing: awaiting approval
 
 ### Product Hunt preparation
 
-- **Name:** MCP Compass
-- **Tagline:** Find the right MCP server for your agent requirement
-- **Short description:** Describe an agent capability, compare ranked MCP server matches with evidence, and move to
-  reviewed-contract generation only when reuse is inadequate.
-- **Maker comment:** We built MCP Compass for the point where “find me an MCP” stops being a keyword search. It parses
-  capabilities and restrictions, searches a local Registry index, explains why candidates fit, and abstains when the
-  evidence is weak. The generated-server path is deliberately contract-first. The hosted validation worker is not
-  part of this deployment, so queued validation is not a security certification. We would value examples where the
-  ranking or explanation still misses developer intent.
-- **First comment:** Share one real requirement, the result you expected, and whether the explanation made the gap
-  obvious. Please omit credentials and private tool schemas.
-- **Assets still required:** verified logo/icon, gallery images, alt text, and final canonical-domain screenshot.
+The complete import-ready field set, exact maker first comment, square thumbnail, ordered gallery with alt text,
+current-platform checks, measurement plan, and launch-day response checklist are in the
+[Product Hunt launch handoff](PRODUCT_HUNT_LAUNCH.md). It uses the verified canonical demo and release boundary.
 
-Claims used: C1, C2, C4, C5. Submission, account, assets, and timing: awaiting approval.
+Claims used: C1, C2, C4, C5. No Product Hunt draft, schedule, or submission has been created. The submitting personal
+account, exact live tags, and launch time must be filled in and the complete resulting package explicitly approved
+immediately before the manual external action.
 
 ### Hacker News preparation
 
