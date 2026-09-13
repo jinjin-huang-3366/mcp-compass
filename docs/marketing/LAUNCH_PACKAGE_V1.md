@@ -96,23 +96,46 @@ Claims used: C1, C2, C4, C5. Submission, account, assets, and timing: awaiting a
 
 ### Hacker News preparation
 
-**Title:** Show HN: MCP Compass – rank MCP servers from an agent capability requirement
+Hacker News's official [Show HN guidelines](https://news.ycombinator.com/showhn.html) and
+[site guidelines](https://news.ycombinator.com/newsguidelines.html) were rechecked on 2026-09-13. A Show HN must be
+something the submitter made and is available to discuss, must be directly usable rather than a landing page, should
+be easy to try without signup, and must not be supported by solicited votes or comments. The site guidelines also say
+not to post generated or AI-edited text. Consequently, the earlier machine-drafted title and body have been removed:
+the maker must write the final submission in their own words before it can enter the exact-copy approval gate.
 
-**Body:** I built MCP Compass to make MCP discovery start with an agent requirement rather than a server name. It
-parses capabilities and restrictions, searches locally synchronized Registry data, ranks candidates, and explains
-matched and missing capabilities. The fixed 53-judgement gate recorded 0.8620 NDCG@10, 24/24 top-three acceptance,
-zero forbidden-result violations in the top three, and 8/8 correct abstentions.
+**Maker writing packet (facts and prompts, not submission copy):**
 
-The design is reuse-first. If no existing server is adequate, the generation path requires review of an
-OpenAPI-derived tool contract before exporting a TypeScript MCP project. One rough edge: generated-project validation
-needs a separately hosted isolated worker, so jobs can remain queued in the current hosted setup.
+- **Title requirement:** begin with `Show HN:` and describe the working project factually. Avoid superlatives,
+  exclamation points, or release-version framing.
+- **Maker context to cover:** why MCP server discovery based on names and directory entries was insufficient for the
+  maker; what they personally built; and why requirement-first search and reuse-before-generation were chosen.
+- **Technical path to explain:** natural-language requirement → parsed capabilities, prohibitions, and constraints →
+  locally synchronized Registry search → deterministic ranked matches with evidence → abstention when evidence is
+  weak. If reuse is inadequate, the separate generation path starts with an editable OpenAPI-derived tool contract.
+- **Concrete try-it example:** open <https://mcp-compass-iota.vercel.app/> with no signup and search for
+  `Query PostgreSQL read-only; forbid inserts, updates, deletes, and schema writes`. Inspect the parsed restrictions,
+  ranked candidates, matched and missing capabilities, and whether the result abstains rather than recommending an
+  unsafe fit. A production API check on 2026-09-13 parsed five forbidden write capabilities, excluded 99 candidates,
+  and returned `capital.hove/read-only-local-postgres-mcp-server` first; this is dated evidence, not a promise that a
+  changing Registry snapshot will always rank the same server first.
+- **Evidence available if useful:** the fixed 53-judgement evaluation recorded 96.2% Recall@100, 0.8620 NDCG@10,
+  24/24 top-three acceptance, zero forbidden-result violations in the top three, and 8/8 correct abstentions. Keep
+  the fixed-gate qualification and link the [quality report](../reports/DEMO_QUALITY_GATE_V1.md); do not present these
+  as universal or live-production guarantees.
+- **Rough edges to state:** Registry coverage is a synchronized snapshot, not the whole ecosystem; the hosted
+  generated-project validation worker is not deployed, so jobs can remain queued; validation is bounded evidence,
+  not a security certification; and there is no custom domain.
+- **Discussion prompts:** ask where the parser loses important negative intent, which ranking explanations fail to
+  justify a result, which MCP metadata sources are missing, and which requirements should produce no strong match.
+- **Final links:** live demo <https://mcp-compass-iota.vercel.app/>; source
+  <https://github.com/jinjin-huang-3366/mcp-compass>; release
+  <https://github.com/jinjin-huang-3366/mcp-compass/releases/tag/v0.1.0>.
 
-Demo: <https://mcp-compass-iota.vercel.app/>
-
-I would appreciate technical feedback on requirements that should abstain, ranking explanations that are not useful,
-and MCP metadata that the index handles poorly.
-
-Claims used: C1, C2, C3, C4, C5. Submission and timing: awaiting approval. Do not coordinate votes.
+Claims available: C1, C2, C3, C4, C5. Intended destination: Hacker News `Show HN`, submitted by the maker's own HN
+account. Media: none. Referral measurement: preserve the resulting HN item URL and compare the `news.ycombinator.com`
+initial-page referrer in Vercel Web Analytics; no UTM-level measurement is claimed. Submission time and human-authored
+copy: awaiting the maker. Do not create a remote draft, submit, coordinate votes/comments, delete and repost, or use
+the material above as post copy.
 
 ### Reddit source draft
 
