@@ -1,6 +1,7 @@
 # MCP Compass developer launch package v1
 
-Status: the X launch was published on 2026-09-11. The remaining channel material is draft only.
+Status: the X launch was published on 2026-09-11, and the Bluesky launch was published on 2026-09-13. The
+remaining channel material is draft only.
 
 ## Release boundary
 
@@ -48,9 +49,9 @@ or has unmeasured adoption. Do not turn C3 or C6 into an unqualified current-pro
 
 ## Channel launch content
 
-The X section records the exact approved launch package. The remaining drafts are inputs to the MKT-04 exact-copy
-approval gate: the account, final link, media, and publication time must be filled in and the complete package approved
-before any remote draft, schedule, or publication is created.
+The X and Bluesky sections record their exact approved launch packages. The remaining drafts are inputs to the MKT-04
+exact-copy approval gate: the account, final link, media, and publication time must be filled in and the complete
+package approved before any remote draft, schedule, or publication is created.
 
 ### X
 
@@ -69,13 +70,31 @@ Claims used: C1, C4. Format: standalone X post. Media: none. Account: `@jhuang33
 
 ### Bluesky
 
-Describe what your agent needs. MCP Compass ranks matching MCP servers and explains the capabilities and constraints
-behind each result. Weak evidence? It can say no strong match instead of filling the page with unrelated servers.
+Post 1:
 
-Reuse first; reviewed-contract generation second.
-<https://mcp-compass-iota.vercel.app/>
+Describe what your agent needs—not a directory scroll.
 
-Claims used: C1, C4. Media: none selected. Account and timing: awaiting approval.
+MCP Compass ranks MCP servers, explains fit and gaps, and abstains when evidence is weak.
+
+No strong match? Provide an OpenAPI document, review the tool contract, and generate a TypeScript MCP server.
+
+Try: <https://mcp-compass-iota.vercel.app/>
+
+Post 2:
+
+Repository:
+<https://github.com/jinjin-huang-3366/mcp-compass>
+
+Discussion:
+<https://github.com/jinjin-huang-3366/mcp-compass/discussions/94>
+
+Claims used: C1, C4. Format: two-post Bluesky thread. Media: none. Account: `@jhuang3366.bsky.social`.
+Approved as package `BLUESKY-LAUNCH` revision 5 and published through Typefully draft `10749783` at
+`2026-09-13T16:27:20.985+01:00` (Europe/London). Typefully and Bluesky's public API reported the root post and
+thread reply at:
+
+- <https://bsky.app/profile/jhuang3366.bsky.social/post/3mvfvu3d3ea2q>
+- <https://bsky.app/profile/jhuang3366.bsky.social/post/3mvfvu3vfht2l>
 
 ### Product Hunt preparation
 
