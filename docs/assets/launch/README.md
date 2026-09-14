@@ -15,6 +15,7 @@ settings evidence is recorded in the [launch checklist](../../GITHUB_LAUNCH_READ
 | `search-ranking.png` | 1440 × 1200 desktop | Read-only PostgreSQL intent, first ranked match, and score explanation | README alt text names the important state; later results were hidden to keep the PNG to a representative 73 KB. |
 | `search-abstention-mobile.png` | 390 × 844 mobile | GitHub delete prohibitions and no-strong-match explanation | The element capture tests the narrow layout; the 46 KB still preserves readable text. |
 | `contract-review.png` | 1440 × 1100 desktop | Two OpenAPI-derived tools with editable contract fields and risk labels | The 29 KB still shows both read-only and mutating review states. |
+| `product-hunt-thumbnail.png` | 1254 × 1254 square | Abstract compass needle connected to three MCP nodes | Static 328 KB PNG; transparent background, no text, and a strong silhouette for Product Hunt's square thumbnail. |
 
 The production API inputs were the canonical `postgres-read-only` and `github-no-delete` requirements from
 `backend/src/test/resources/fixtures/ranking/registry-relevance-v1.json`, plus an in-memory two-operation OpenAPI
@@ -22,3 +23,6 @@ document titled `Launch Pets API`. No credentials, cookies, private specificatio
 
 No animated GIF was produced because motion did not add information beyond these three states. All public-facing
 README images have descriptive alt text and no essential instruction exists only inside an image.
+
+The Product Hunt thumbnail was generated on 2026-09-13 with OpenAI's built-in image-generation tool from a prompt
+for a minimal charcoal-and-emerald compass and connected-node mark. It contains no user data or third-party marks.
