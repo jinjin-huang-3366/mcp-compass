@@ -151,23 +151,11 @@ the material above as post copy.
 
 ### Reddit source draft
 
-**Working title:** I built a requirement-first search tool for MCP servers
-
-**Body:** I am the maker of MCP Compass. It takes a natural-language agent capability requirement, searches locally
-synchronized Registry metadata, and explains why its ranked MCP server candidates matched—or why there is no strong
-match. The goal is to reuse an adequate server before reaching for generation; generation starts from a reviewed
-OpenAPI-derived tool contract.
-
-The hosted setup has an important limitation: generated-project validation requires a separate isolated worker, so
-queued validation should not be read as a security certification.
-
-Demo: <https://mcp-compass-iota.vercel.app/>
-
-I would value a concrete requirement that existing MCP directories make hard to evaluate.
-
-Claims used: C1, C2, C4, C5. This is source material only. Select a community and verify its current self-promotion,
-link, flair, and title rules before adapting it; disclose the maker relationship. Submission and timing: awaiting
-approval.
+The [Reddit launch preparation](REDDIT_LAUNCH_V1.md) records a dated community-rules check and provides distinct,
+non-cross-posted drafts for an `r/mcp` showcase and the `r/AI_Agents` weekly project display thread. Both use claims
+C1, C2, C4, and C5, disclose the maker relationship, and include the hosted validation limitation. They are local
+preparation only: the account, live destination, final copy, and schedule still require a fresh rules check and
+exact-copy approval before manual submission.
 
 ## Approval handoff
 
