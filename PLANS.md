@@ -47,7 +47,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-28 — prepare the GitHub launch surface** | `MKT-13` | `EXIT-05` and `DEP-01` | Complete (1/1) |
 | **PG-29 — configure GitHub launch metadata** | `MKT-14` | `MKT-13` | Complete (1/1) |
 | **PG-30 — publish the first tagged release** | `MKT-15` | `MKT-14` | Complete (1/1) |
-| **PG-31 — launch across developer channels** | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` and `MKT-15` | In progress (4/5) |
+| **PG-31 — launch across developer channels** | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` and `MKT-15` | Complete (5/5) |
 | **PG-32 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
@@ -167,7 +167,7 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **MKT-07** — Launch on Bluesky. _(Depends on: MKT-04, MKT-15)_
 - [x] **MKT-08** — Prepare the Product Hunt launch. _(Depends on: MKT-04, MKT-15)_
 - [x] **MKT-09** — Prepare the Hacker News Show HN post. _(Depends on: MKT-04, MKT-15)_
-- [ ] **MKT-10** — Prepare relevant Reddit posts. _(Depends on: MKT-04, MKT-15)_
+- [x] **MKT-10** — Prepare relevant Reddit posts. _(Depends on: MKT-04, MKT-15)_
 - [x] **MKT-11** — Track referral sources in web analytics. _(Depends on: DEP-01)_
 
   Production evidence: commit `9ab1c47b8e3885bc983103738f7ac54d3ba8d61d` was deployed by Vercel workflow
