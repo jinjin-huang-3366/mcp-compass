@@ -1,0 +1,31 @@
+{
+  "github": {
+    "enabled": true,
+    "maxDiscussionsPerRepository": 30,
+    "maxCommentsPerDiscussion": 50,
+    "maxRepliesPerComment": 20,
+    "repositories": [
+      {
+        "owner": "modelcontextprotocol",
+        "repo": "registry",
+        "discussions": true
+      }
+    ]
+  },
+  "hackerNews": {
+    "enabled": true,
+    "feeds": ["newstories", "showstories", "askstories"],
+    "maxItemsPerFeed": 30,
+    "maxCommentsPerStory": 40
+  },
+  "reddit": {
+    "enabled": false
+  },
+  "thresholds": {
+    "collectRelevance": 0.6,
+    "engagementRelevance": 0.75,
+    "highPotentialUser": 80,
+    "roadmapIndependentAuthors": 3,
+    "roadmapIndependentThreads": 2
+  }
+}
