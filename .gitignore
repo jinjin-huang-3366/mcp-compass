@@ -43,3 +43,4 @@ Thumbs.db
 generated/
 artifacts/
 /.env.local
+/.local/feedback/

@@ -42,6 +42,18 @@ Spring Boot modules/packages:
 ### PostgreSQL
 Stores normalized server metadata, future tools/capabilities, enrichment, validation results, and optional vectors. The public Registry is not the search-time source of truth.
 
+### Local feedback intelligence
+The operator-triggered feedback agent is repository automation, not a production application service. A standard-library
+Python CLI collects bounded public GitHub Discussions and Hacker News material through source adapters, then stores
+minimal traceable evidence under ignored `.local/feedback/` state. Deterministic filtering, clustering, scoring, and
+reporting run before any optional semantic review. Reddit remains disabled unless an official authenticated API is
+configured, and Hacker News is read-only.
+
+GitHub Discussion publishing is a separate, fail-closed path. An exact proposal is approved by content hash for one
+target and one create/reply operation; publishing revalidates that approval and the local GitHub CLI identity before
+performing one `addDiscussionComment` mutation. This workflow is separate from Typefully marketing publishing and
+does not modify product priorities directly.
+
 ### Validation worker
 Generated or third-party MCP code runs only in an ephemeral container controlled by the separate
 `validation-worker` JVM. The main backend never materializes or executes a workload and has no container-runtime

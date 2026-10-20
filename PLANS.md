@@ -49,6 +49,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-30 — publish the first tagged release** | `MKT-15` | `MKT-14` | Complete (1/1) |
 | **PG-31 — launch across developer channels** | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` and `MKT-15` | Complete (5/5) |
 | **PG-32 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
+| **PG-33 — add feedback intelligence** | `FB-01` | `MKT-01` | Not started (0/1) |
 
 To deliver one task, use the group ID as scheduling context, for example: `Use $mcp-task-pr-flow for SRCH-04 from PG-01.` To fan out every ready task in a group as independent PRs, use `Use $mcp-task-batch-flow for PG-01.` The batch skill preserves one isolated `$mcp-task-pr-flow` child, branch, workflow run, and pull request per task.
 
@@ -176,6 +177,10 @@ A developer writes what their agent needs. MCP Compass returns the best existing
 - [x] **MKT-14** — Configure the GitHub repository homepage and focused Topics around the verified public demo, and enable Discussions only with launch categories, contribution guidance, and an identified moderation owner. Record the final settings and URLs in the launch checklist. _(Depends on: MKT-13)_
 - [x] **MKT-15** — From a CI- and deployment-verified `main` commit, choose the public version independently of internal milestone numbers, create the immutable tag and GitHub Release, publish evidence-backed release notes from `CHANGELOG.md`, and verify the release and demo links before channel launch. _(Depends on: MKT-14)_
 - [ ] **MKT-12** — Triage launch feedback into reviewable GitHub issues with source links. _(Depends on: MKT-05, MKT-07, MKT-08, MKT-09, MKT-10, MKT-11)_
+
+## Feedback Intelligence V0.1
+
+- [ ] **FB-01** — Add the local `mcp-feedback-research` skill and deterministic CLI vertical slice for configured GitHub Discussions and read-only Hacker News collection, relevance filtering, structured evidence, independent problem clustering, potential-user scoring, sanitized reports and roadmap candidates, exact-copy reply approval, one-mutation GitHub publishing, engagement recording, tests, and operator documentation; keep Reddit disabled by default and expose no Hacker News or Reddit write action. _(Depends on: MKT-01)_
 
 ## Explicit non-goals for V0.1
 - Agent runtime/orchestrator.
