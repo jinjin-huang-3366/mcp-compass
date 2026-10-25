@@ -58,6 +58,9 @@ describe("SearchForm", () => {
         version: "1.0.0",
         status: "active",
         repositoryUrl: "https://github.com/example/github-mcp",
+        remoteConnectionState: "REACHABLE",
+        remoteConnectionCheckedAt: "2026-10-25T12:00:00Z",
+        remoteConnectionReason: "MCP initialize succeeded",
         score: 0.9,
         qualityScore: 0.8,
         capabilityCoverage: 1,
@@ -78,6 +81,7 @@ describe("SearchForm", () => {
       .toHaveAttribute("href", "/mcp/server-1?q=Read+GitHub+issues&page=2");
     expect(screen.getByRole("link", { name: /Source repository/ }))
       .toHaveAttribute("href", "https://github.com/example/github-mcp");
+    expect(screen.getByText(/MCP connection reached/)).toHaveTextContent("MCP initialize succeeded");
     expect(screen.getByRole("heading", { name: "Parsed intent" })).toBeInTheDocument();
     expect(screen.getAllByText("github.issue.read")).toHaveLength(2);
 

@@ -46,6 +46,9 @@ Response shape:
       "description": "...",
       "version": "1.0.0",
       "repositoryUrl": "https://github.com/example/example-mcp",
+      "remoteConnectionState": "AUTH_REQUIRED",
+      "remoteConnectionCheckedAt": "2026-10-25T12:00:00Z",
+      "remoteConnectionReason": "HTTP 401 requires authorization",
       "score": 0.576,
       "qualityScore": 0.2,
       "capabilityCoverage": 0.5,
@@ -128,6 +131,11 @@ statically declared MCP input schemas were `DISCOVERED`, `PARTIAL`, `INVALID`, o
 `NOT_DISCOVERABLE`; `toolSchemaInspectedAt` identifies the Registry ingestion that last inspected
 the metadata. `repositoryUrl` contains the publisher-declared source repository when one was present
 in the ingested Registry metadata. These fields do not imply that MCP code or a server tool was executed.
+Search matches and detail also expose `remoteConnectionState`, `remoteConnectionCheckedAt`, and
+`remoteConnectionReason`. The state is `REACHABLE`, `AUTH_REQUIRED`, `PROTOCOL_MISMATCH`,
+`UNREACHABLE`, or `NOT_CHECKED`; a null timestamp means no check has yet run. The UI displays
+the observation time so developers can judge freshness. `REACHABLE` means only that an MCP `initialize`
+response succeeded at the recorded time; it does not verify tool behavior or permissions.
 
 ## Local Registry sync
 

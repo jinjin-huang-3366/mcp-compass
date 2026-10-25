@@ -9,6 +9,7 @@ import { detailUrl, pageFromUrl, searchUrl } from "@/lib/search-navigation";
 import { CapabilityCoverage } from "@/components/CapabilityCoverage";
 import { RankingExplanation } from "@/components/RankingExplanation";
 import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
+import { RemoteConnectionObservation } from "@/components/RemoteConnectionObservation";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
 const PAGE_SIZE = 10;
@@ -198,6 +199,7 @@ export function SearchForm() {
                   matchedCapabilities={match.matchedCapabilities}
                   missingCapabilities={match.missingCapabilities}
                 />
+                <RemoteConnectionObservation observation={match} />
                 <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
                 <div className="resultActions">
