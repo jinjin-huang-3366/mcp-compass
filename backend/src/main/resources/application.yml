@@ -30,6 +30,11 @@ management:
         include: health,info,metrics
 
 app:
+  remote-check:
+    enabled: ${MCP_COMPASS_REMOTE_CHECK_ENABLED:false}
+    fixed-delay-ms: 3600000
+    allowed-hosts: ${MCP_COMPASS_REMOTE_CHECK_ALLOWED_HOSTS:}
+    opt-out-names: ${MCP_COMPASS_REMOTE_CHECK_OPT_OUT_NAMES:}
   cors:
     allowed-origin-patterns: ${MCP_COMPASS_CORS_ALLOWED_ORIGIN_PATTERNS:http://localhost:3000}
   generation:

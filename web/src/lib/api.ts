@@ -6,6 +6,9 @@ export type SearchMatch = {
   version: string | null;
   status: string | null;
   repositoryUrl: string | null;
+  remoteConnectionState: RemoteConnectionState;
+  remoteConnectionCheckedAt: string | null;
+  remoteConnectionReason: string | null;
   score: number;
   qualityScore: number;
   capabilityCoverage: number | null;
@@ -73,9 +76,15 @@ export type McpServerDetail = {
   version: string | null;
   status: string | null;
   repositoryUrl: string | null;
+  remoteConnectionState: RemoteConnectionState;
+  remoteConnectionCheckedAt: string | null;
+  remoteConnectionReason: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
 };
+
+export type RemoteConnectionState =
+  | "REACHABLE" | "AUTH_REQUIRED" | "PROTOCOL_MISMATCH" | "UNREACHABLE" | "NOT_CHECKED";
 
 export type McpToolContract = {
   contractVersion: string;

@@ -91,6 +91,26 @@ Checkpoint and last-success metadata for incremental ingestion. A partial run re
 the prior `updated_since` boundary; completing pagination clears the cursor and advances the boundary to
 the run start time so updates arriving during the run are included by the next sync.
 
+### Remote connection observation
+
+`mcp_server` stores the latest `remote_connection_state`, `remote_connection_checked_at`, and a bounded
+`remote_connection_reason`. `NOT_CHECKED` is the default and also describes skipped endpoints. The
+timestamp is the time of the observation or skip, not a claim that the remote remains in that state.
+Registry sync keeps an observation until its 24-hour refresh is due; any changed Registry payload or
+a server that loses all remote install options resets to `NOT_CHECKED`. Search and detail read only
+these persisted fields.
+
+The opt-in background checker selects one Registry-declared `streamable-http` URL through a source
+interface. It sends only JSON-RPC `initialize`; it never calls `tools/call`, follows redirects, sends
+credentials, or executes a package. Each run handles at most ten due servers, spaces requests by at
+least one second, and limits connection/read time and response bytes. Hosts require an exact operator
+allowlist. `MCP_COMPASS_REMOTE_CHECK_ENABLED=true` turns on the hourly scheduler;
+`MCP_COMPASS_REMOTE_CHECK_ALLOWED_HOSTS` is a comma-separated host list, and
+`MCP_COMPASS_REMOTE_CHECK_OPT_OUT_NAMES` excludes comma-separated Registry names. Checks are disabled
+by default. A 401 or 403 means `AUTH_REQUIRED`, never `UNREACHABLE`; unsupported transports and
+unallowlisted URLs stay `NOT_CHECKED`. A successful initialize proves only that the endpoint responded
+to that handshake at that time, not tool safety or future availability.
+
 ## Identity
 Use Registry `name` as the stable public identity and an internal UUID primary key. Version history can be added separately when product requirements need it; V0.1 stores the latest seen version.
 
