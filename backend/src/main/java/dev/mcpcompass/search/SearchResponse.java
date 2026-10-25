@@ -33,7 +33,8 @@ public record SearchResponse(
             UUID id,
             String registryName,
             String title,
-            List<String> reasons
+            List<String> reasons,
+            List<CandidateEligibilityPolicy.ForbiddenCapabilityEvidence> forbiddenCapabilityEvidence
     ) {
     }
 
@@ -50,6 +51,7 @@ public record SearchResponse(
             Double capabilityCoverage,
             List<String> matchedCapabilities,
             List<String> missingCapabilities,
+            List<CandidateEligibilityPolicy.ForbiddenCapabilityEvidence> forbiddenCapabilityEvidence,
             RankingExplanation rankingExplanation,
             List<String> reasons
     ) {

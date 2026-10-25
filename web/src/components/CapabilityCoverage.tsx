@@ -34,7 +34,7 @@ export function CapabilityCoverage({
       <progress aria-label={`${percentage}% capability coverage`} max={100} value={percentage} />
       <p className="coverageSummary">
         {matchedCapabilities.length} of {matchedCapabilities.length + missingCapabilities.length} required
-        capabilities are covered.
+        capabilities match self-described metadata. This does not verify server permissions.
       </p>
 
       <div className="capabilityGroups">
@@ -42,7 +42,7 @@ export function CapabilityCoverage({
           <h4>Covered</h4>
           {matchedCapabilities.length > 0 ? (
             <>
-              <p>This server explicitly supports:</p>
+              <p>Advertised by Registry or normalized tool metadata:</p>
               <ul className="capabilityList">
                 {matchedCapabilities.map((capability) => <li key={capability}>{capability}</li>)}
               </ul>
@@ -62,7 +62,7 @@ export function CapabilityCoverage({
               </ul>
             </>
           ) : (
-            <p>All required capabilities are covered.</p>
+            <p>No required capabilities are missing from the available metadata.</p>
           )}
         </div>
       </div>

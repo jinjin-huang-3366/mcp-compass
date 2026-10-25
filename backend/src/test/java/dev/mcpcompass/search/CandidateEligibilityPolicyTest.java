@@ -186,6 +186,54 @@ class CandidateEligibilityPolicyTest {
     }
 
     @Test
+    void excludesSelfDescribedReadOnlyPostgresWithArbitrarySqlPath() {
+        StructuredRequirement requirement = requirement(
+                List.of("postgres.row.insert", "postgres.schema.write"),
+                List.of(new RequirementConstraint(
+                        "access-mode", RequirementConstraint.Operator.EQUALS, "read-only"))
+        );
+        McpServerEntity server = server("io.example/postgres-readonly",
+                "Read-only PostgreSQL server with arbitrary SQL queries");
+
+        CandidateEligibilityPolicy.Eligibility result = policy.evaluate(requirement, server,
+                Set.of("postgres.execute_sql"));
+
+        assertThat(result.eligible()).isFalse();
+        assertThat(result.reasons()).allMatch(reason -> reason.contains("arbitrary SQL"));
+        assertThat(policy.forbiddenEvidence(requirement, server, Set.of("postgres.execute_sql")))
+                .allSatisfy(evidence -> {
+                    assertThat(evidence.status()).isEqualTo("ADVERTISED_WRITE_PATH");
+                    assertThat(evidence.registryDeclaration()).isEqualTo("SELF_DESCRIBED_WRITE_PATH");
+                    assertThat(evidence.normalizedToolMetadata()).isEqualTo("SELF_DESCRIBED_WRITE_PATH");
+                    assertThat(evidence.observedToolsList()).isEqualTo("NOT_OBSERVED");
+                    assertThat(evidence.permissionEnforcement()).isEqualTo("NOT_VERIFIED");
+                });
+    }
+
+    @Test
+    void advertisedReadOnlyWithoutWritePathStillHasUnknownEnforcement() {
+        StructuredRequirement requirement = requirement(List.of("postgres.row.write"), List.of());
+        McpServerEntity server = server("io.example/postgres-reader", "Read-only PostgreSQL queries");
+
+        assertThat(policy.evaluate(requirement, server, Set.of("postgres.query.select")).eligible()).isTrue();
+        assertThat(policy.forbiddenEvidence(requirement, server, Set.of("postgres.query.select")))
+                .singleElement().satisfies(evidence -> {
+                    assertThat(evidence.status()).isEqualTo("UNKNOWN");
+                    assertThat(evidence.registryDeclaration()).isEqualTo("SELF_DESCRIBED_READ_ONLY");
+                    assertThat(evidence.normalizedToolMetadata()).isEqualTo("SELF_DESCRIBED_NO_WRITE_PATH");
+                    assertThat(evidence.permissionEnforcement()).isEqualTo("NOT_VERIFIED");
+                });
+    }
+
+    @Test
+    void excludesAdvertisedWriteDespiteReadOnlyLabel() {
+        StructuredRequirement requirement = requirement(List.of("postgres.row.write"), List.of());
+        McpServerEntity server = server("io.example/postgres-reader", "Read-only PostgreSQL queries");
+
+        assertThat(policy.evaluate(requirement, server, Set.of("postgres.row.delete")).eligible()).isFalse();
+    }
+
+    @Test
     void excludesGithubCandidateWhenDeletionSafetyCannotBeVerified() {
         StructuredRequirement requirement = requirement(
                 List.of("github.repository.delete", "github.branch.delete"),
