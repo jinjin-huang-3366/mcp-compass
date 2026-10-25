@@ -1,0 +1,61 @@
+{
+  "fixtureNotice": "Synthetic, offline observations only. A fixture verification result is not a cryptographic verification.",
+  "cases": [
+    {
+      "id": "linked-attested",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": true, "repository": "https://github.com/alice/weather", "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0", "fileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+      "packageObservation": {"mcpName": "io.github.alice/weather", "repository": "https://github.com/alice/weather", "downloadSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+      "attestationObservation": {"verified": true, "subjectSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sourceRepository": "https://github.com/alice/weather"},
+      "expected": {"namespace": "REGISTRY_AUTHENTICATED", "packageLink": "NAME_MATCH_SOURCE_DECLARED", "digest": "MATCH", "attestation": "VERIFIED_SOURCE_MATCH"}
+    },
+    {
+      "id": "missing-evidence",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": false, "repository": null, "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0"}},
+      "packageObservation": null,
+      "attestationObservation": null,
+      "expected": {"namespace": "UNCONFIRMED", "packageLink": "UNOBSERVED", "digest": "UNOBSERVED", "attestation": "UNOBSERVED"}
+    },
+    {
+      "id": "package-name-mismatch",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": true, "repository": "https://github.com/alice/weather", "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0"}},
+      "packageObservation": {"mcpName": "io.github.mallory/weather", "repository": "https://github.com/alice/weather"},
+      "attestationObservation": null,
+      "expected": {"namespace": "REGISTRY_AUTHENTICATED", "packageLink": "NAME_MISMATCH", "digest": "UNOBSERVED", "attestation": "UNOBSERVED"}
+    },
+    {
+      "id": "source-claim-mismatch",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": true, "repository": "https://github.com/alice/weather", "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0"}},
+      "packageObservation": {"mcpName": "io.github.alice/weather", "repository": "https://github.com/mallory/weather"},
+      "attestationObservation": null,
+      "expected": {"namespace": "REGISTRY_AUTHENTICATED", "packageLink": "SOURCE_CLAIM_MISMATCH", "digest": "UNOBSERVED", "attestation": "UNOBSERVED"}
+    },
+    {
+      "id": "tampered-download",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": true, "repository": "https://github.com/alice/weather", "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0", "fileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+      "packageObservation": {"mcpName": "io.github.alice/weather", "repository": "https://github.com/alice/weather", "downloadSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
+      "attestationObservation": null,
+      "expected": {"namespace": "REGISTRY_AUTHENTICATED", "packageLink": "NAME_MATCH_SOURCE_DECLARED", "digest": "MISMATCH", "attestation": "UNOBSERVED"}
+    },
+    {
+      "id": "attestation-subject-mismatch",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": true, "repository": "https://github.com/alice/weather", "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0", "fileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+      "packageObservation": {"mcpName": "io.github.alice/weather", "repository": "https://github.com/alice/weather", "downloadSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+      "attestationObservation": {"verified": true, "subjectSha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "sourceRepository": "https://github.com/alice/weather"},
+      "expected": {"namespace": "REGISTRY_AUTHENTICATED", "packageLink": "NAME_MATCH_SOURCE_DECLARED", "digest": "MATCH", "attestation": "SUBJECT_MISMATCH"}
+    },
+    {
+      "id": "attestation-source-mismatch",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": true, "repository": "https://github.com/alice/weather", "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0", "fileSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+      "packageObservation": {"mcpName": "io.github.alice/weather", "repository": "https://github.com/alice/weather", "downloadSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+      "attestationObservation": {"verified": true, "subjectSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sourceRepository": "https://github.com/mallory/weather"},
+      "expected": {"namespace": "REGISTRY_AUTHENTICATED", "packageLink": "NAME_MATCH_SOURCE_DECLARED", "digest": "MATCH", "attestation": "SOURCE_MISMATCH"}
+    },
+    {
+      "id": "unverified-attestation",
+      "registry": {"name": "io.github.alice/weather", "officialResponse": true, "repository": "https://github.com/alice/weather", "package": {"registryType": "npm", "identifier": "@alice/weather", "version": "1.0.0"}},
+      "packageObservation": {"mcpName": "io.github.alice/weather", "repository": "https://github.com/alice/weather"},
+      "attestationObservation": {"verified": false, "subjectSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sourceRepository": "https://github.com/alice/weather"},
+      "expected": {"namespace": "REGISTRY_AUTHENTICATED", "packageLink": "NAME_MATCH_SOURCE_DECLARED", "digest": "UNOBSERVED", "attestation": "INVALID"}
+    }
+  ]
+}
