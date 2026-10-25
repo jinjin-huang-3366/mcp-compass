@@ -4,6 +4,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public final class ValidationWorkerApplication {
     private ValidationWorkerApplication() {
@@ -17,12 +19,11 @@ public final class ValidationWorkerApplication {
             return;
         }
 
+        JdbcValidationJobStore store = new JdbcValidationJobStore(
+                configuration.databaseUrl(), configuration.databaseUsername(), configuration.databasePassword()
+        );
         QueuedValidationWorker worker = new QueuedValidationWorker(
-                new JdbcValidationJobStore(
-                        configuration.databaseUrl(),
-                        configuration.databaseUsername(),
-                        configuration.databasePassword()
-                ),
+                store,
                 containers,
                 new ObjectMapper(),
                 configuration.workspaceRoot(),
@@ -37,9 +38,23 @@ public final class ValidationWorkerApplication {
         if (args.length > 0 && !"queue".equals(args[0])) {
             throw new IllegalArgumentException("Usage: queue | queue-once | discovered <image> [command ...]");
         }
-        while (!Thread.currentThread().isInterrupted()) {
-            if (!worker.runNext()) {
-                Thread.sleep(configuration.pollInterval());
+        store.heartbeat();
+        try (var heartbeats = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "validation-worker-heartbeat");
+            thread.setDaemon(true);
+            return thread;
+        })) {
+            heartbeats.scheduleWithFixedDelay(() -> {
+                try {
+                    store.heartbeat();
+                } catch (Exception error) {
+                    System.err.println("Validation worker heartbeat failed: " + error.getClass().getSimpleName());
+                }
+            }, 10, 10, TimeUnit.SECONDS);
+            while (!Thread.currentThread().isInterrupted()) {
+                if (!worker.runNext()) {
+                    Thread.sleep(configuration.pollInterval());
+                }
             }
         }
     }

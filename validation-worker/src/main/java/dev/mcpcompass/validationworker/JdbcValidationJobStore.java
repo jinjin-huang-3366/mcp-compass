@@ -35,6 +35,18 @@ final class JdbcValidationJobStore implements ValidationJobStore {
         this.password = password;
     }
 
+    void heartbeat() throws Exception {
+        String sql = """
+                INSERT INTO validation_worker_heartbeat (id, last_seen_at)
+                VALUES (1, CURRENT_TIMESTAMP)
+                ON CONFLICT (id) DO UPDATE SET last_seen_at = EXCLUDED.last_seen_at
+                """;
+        try (Connection connection = DriverManager.getConnection(url, username, password);
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        }
+    }
+
     @Override
     public Optional<ValidationJob> claimNext() throws Exception {
         try (Connection connection = DriverManager.getConnection(url, username, password);

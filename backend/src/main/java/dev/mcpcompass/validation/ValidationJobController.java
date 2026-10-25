@@ -17,21 +17,25 @@ import java.util.UUID;
 public class ValidationJobController {
     private final ValidationJobQueue queue;
     private final ValidationJobQuery query;
+    private final ValidationWorkerAvailability workerAvailability;
 
-    ValidationJobController(ValidationJobQueue queue, ValidationJobQuery query) {
+    ValidationJobController(ValidationJobQueue queue, ValidationJobQuery query,
+                            ValidationWorkerAvailability workerAvailability) {
         this.queue = queue;
         this.query = query;
+        this.workerAvailability = workerAvailability;
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ValidationJobResponse> enqueue(@RequestBody McpToolContract contract) {
         ValidationJobResponse job = queue.enqueue(contract);
         return ResponseEntity.accepted()
-                .body(job);
+                .body(workerAvailability.describe(job));
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     ResponseEntity<ValidationJobResponse> get(@PathVariable UUID id) {
-        return query.find(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return query.find(id).map(workerAvailability::describe).map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

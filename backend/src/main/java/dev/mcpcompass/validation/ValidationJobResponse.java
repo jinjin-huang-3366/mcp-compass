@@ -15,12 +15,16 @@ record ValidationJobResponse(
         Instant finishedAt,
         String failureReason,
         JsonNode protocolResult,
-        JsonNode securityReport
+        JsonNode securityReport,
+        String workerAvailability,
+        Instant workerLastSeenAt,
+        String statusMessage
 ) {
     static ValidationJobResponse from(ValidationJobEntity job, ObjectMapper objectMapper) {
         return new ValidationJobResponse(
                 job.id(), job.status(), job.projectName(), job.queuedAt(), job.startedAt(), job.finishedAt(),
-                job.failureReason(), json(job.protocolResult(), objectMapper), json(job.securityReport(), objectMapper)
+                job.failureReason(), json(job.protocolResult(), objectMapper), json(job.securityReport(), objectMapper),
+                null, null, null
         );
     }
 
