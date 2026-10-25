@@ -3,6 +3,7 @@ package dev.mcpcompass.remote;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class RemoteConnectionCheckService {
     private final Set<String> allowedHosts;
     private final Set<String> optedOutNames;
 
+    @Autowired
     public RemoteConnectionCheckService(McpServerRepository repository, RemoteConnectionSource source,
             RemoteConnectionProbe probe,
             @Value("${app.remote-check.allowed-hosts:}") String allowedHosts,
