@@ -26,10 +26,13 @@ class ValidationJobControllerTest {
                 ValidationJobStatus.QUEUED,
                 "pet-store-mcp-server",
                 Instant.parse("2026-08-24T14:30:00Z"),
-                null, null, null, null, null
+                null, null, null, null, null, null, null, null
         ));
+        ValidationWorkerAvailability availability = mock(ValidationWorkerAvailability.class);
+        when(availability.describe(any())).thenAnswer(invocation -> ValidationWorkerAvailability.describe(
+                invocation.getArgument(0), null, Instant.parse("2026-08-24T14:30:00Z")));
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(
-                new ValidationJobController(queue, mock(ValidationJobQuery.class))
+                new ValidationJobController(queue, mock(ValidationJobQuery.class), availability)
         ).build();
 
         mockMvc.perform(post("/api/v1/validation/jobs")
@@ -39,7 +42,9 @@ class ValidationJobControllerTest {
                 .andExpect(jsonPath("$.id").value(JOB_ID.toString()))
                 .andExpect(jsonPath("$.status").value("QUEUED"))
                 .andExpect(jsonPath("$.projectName").value("pet-store-mcp-server"))
-                .andExpect(jsonPath("$.queuedAt").value("2026-08-24T14:30:00Z"));
+                .andExpect(jsonPath("$.queuedAt").value("2026-08-24T14:30:00Z"))
+                .andExpect(jsonPath("$.workerAvailability").value("UNAVAILABLE"))
+                .andExpect(jsonPath("$.statusMessage").value(org.hamcrest.Matchers.containsString("queued, not executed")));
     }
 
     @Test
@@ -56,9 +61,13 @@ class ValidationJobControllerTest {
                 Instant.parse("2026-08-24T14:31:05Z"),
                 null,
                 objectMapper.readTree("{\"method\":\"tools/list\"}"),
-                objectMapper.readTree("{\"overallRisk\":\"DESTRUCTIVE\",\"tools\":[{\"name\":\"delete_pet\",\"risk\":\"DESTRUCTIVE\"}]}")
+                objectMapper.readTree("{\"overallRisk\":\"DESTRUCTIVE\",\"tools\":[{\"name\":\"delete_pet\",\"risk\":\"DESTRUCTIVE\"}]}"),
+                null, null, null
         )));
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ValidationJobController(queue, query)).build();
+        ValidationWorkerAvailability availability = mock(ValidationWorkerAvailability.class);
+        when(availability.describe(any())).thenAnswer(invocation -> ValidationWorkerAvailability.describe(
+                invocation.getArgument(0), null, Instant.parse("2026-08-24T14:32:00Z")));
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new ValidationJobController(queue, query, availability)).build();
 
         mockMvc.perform(get("/api/v1/validation/jobs/{id}", JOB_ID))
                 .andExpect(status().isOk())

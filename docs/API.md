@@ -302,7 +302,10 @@ an inert job snapshot, and returns `202 Accepted`:
   "id": "bb62591b-bc88-4b64-a3ff-7330cc0158b3",
   "status": "QUEUED",
   "projectName": "pet-store-mcp-server",
-  "queuedAt": "2026-08-24T14:30:00Z"
+  "queuedAt": "2026-08-24T14:30:00Z",
+  "workerAvailability": "UNAVAILABLE",
+  "workerLastSeenAt": null,
+  "statusMessage": "No recent validation worker heartbeat. This job is queued, not executed; ask the operator to start or restore the isolated worker."
 }
 ```
 
@@ -310,6 +313,9 @@ Queue submission does not run a worker, create a container, materialize project 
 execute generated code. The separate validation worker atomically claims the queued snapshot and starts it only in
 an ephemeral container. A generated job becomes `EXECUTED` after MCP Inspector completes initialization and a valid
 `tools/list` response, or `FAILED` after materialization, runtime, timeout, or protocol failure.
+`workerAvailability` is `AVAILABLE` only when the separate `queue` worker wrote a heartbeat within 30 seconds;
+it is otherwise `UNAVAILABLE`. `workerLastSeenAt` is the last observation or `null`. This indicates worker presence,
+not Docker readiness or a guarantee that a queued job will execute. Poll the job ID for its actual lifecycle.
 
 ## Get a validation job and security report
 
