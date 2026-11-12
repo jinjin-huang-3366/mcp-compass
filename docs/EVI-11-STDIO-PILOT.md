@@ -61,6 +61,29 @@ Local validation on Windows 2026-11-12: Docker client 29.6.2 found, but desktop-
 was absent. Live execution was therefore NOT_TESTED locally; syntax and deterministic Java
 tests were run. A passing live CI run is required before claiming this pilot observed installability.
 
+## Observed live run: 2026-11-12
+
+[Task workflow attempt 1](https://github.com/jinjin-huang-3366/mcp-compass/actions/runs/43313788873)
+executed the actual sample on commit `e2be5d58192a53c8e0c85cf5d06958c068358d94` using Linux
+GitHub Actions and Node v22.22.0. The sandbox conditions above applied; network was `none`,
+package lifecycle scripts were disabled, and no tools were invoked. Image preparation took
+4,492 ms (a single observation, not an uncached/fleet cost estimate).
+
+| Sample/control | UTC probe start | Install ms | Probe ms | Observed result |
+| --- | --- | ---: | ---: | --- |
+| memory 2.1.1 | 21:49:48.128 | 959 | 397 | INSTALLABLE; 9 tools |
+| filesystem 2.3.0 | 21:49:48.754 | 875 | 449 | INSTALLABLE; 16 tools |
+| nonexistent memory 0.0.0-pilot-missing | 21:49:47.618 | 237 | 0 | MISSING_OR_YANKED_PACKAGE; install exit 1 |
+| synthetic exit control | 21:49:47.855 | n/a | 29 | PROCESS_EXIT; exit 7 |
+| synthetic invalid-JSON control | 21:49:47.333 | n/a | 29 | PROTOCOL_ERROR |
+
+All five assertions passed in the workflow, along with backend/worker tests, web lint/build,
+CLI lint/tests and automation tests. The workflow created PR #103 and its email-summary step
+succeeded. Complete JSON reports are printed under `Run backend tests` in the linked run.
+NOT_TESTED infrastructure scenarios were tested deterministically; they were not live package
+failures. These measurements support feasibility for this tiny subset only and retain the
+decision below to defer a product status.
+
 ## Product decision
 
 Do not expose an installability badge yet. Even two successful samples cover only a narrow,
