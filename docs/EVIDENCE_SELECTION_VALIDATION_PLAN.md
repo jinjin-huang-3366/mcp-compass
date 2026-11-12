@@ -13,6 +13,11 @@ Run `VLD-01` measurement and `VLD-02` developer conversations alongside implemen
 
 ## What to learn
 
+The [EVI-12 comparison-fields evaluation](../feedback/reports/2026-11-12-evi-12-comparison-fields.md)
+records public selection cases, first-party data limitations, and a no-go for
+normalized price/SLA/quality product fields pending comparable evidence. Its
+desk example and reconsideration gates do not authorize product implementation.
+
 Ask active MCP developers for a recent server-selection decision, not an opinion about a feature list. Capture the requirement, alternatives considered, how they checked reachability and permissions today, what evidence they trusted, and the actual choice or blocker. Aim for 5–10 opt-in conversations/cases and 3–5 guided uses on real requirements. These are practical targets, not statistically representative samples. Do not store credentials or unnecessary personal data in reports.
 
 Measure a small funnel: relevant entry/referral, search, result/detail inspection, source or installation action, and opt-in confirmation that the evidence affected a decision. Existing web analytics establish referral sources, not adoption; add only privacy-conscious aggregate event measurement. Learn repeat use through opt-in follow-up rather than fingerprinting or raw-query logging. Record baseline and measurement gaps before interpreting change.

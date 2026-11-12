@@ -212,6 +212,11 @@ These are proposed, independently reviewable tasks from the [2026-10-25 ecosyste
 
 ## Evidence-backed selection validation sprint
 
+EVI-12 evaluation record: [public selection cases and comparison-field decision](feedback/reports/2026-11-12-evi-12-comparison-fields.md).
+The research recommends no-go for normalized pricing/SLA/quality product fields
+pending comparable authoritative data; the task checkbox remains unchecked until
+the linked task PR is manually merged.
+
 Run this as a bounded four-to-six-week product-discovery sprint, not a second general launch. `EVI-01` is a correctness obligation regardless of demand; later investment depends on observed selection use, not social impressions. Complete each task through the existing one-task/one-PR workflow where repository changes are needed. Public publishing is a separate, per-destination exact-copy approval decision and is never authorized by completing a plan checkbox.
 
 - [ ] **VLD-01** — Establish a privacy-conscious selection baseline using existing referral analytics where possible: define and instrument aggregate search-to-result/detail/source actions and an opt-in way to learn whether a result changed a real choice; record the deployed baseline, measurement gaps, and campaign attribution method. Do not log raw requirements, credentials, or personal identifiers merely to infer repeat use; use opt-in follow-up for repeat-use evidence. _(Depends on: MKT-11)_
