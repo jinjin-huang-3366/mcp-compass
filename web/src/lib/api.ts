@@ -11,6 +11,7 @@ export type SearchMatch = {
   capabilityCoverage: number | null;
   matchedCapabilities: string[];
   missingCapabilities: string[];
+  forbiddenCapabilityEvidence: ForbiddenCapabilityEvidence[];
   rankingExplanation: RankingExplanation;
   reasons: string[];
 };
@@ -63,6 +64,16 @@ export type SearchExclusion = {
   registryName: string;
   title: string | null;
   reasons: string[];
+  forbiddenCapabilityEvidence: ForbiddenCapabilityEvidence[];
+};
+
+export type ForbiddenCapabilityEvidence = {
+  capability: string;
+  status: "UNKNOWN" | "ADVERTISED_WRITE_PATH";
+  registryDeclaration: "NO_RELEVANT_DECLARATION" | "SELF_DESCRIBED_READ_ONLY" | "SELF_DESCRIBED_WRITE_PATH";
+  normalizedToolMetadata: "UNAVAILABLE" | "SELF_DESCRIBED_NO_WRITE_PATH" | "SELF_DESCRIBED_WRITE_PATH";
+  observedToolsList: "NOT_OBSERVED";
+  permissionEnforcement: "NOT_VERIFIED";
 };
 
 export type McpServerDetail = {

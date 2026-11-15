@@ -169,6 +169,20 @@ export function SearchForm() {
             </section>
           )}
 
+          {visibleResult.exclusions?.length > 0 && (
+            <details>
+              <summary>Excluded candidates ({visibleResult.totalExcluded})</summary>
+              <ul>{visibleResult.exclusions.map((exclusion) => (
+                <li key={exclusion.id}>
+                  {exclusion.title || exclusion.registryName}: {exclusion.reasons.join("; ")}
+                  {exclusion.forbiddenCapabilityEvidence?.length > 0 && (
+                    <span> Permission enforcement: NOT_VERIFIED.</span>
+                  )}
+                </li>
+              ))}</ul>
+            </details>
+          )}
+
           {visibleResult.matches.length === 0 ? (
             <div className="empty">
               {!visibleResult.strongMatch
@@ -198,6 +212,20 @@ export function SearchForm() {
                   matchedCapabilities={match.matchedCapabilities}
                   missingCapabilities={match.missingCapabilities}
                 />
+                {match.forbiddenCapabilityEvidence?.length > 0 && (
+                  <section aria-label="Forbidden capability evidence">
+                    <h3>Forbidden capability evidence</h3>
+                    <p>Registry declarations and normalized tool metadata are self-described. This search has not observed tools/list or verified server-enforced permissions.</p>
+                    <ul>{match.forbiddenCapabilityEvidence.map((evidence) => (
+                      <li key={evidence.capability}>
+                        <code>{evidence.capability}</code>: {evidence.status} / {evidence.permissionEnforcement}
+                        {evidence.registryDeclaration === "SELF_DESCRIBED_READ_ONLY" ? "; Registry claims read-only" : ""}
+                        {evidence.registryDeclaration === "SELF_DESCRIBED_WRITE_PATH" ? "; Registry advertises a write path" : ""}
+                        {evidence.normalizedToolMetadata === "SELF_DESCRIBED_WRITE_PATH" ? "; normalized tool metadata advertises a write path" : ""}
+                      </li>
+                    ))}</ul>
+                  </section>
+                )}
                 <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
                 <div className="resultActions">

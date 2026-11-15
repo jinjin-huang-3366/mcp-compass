@@ -45,6 +45,8 @@ public class CandidateEligibilityPolicy {
                 ? serverCapabilities
                 : List.of();
 
+        boolean arbitrarySqlPath = advertisesArbitrarySql(advertisedText, availableCapabilities);
+
         for (String forbidden : requirement.forbiddenCapabilities()) {
             String capabilityEvidence = availableCapabilities.stream()
                     .filter(available -> violates(forbidden, available))
@@ -53,6 +55,9 @@ public class CandidateEligibilityPolicy {
             if (capabilityEvidence != null) {
                 reasons.add("forbidden capability advertised: " + forbidden + " (normalized capability "
                         + capabilityEvidence + ")");
+            } else if (isPostgresWrite(forbidden) && arbitrarySqlPath) {
+                reasons.add("forbidden capability may be reachable through arbitrary SQL: " + forbidden
+                        + " (self-described Registry or normalized tool metadata)");
             } else if (advertisesForbidden(forbidden, advertisedText)) {
                 reasons.add("forbidden capability advertised: " + forbidden + " (Registry metadata)");
             } else if (!capabilityEvidenceAvailable
@@ -77,6 +82,54 @@ public class CandidateEligibilityPolicy {
             }
         }
         return new Eligibility(reasons.isEmpty(), List.copyOf(reasons));
+    }
+
+    public List<ForbiddenCapabilityEvidence> forbiddenEvidence(
+            StructuredRequirement requirement, McpServerEntity server, Collection<String> serverCapabilities
+    ) {
+        String text = advertisedText(server);
+        Collection<String> capabilities = serverCapabilities == null ? List.of() : serverCapabilities;
+        boolean arbitrarySqlPath = advertisesArbitrarySql(text, capabilities);
+        return requirement.forbiddenCapabilities().stream().map(forbidden -> {
+            boolean normalizedWrite = capabilities.stream().anyMatch(available -> violates(forbidden, available))
+                    || (isPostgresWrite(forbidden) && arbitrarySqlPath && capabilities.stream()
+                    .anyMatch(CandidateEligibilityPolicy::isArbitrarySqlCapability));
+            boolean registryWrite = advertisesForbidden(forbidden, text)
+                    || (isPostgresWrite(forbidden) && arbitrarySqlPath && advertisesArbitrarySqlText(text));
+            return new ForbiddenCapabilityEvidence(
+                    forbidden,
+                    normalizedWrite || registryWrite ? "ADVERTISED_WRITE_PATH" : "UNKNOWN",
+                    registryWrite ? "SELF_DESCRIBED_WRITE_PATH"
+                            : containsConstraintValue("access-mode", "read only", text)
+                            ? "SELF_DESCRIBED_READ_ONLY" : "NO_RELEVANT_DECLARATION",
+                    normalizedWrite ? "SELF_DESCRIBED_WRITE_PATH"
+                            : serverCapabilities == null ? "UNAVAILABLE" : "SELF_DESCRIBED_NO_WRITE_PATH",
+                    "NOT_OBSERVED",
+                    "NOT_VERIFIED"
+            );
+        }).toList();
+    }
+
+    private static boolean isPostgresWrite(String forbidden) {
+        String key = CapabilityNameNormalizer.matchingKey(forbidden);
+        return key != null && key.startsWith("postgres.")
+                && (key.endsWith(".write") || key.endsWith(".insert")
+                || key.endsWith(".update") || key.endsWith(".delete"));
+    }
+
+    private static boolean advertisesArbitrarySql(String text, Collection<String> capabilities) {
+        return advertisesArbitrarySqlText(text)
+                || capabilities.stream().anyMatch(CandidateEligibilityPolicy::isArbitrarySqlCapability);
+    }
+
+    private static boolean advertisesArbitrarySqlText(String text) {
+        return containsAny(text, "arbitrary sql", "raw sql", "any sql", "execute sql", "run sql");
+    }
+
+    private static boolean isArbitrarySqlCapability(String capability) {
+        String key = CapabilityNameNormalizer.matchingKey(capability);
+        return key != null && key.startsWith("postgres.") && key.contains(".sql")
+                && containsAny(key, "execute", "run", "arbitrary", "raw");
     }
 
     private static String missingNamedServiceEvidence(
@@ -304,5 +357,15 @@ public class CandidateEligibilityPolicy {
     }
 
     public record Eligibility(boolean eligible, List<String> reasons) {
+    }
+
+    public record ForbiddenCapabilityEvidence(
+            String capability,
+            String status,
+            String registryDeclaration,
+            String normalizedToolMetadata,
+            String observedToolsList,
+            String permissionEnforcement
+    ) {
     }
 }
