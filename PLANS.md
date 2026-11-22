@@ -50,7 +50,7 @@ The table covers every task that was unchecked when the groups were defined, and
 | **PG-31 — launch across developer channels** | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10` | `MKT-04` and `MKT-15` | Complete (5/5) |
 | **PG-32 — close the feedback loop** | `MKT-12` | `MKT-05`, `MKT-07`, `MKT-08`, `MKT-09`, `MKT-10`, `MKT-11` | Not started (0/1) |
 | **PG-33 — add feedback intelligence** | `FB-01` | `MKT-01` | Complete (1/1) |
-| **PG-34 — establish evidence-backed selection** | `EVI-01`, `EVI-04`, `EVI-05`, `EVI-07`, `EVI-08`, `EVI-10`, `EVI-11`, `EVI-12` | Existing prerequisites are checked. | In progress (7/8) |
+| **PG-34 — establish evidence-backed selection** | `EVI-01`, `EVI-04`, `EVI-05`, `EVI-07`, `EVI-08`, `EVI-10`, `EVI-11`, `EVI-12` | Existing prerequisites are checked. | Complete (8/8) |
 | **PG-35 — evaluate forbidden-capability evidence** | `EVI-02`, `EVI-03` | `EVI-01` | Not started (0/2) |
 | **PG-36 — use connection observations** | `EVI-06`, `EVI-09` | `EVI-04` | Not started (0/2) |
 | **PG-37 — activate hosted validation** | `EVI-13` | `EVI-05` | Not started (0/1) |
@@ -205,7 +205,7 @@ These are proposed, independently reviewable tasks from the [2026-10-25 ecosyste
 - [x] **EVI-07** — Evaluate whether existing Registry and package sources can support a provenance explanation that separates publisher namespace identity, package/source linkage, and digest/attestation evidence; build tampered/missing/mismatched fixtures and record a go/no-go design. Do not issue a generic safety badge or require an unsettled attestation standard on this early proposal evidence alone. _(Depends on: ENR-01)_
 - [x] **EVI-08** — Evaluate task-specific tool-set comparison on the existing labelled search corpus plus large-catalog cases: measure selection quality, missing complementary tools, and schema-token cost; document a go/no-go decision for showing a minimal relevant tool set and exclusions before building a runtime router. _(Depends on: REL-01)_
 - [ ] **EVI-09** — Evaluate capability drift on a bounded repeat sample from EVI-04: compare version, observation time, and stable `tools/list` fingerprints, measure ordinary-change versus false-alarm rates, and record a go/no-go decision before adding user-facing alerts; do not treat drift as malicious by default. _(Depends on: EVI-04)_
-- [ ] **EVI-10** — Evaluate bounded suspicious-instruction warnings for untrusted MCP tool descriptions using labelled benign/security-quotation/adversarial fixtures; document precision and false positives before exposing warnings, retain source provenance, and never certify a description as safe because no pattern matched. _(Depends on: REL-04)_
+- [x] **EVI-10** — Evaluate bounded suspicious-instruction warnings for untrusted MCP tool descriptions using labelled benign/security-quotation/adversarial fixtures; document precision and false positives before exposing warnings, retain source provenance, and never certify a description as safe because no pattern matched. _(Depends on: REL-04)_
 
 > EVI-10 evaluation evidence: [bounded fixture report](docs/reports/SUSPICIOUS_INSTRUCTION_EVALUATION_V1.md) records 72.73% precision, 15% non-adversarial false positives, and a no-go decision for UI warnings.
 
