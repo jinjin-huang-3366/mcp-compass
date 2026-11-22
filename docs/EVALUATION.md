@@ -2,6 +2,10 @@
 
 Search quality must be measured before adding complexity such as vector retrieval or LLM reranking.
 
+The separate [EVI-10 suspicious-instruction experiment](reports/SUSPICIOUS_INSTRUCTION_EVALUATION_V1.md)
+records labelled tool-description warnings, precision, false positives, provenance, and a no-go UI decision.
+It is offline and does not change ranking or certify source content.
+
 ## Initial evaluation dataset
 Create a versioned JSON/JSONL fixture with at least 20 representative developer queries. For each query record:
 - natural-language requirement;
