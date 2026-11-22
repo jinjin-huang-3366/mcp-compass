@@ -7,6 +7,7 @@ import { SearchResponse } from "@/lib/api";
 import { fetchCachedSearch, getCachedSearch, invalidateCachedSearch } from "@/lib/search-cache";
 import { detailUrl, pageFromUrl, searchUrl } from "@/lib/search-navigation";
 import { CapabilityCoverage } from "@/components/CapabilityCoverage";
+import { ForbiddenCapabilityEvidence } from "@/components/ForbiddenCapabilityEvidence";
 import { RankingExplanation } from "@/components/RankingExplanation";
 import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
 import { RemoteConnectionObservation } from "@/components/RemoteConnectionObservation";
@@ -176,9 +177,7 @@ export function SearchForm() {
               <ul>{visibleResult.exclusions.map((exclusion) => (
                 <li key={exclusion.id}>
                   {exclusion.title || exclusion.registryName}: {exclusion.reasons.join("; ")}
-                  {exclusion.forbiddenCapabilityEvidence?.length > 0 && (
-                    <span> Permission enforcement: NOT_VERIFIED.</span>
-                  )}
+                  <ForbiddenCapabilityEvidence evidence={exclusion.forbiddenCapabilityEvidence} />
                 </li>
               ))}</ul>
             </details>
@@ -214,20 +213,7 @@ export function SearchForm() {
                   missingCapabilities={match.missingCapabilities}
                 />
                 <RemoteConnectionObservation observation={match} />
-                {match.forbiddenCapabilityEvidence?.length > 0 && (
-                  <section aria-label="Forbidden capability evidence">
-                    <h3>Forbidden capability evidence</h3>
-                    <p>Registry declarations and normalized tool metadata are self-described. This search has not observed tools/list or verified server-enforced permissions.</p>
-                    <ul>{match.forbiddenCapabilityEvidence.map((evidence) => (
-                      <li key={evidence.capability}>
-                        <code>{evidence.capability}</code>: {evidence.status} / {evidence.permissionEnforcement}
-                        {evidence.registryDeclaration === "SELF_DESCRIBED_READ_ONLY" ? "; Registry claims read-only" : ""}
-                        {evidence.registryDeclaration === "SELF_DESCRIBED_WRITE_PATH" ? "; Registry advertises a write path" : ""}
-                        {evidence.normalizedToolMetadata === "SELF_DESCRIBED_WRITE_PATH" ? "; normalized tool metadata advertises a write path" : ""}
-                      </li>
-                    ))}</ul>
-                  </section>
-                )}
+                <ForbiddenCapabilityEvidence evidence={match.forbiddenCapabilityEvidence} />
                 <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
                 <div className="resultActions">

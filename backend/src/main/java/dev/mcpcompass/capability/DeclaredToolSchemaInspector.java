@@ -25,22 +25,27 @@ public class DeclaredToolSchemaInspector {
 
     public ToolSchemaInspection inspect(RegistryClient.RegistryServerPayload payload) {
         if (payload.tools().isEmpty()) {
-            return new ToolSchemaInspection(ToolSchemaInspection.Status.NOT_DISCOVERABLE, List.of());
+            return new ToolSchemaInspection(ToolSchemaInspection.Status.NOT_DISCOVERABLE, List.of(), null);
         }
 
         List<RegistryClient.RegistryToolPayload> inspected = new ArrayList<>();
+        List<ToolSchemaRiskReport.InspectedSchema> schemas = new ArrayList<>();
         int declaredSchemas = 0;
         int validSchemas = 0;
         for (RegistryClient.RegistryToolPayload tool : payload.tools()) {
             if (tool.inputSchema() != null && !tool.inputSchema().isBlank()) {
                 declaredSchemas++;
             }
-            String schema = validSchema(tool.inputSchema());
+            JsonNode schema = validSchema(tool.inputSchema());
             if (schema != null) {
                 validSchemas++;
             }
+            String schemaText = schema == null ? null : objectMapper.writeValueAsString(schema);
+            if (schemas.size() < ToolSchemaRiskInspector.MAX_TOOLS) {
+                schemas.add(ToolSchemaRiskInspector.inspect(tool.name(), tool.schemaSource(), schemaText, schema));
+            }
             inspected.add(new RegistryClient.RegistryToolPayload(
-                    tool.name(), tool.description(), schema, tool.capabilities(), tool.schemaSource()
+                    tool.name(), tool.description(), schemaText, tool.capabilities(), tool.schemaSource()
             ));
         }
 
@@ -54,11 +59,17 @@ public class DeclaredToolSchemaInspector {
         } else {
             status = ToolSchemaInspection.Status.INVALID;
         }
-        return new ToolSchemaInspection(status, inspected);
+        boolean partial = schemas.size() < inspected.size() || schemas.stream().anyMatch(schema ->
+                schema.uncertainty() == ToolSchemaRiskReport.Uncertainty.INCOMPLETE
+                        || schema.uncertainty() == ToolSchemaRiskReport.Uncertainty.UNAVAILABLE);
+        return new ToolSchemaInspection(status, inspected, new ToolSchemaRiskReport(
+                ToolSchemaRiskInspector.label(payload.version(), null), ToolSchemaRiskInspector.VERSION, partial, schemas
+        ));
     }
 
-    private String validSchema(String value) {
-        if (value == null || value.isBlank() || value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > MAX_SCHEMA_BYTES) {
+    private JsonNode validSchema(String value) {
+        if (value == null || value.length() > MAX_SCHEMA_BYTES || value.isBlank()
+                || value.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > MAX_SCHEMA_BYTES) {
             return null;
         }
         try {
@@ -66,7 +77,7 @@ public class DeclaredToolSchemaInspector {
             if (!schema.isObject() || depth(schema, 1) > MAX_SCHEMA_DEPTH) {
                 return null;
             }
-            return objectMapper.writeValueAsString(schema);
+            return schema;
         } catch (Exception ignored) {
             return null;
         }

@@ -53,7 +53,7 @@ class RegistrySyncStoreTest {
         });
         NormalizedCapabilityMetadata normalized = new NormalizedCapabilityMetadata(List.of(), List.of());
         ToolSchemaInspection inspection = new ToolSchemaInspection(
-                ToolSchemaInspection.Status.NOT_DISCOVERABLE, List.of());
+                ToolSchemaInspection.Status.NOT_DISCOVERABLE, List.of(), null);
         when(toolSchemaInspector.inspect(valid)).thenReturn(inspection);
         when(capabilityNormalizer.normalize(valid, inspection.tools())).thenReturn(normalized);
         when(stateRepository.findById(RegistrySyncStore.SOURCE)).thenReturn(Optional.empty());

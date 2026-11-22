@@ -1,6 +1,7 @@
 package dev.mcpcompass.search;
 
 import dev.mcpcompass.capability.CapabilityNameNormalizer;
+import dev.mcpcompass.capability.ToolSchemaRiskReport;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.requirement.RequirementConstraint;
 import dev.mcpcompass.requirement.StructuredRequirement;
@@ -48,6 +49,7 @@ public class CandidateEligibilityPolicy {
         boolean arbitrarySqlPath = advertisesArbitrarySql(advertisedText, availableCapabilities);
 
         for (String forbidden : requirement.forbiddenCapabilities()) {
+            ToolSchemaRiskReport.Signal schemaRisk = matchingSchemaRisk(forbidden, server, availableCapabilities);
             String capabilityEvidence = availableCapabilities.stream()
                     .filter(available -> violates(forbidden, available))
                     .findFirst()
@@ -58,6 +60,9 @@ public class CandidateEligibilityPolicy {
             } else if (isPostgresWrite(forbidden) && arbitrarySqlPath) {
                 reasons.add("forbidden capability may be reachable through arbitrary SQL: " + forbidden
                         + " (self-described Registry or normalized tool metadata)");
+            } else if (schemaRisk != null) {
+                reasons.add("forbidden capability may be reachable: " + forbidden
+                        + " (static tool schema signal: " + schemaRisk + ")");
             } else if (advertisesForbidden(forbidden, advertisedText)) {
                 reasons.add("forbidden capability advertised: " + forbidden + " (Registry metadata)");
             } else if (!capabilityEvidenceAvailable
@@ -96,18 +101,48 @@ public class CandidateEligibilityPolicy {
                     .anyMatch(CandidateEligibilityPolicy::isArbitrarySqlCapability));
             boolean registryWrite = advertisesForbidden(forbidden, text)
                     || (isPostgresWrite(forbidden) && arbitrarySqlPath && advertisesArbitrarySqlText(text));
+            ToolSchemaRiskReport.Signal schemaRisk = matchingSchemaRisk(forbidden, server, capabilities);
+            String status = normalizedWrite || registryWrite ? "ADVERTISED_WRITE_PATH"
+                    : schemaRisk != null ? "SCHEMA_INFERRED_RISK" : "UNKNOWN";
             return new ForbiddenCapabilityEvidence(
                     forbidden,
-                    normalizedWrite || registryWrite ? "ADVERTISED_WRITE_PATH" : "UNKNOWN",
+                    status,
                     registryWrite ? "SELF_DESCRIBED_WRITE_PATH"
                             : containsConstraintValue("access-mode", "read only", text)
                             ? "SELF_DESCRIBED_READ_ONLY" : "NO_RELEVANT_DECLARATION",
                     normalizedWrite ? "SELF_DESCRIBED_WRITE_PATH"
                             : serverCapabilities == null ? "UNAVAILABLE" : "SELF_DESCRIBED_NO_WRITE_PATH",
                     "NOT_OBSERVED",
-                    "NOT_VERIFIED"
+                    "NOT_VERIFIED",
+                    server.getToolSchemaRiskReport()
             );
         }).toList();
+    }
+
+    private static ToolSchemaRiskReport.Signal matchingSchemaRisk(
+            String forbidden, McpServerEntity server, Collection<String> capabilities
+    ) {
+        ToolSchemaRiskReport report = server.getToolSchemaRiskReport();
+        if (report == null) {
+            return null;
+        }
+        String capability = CapabilityNameNormalizer.matchingKey(forbidden);
+        ToolSchemaRiskReport.Signal relevant = null;
+        if (isPostgresWrite(forbidden) && isPostgresServer(server, capabilities)) {
+            relevant = ToolSchemaRiskReport.Signal.ARBITRARY_SQL;
+        } else if ("command.execute".equals(capability) || "shell.execute".equals(capability)) {
+            relevant = ToolSchemaRiskReport.Signal.ARBITRARY_COMMAND;
+        }
+        ToolSchemaRiskReport.Signal signal = relevant;
+        return signal != null && report.schemas().stream().anyMatch(schema -> schema.signals().contains(signal))
+                ? signal : null;
+    }
+
+    private static boolean isPostgresServer(McpServerEntity server, Collection<String> capabilities) {
+        String text = advertisedText(server);
+        return containsPhrase(text, "postgres") || containsPhrase(text, "postgresql")
+                || capabilities.stream().map(CapabilityNameNormalizer::matchingKey)
+                        .anyMatch(key -> key != null && key.startsWith("postgres."));
     }
 
     private static boolean isPostgresWrite(String forbidden) {
@@ -365,7 +400,8 @@ public class CandidateEligibilityPolicy {
             String registryDeclaration,
             String normalizedToolMetadata,
             String observedToolsList,
-            String permissionEnforcement
+            String permissionEnforcement,
+            ToolSchemaRiskReport staticToolSchema
     ) {
     }
 }

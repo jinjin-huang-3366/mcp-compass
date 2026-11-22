@@ -81,7 +81,7 @@ class RegistrySearchAcceptanceTest {
         JsonNode syncResponse = post("/api/v1/dev/registry/sync?maxPages=1", null);
 
         assertThat(syncResponse.path("pages").intValue()).isEqualTo(1);
-        assertThat(syncResponse.path("servers").intValue()).isEqualTo(1);
+        assertThat(syncResponse.path("servers").intValue()).isEqualTo(3);
         assertThat(syncResponse.path("nextCursor").isNull()).isTrue();
         assertThat(REGISTRY_REQUESTS).hasValue(1);
         assertThat(REGISTRY_REQUEST_URI.get().getPath()).isEqualTo("/v0.1/servers");
@@ -95,7 +95,6 @@ class RegistrySearchAcceptanceTest {
         );
 
         assertThat(searchResponse.path("keywords").toString()).contains("github", "issues", "pull", "requests");
-        assertThat(searchResponse.path("matches").size()).isEqualTo(1);
         JsonNode match = searchResponse.path("matches").get(0);
         assertThat(match.path("registryName").stringValue())
                 .isEqualTo("io.github.modelcontextprotocol/github");
@@ -104,7 +103,38 @@ class RegistrySearchAcceptanceTest {
         assertThat(match.path("status").stringValue()).isEqualTo("active");
         assertThat(match.path("score").doubleValue()).isGreaterThan(0.0);
         assertThat(match.path("reasons").size()).isGreaterThan(0);
+
+        JsonNode postgres = post("/api/v1/mcp/search", """
+                {"requirement":"Query PostgreSQL tables over TLS in read-only mode. Inserts, updates, and deletes must not be available."}
+                """);
+        JsonNode excluded = candidate(postgres.path("exclusions"), "io.example/postgres-report-reader");
+        assertThat(excluded.path("reasons").toString()).contains("static tool schema signal: ARBITRARY_SQL");
+        JsonNode evidence = excluded.path("forbiddenCapabilityEvidence").get(0);
+        assertThat(evidence.path("status").stringValue()).isEqualTo("SCHEMA_INFERRED_RISK");
+        assertThat(evidence.path("permissionEnforcement").stringValue()).isEqualTo("NOT_VERIFIED");
+        JsonNode report = evidence.path("staticToolSchema");
+        assertThat(report.path("revision").stringValue()).isEqualTo("2.0.0");
+        JsonNode schema = report.path("schemas").get(0);
+        assertThat(schema.path("source").stringValue()).isEqualTo("publisher-extension-metadata");
+        assertThat(schema.path("sha256").stringValue()).matches("[0-9a-f]{64}");
+        assertThat(schema.path("uncertainty").stringValue()).isEqualTo("INFERRED");
+
+        JsonNode catalog = candidate(postgres.path("matches"), "io.example/postgres-report-catalog");
+        JsonNode catalogEvidence = catalog.path("forbiddenCapabilityEvidence").get(0);
+        assertThat(catalogEvidence.path("status").stringValue()).isEqualTo("UNKNOWN");
+        assertThat(catalogEvidence.path("permissionEnforcement").stringValue()).isEqualTo("NOT_VERIFIED");
+        assertThat(catalogEvidence.path("staticToolSchema").path("schemas").get(0).path("uncertainty").stringValue())
+                .isEqualTo("NO_SIGNAL");
         assertThat(REGISTRY_REQUESTS).as("search must use persisted Registry data").hasValue(1);
+    }
+
+    private static JsonNode candidate(JsonNode candidates, String registryName) {
+        for (JsonNode candidate : candidates) {
+            if (registryName.equals(candidate.path("registryName").stringValue())) {
+                return candidate;
+            }
+        }
+        throw new AssertionError("Missing " + registryName + " in " + candidates);
     }
 
     private JsonNode post(String path, String body) throws Exception {

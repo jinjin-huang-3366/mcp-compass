@@ -1,10 +1,12 @@
 package dev.mcpcompass.search;
 
+import dev.mcpcompass.capability.DeclaredToolSchemaInspector;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.RegistryClient;
 import dev.mcpcompass.requirement.RequirementConstraint;
 import dev.mcpcompass.requirement.StructuredRequirement;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.List;
@@ -231,6 +233,31 @@ class CandidateEligibilityPolicyTest {
         McpServerEntity server = server("io.example/postgres-reader", "Read-only PostgreSQL queries");
 
         assertThat(policy.evaluate(requirement, server, Set.of("postgres.row.delete")).eligible()).isFalse();
+    }
+
+    @Test
+    void doesNotAttributeAnApprovalOrCommandSignalToUnrelatedForbiddenCapabilities() {
+        StructuredRequirement requirement = requirement(List.of("postgres.row.write"), List.of());
+        McpServerEntity server = server("io.example/postgres-reader", "Read-only PostgreSQL reporting");
+        var tool = new RegistryClient.RegistryToolPayload("preview_report", null, """
+                {"properties":{"approvalThreshold":{"type":"number"},"command":{"type":"string"}}}
+                """, List.of(), "registry-server-metadata");
+        var payload = new RegistryClient.RegistryServerPayload(
+                server.getRegistryName(), server.getTitle(), server.getDescription(), server.getVersion(),
+                server.getStatus(), "{}", List.of(tool), List.of()
+        );
+        server.recordToolSchemaInspection(new DeclaredToolSchemaInspector(new ObjectMapper()).inspect(payload),
+                server.getLastSeenAt());
+
+        assertThat(policy.evaluate(requirement, server, Set.of("postgres.query.select")).eligible()).isTrue();
+        assertThat(policy.forbiddenEvidence(requirement, server, Set.of("postgres.query.select")))
+                .singleElement().satisfies(evidence -> {
+                    assertThat(evidence.status()).isEqualTo("UNKNOWN");
+                    assertThat(evidence.permissionEnforcement()).isEqualTo("NOT_VERIFIED");
+                    assertThat(evidence.staticToolSchema().schemas().getFirst().signals()).hasSize(2);
+                });
+        var commandRequirement = requirement(List.of("command.execute"), List.of());
+        assertThat(policy.evaluate(commandRequirement, server, List.of()).eligible()).isFalse();
     }
 
     @Test

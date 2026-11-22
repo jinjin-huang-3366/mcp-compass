@@ -56,7 +56,7 @@ class RegistrySyncStore {
                     .orElseGet(() -> McpServerEntity.create(payload.name(), seenAt));
             entity.updateFrom(payload, seenAt);
             ToolSchemaInspection inspection = toolSchemaInspector.inspect(payload);
-            entity.recordToolSchemaInspection(inspection.status().name(), seenAt);
+            entity.recordToolSchemaInspection(inspection, seenAt);
             McpServerEntity persistedServer = serverRepository.saveAndFlush(entity);
             capabilityStore.replaceForServer(
                     persistedServer.getId(),
