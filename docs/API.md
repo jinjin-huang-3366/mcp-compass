@@ -54,6 +54,7 @@ Response shape:
       "capabilityCoverage": 0.5,
       "matchedCapabilities": ["github.issue.read"],
       "missingCapabilities": ["github.pull-request.create"],
+      "forbiddenCapabilityEvidence": [],
       "rankingExplanation": {
         "contributions": [
           {"feature": "capabilityCoverage", "featureScore": 0.5, "weight": 0.8, "contribution": 0.4},
@@ -101,6 +102,18 @@ deletion or requires Twilio SMS without voice calls, a candidate without normali
 unless its Registry metadata explicitly states that the corresponding operation is disabled. This keeps destructive
 or channel-boundary uncertainty out of the ranked result while retaining the metadata-sparse ranking fallback for
 ordinary and explicitly bounded cases.
+
+Each match and exclusion has `forbiddenCapabilityEvidence`, one entry per parsed forbidden capability.
+`status` is `ADVERTISED_WRITE_PATH` when Registry declarations or normalized tool metadata advertise a
+matching write path, and `UNKNOWN` otherwise. `registryDeclaration` distinguishes a self-described
+read-only claim from an advertised write path or no relevant declaration. `normalizedToolMetadata`
+distinguishes a self-described write path, no normalized write path, and unavailable metadata.
+Absence of a declared path is not proof of its absence.
+`observedToolsList` is `NOT_OBSERVED` for search results because search does not connect to servers.
+An observed `tools/list` in a separate validation job describes the listed inventory only and does not
+establish server-enforced permissions. `permissionEnforcement` is `NOT_VERIFIED`; a read-only label,
+tool inventory, or ranking score must never be read as verified write prohibition. An arbitrary-SQL
+PostgreSQL path excludes a candidate with forbidden writes even if its Registry description says read-only.
 
 For metadata-sparse candidates, an explicitly named integration such as PostgreSQL must also be evidenced by the
 candidate's Registry name, title, or description. Generic semantic similarity such as “query databases” cannot by
@@ -310,7 +323,10 @@ an inert job snapshot, and returns `202 Accepted`:
   "id": "bb62591b-bc88-4b64-a3ff-7330cc0158b3",
   "status": "QUEUED",
   "projectName": "pet-store-mcp-server",
-  "queuedAt": "2026-08-24T14:30:00Z"
+  "queuedAt": "2026-08-24T14:30:00Z",
+  "workerAvailability": "UNAVAILABLE",
+  "workerLastSeenAt": null,
+  "statusMessage": "No recent validation worker heartbeat. This job is queued, not executed; ask the operator to start or restore the isolated worker."
 }
 ```
 
@@ -318,6 +334,9 @@ Queue submission does not run a worker, create a container, materialize project 
 execute generated code. The separate validation worker atomically claims the queued snapshot and starts it only in
 an ephemeral container. A generated job becomes `EXECUTED` after MCP Inspector completes initialization and a valid
 `tools/list` response, or `FAILED` after materialization, runtime, timeout, or protocol failure.
+`workerAvailability` is `AVAILABLE` only when the separate `queue` worker wrote a heartbeat within 30 seconds;
+it is otherwise `UNAVAILABLE`. `workerLastSeenAt` is the last observation or `null`. This indicates worker presence,
+not Docker readiness or a guarantee that a queued job will execute. Poll the job ID for its actual lifecycle.
 
 ## Get a validation job and security report
 
