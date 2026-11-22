@@ -22,9 +22,50 @@
           "isLatest": true
         }
       }
+    },
+    {
+      "server": {
+        "name": "io.example/postgres-report-reader",
+        "description": "Read-only PostgreSQL reporting over TLS",
+        "title": "PostgreSQL Report Reader",
+        "version": "2.0.0",
+        "capabilities": ["postgres.query.select"],
+        "_meta": {
+          "io.modelcontextprotocol.registry/publisher-provided": {
+            "tools": [{
+              "name": "preview_report",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": { "statement": { "type": "string", "description": "SQL query for the report" } }
+                  }
+                }
+              }
+            }]
+          }
+        }
+      }
+    },
+    {
+      "server": {
+        "name": "io.example/postgres-report-catalog",
+        "description": "Read-only PostgreSQL reporting over TLS",
+        "title": "PostgreSQL Report Catalog",
+        "version": "2.0.0",
+        "capabilities": ["postgres.query.select"],
+        "tools": [{
+          "name": "find_report",
+          "inputSchema": {
+            "type": "object",
+            "properties": { "query": { "type": "string", "description": "Text to search report titles" } }
+          }
+        }]
+      }
     }
   ],
   "metadata": {
-    "count": 1
+    "count": 3
   }
 }

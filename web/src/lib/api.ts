@@ -72,11 +72,23 @@ export type SearchExclusion = {
 
 export type ForbiddenCapabilityEvidence = {
   capability: string;
-  status: "UNKNOWN" | "ADVERTISED_WRITE_PATH";
+  status: "UNKNOWN" | "ADVERTISED_WRITE_PATH" | "SCHEMA_INFERRED_RISK";
   registryDeclaration: "NO_RELEVANT_DECLARATION" | "SELF_DESCRIBED_READ_ONLY" | "SELF_DESCRIBED_WRITE_PATH";
   normalizedToolMetadata: "UNAVAILABLE" | "SELF_DESCRIBED_NO_WRITE_PATH" | "SELF_DESCRIBED_WRITE_PATH";
   observedToolsList: "NOT_OBSERVED";
   permissionEnforcement: "NOT_VERIFIED";
+  staticToolSchema?: {
+    revision: string | null;
+    inspectorVersion: string;
+    partial: boolean;
+    schemas: {
+      tool: string;
+      source: string;
+      sha256: string | null;
+      uncertainty: "INFERRED" | "NO_SIGNAL" | "INCOMPLETE" | "UNAVAILABLE";
+      signals: ("ARBITRARY_SQL" | "ARBITRARY_COMMAND" | "CALLER_CONTROLLED_APPROVAL")[];
+    }[];
+  } | null;
 };
 
 export type McpServerDetail = {

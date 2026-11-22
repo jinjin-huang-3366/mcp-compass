@@ -1,10 +1,14 @@
 package dev.mcpcompass.registry;
 
+import dev.mcpcompass.capability.ToolSchemaInspection;
+import dev.mcpcompass.capability.ToolSchemaRiskReport;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -57,6 +61,10 @@ public class McpServerEntity {
     @Column(name = "tool_schema_inspected_at")
     private Instant toolSchemaInspectedAt;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "tool_schema_risk_report", columnDefinition = "jsonb")
+    private ToolSchemaRiskReport toolSchemaRiskReport;
+
     @Column(name = "first_seen_at", nullable = false)
     private Instant firstSeenAt;
 
@@ -106,9 +114,10 @@ public class McpServerEntity {
         this.remoteConnectionReason = reason;
     }
 
-    public void recordToolSchemaInspection(String status, Instant inspectedAt) {
-        this.toolSchemaStatus = status;
+    public void recordToolSchemaInspection(ToolSchemaInspection inspection, Instant inspectedAt) {
+        this.toolSchemaStatus = inspection.status().name();
         this.toolSchemaInspectedAt = inspectedAt;
+        this.toolSchemaRiskReport = inspection.riskReport();
     }
 
     public UUID getId() { return id; }
@@ -127,6 +136,7 @@ public class McpServerEntity {
     public String getRemoteConnectionReason() { return remoteConnectionReason; }
     public String getToolSchemaStatus() { return toolSchemaStatus; }
     public Instant getToolSchemaInspectedAt() { return toolSchemaInspectedAt; }
+    public ToolSchemaRiskReport getToolSchemaRiskReport() { return toolSchemaRiskReport; }
     public Instant getFirstSeenAt() { return firstSeenAt; }
     public Instant getLastSeenAt() { return lastSeenAt; }
 }

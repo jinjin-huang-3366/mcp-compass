@@ -105,7 +105,8 @@ ordinary and explicitly bounded cases.
 
 Each match and exclusion has `forbiddenCapabilityEvidence`, one entry per parsed forbidden capability.
 `status` is `ADVERTISED_WRITE_PATH` when Registry declarations or normalized tool metadata advertise a
-matching write path, and `UNKNOWN` otherwise. `registryDeclaration` distinguishes a self-described
+matching write path, `SCHEMA_INFERRED_RISK` when a static schema signal warrants exclusion for the
+forbidden capability, and `UNKNOWN` otherwise. `registryDeclaration` distinguishes a self-described
 read-only claim from an advertised write path or no relevant declaration. `normalizedToolMetadata`
 distinguishes a self-described write path, no normalized write path, and unavailable metadata.
 Absence of a declared path is not proof of its absence.
@@ -114,6 +115,16 @@ An observed `tools/list` in a separate validation job describes the listed inven
 establish server-enforced permissions. `permissionEnforcement` is `NOT_VERIFIED`; a read-only label,
 tool inventory, or ranking score must never be read as verified write prohibition. An arbitrary-SQL
 PostgreSQL path excludes a candidate with forbidden writes even if its Registry description says read-only.
+
+`staticToolSchema` includes the server revision, inspector version, partial coverage flag, and bounded per-tool
+entries with source, uncertainty, inferred signals, and a SHA-256 of the compact JSON input schema inspected.
+Schema risk analysis runs during Registry sync and only uses the first 16 declared tools and up to 256
+schema nodes per tool after the existing size and depth checks. It does not resolve schema references or
+execute tools. An open-ended SQL argument on a PostgreSQL candidate can trigger a write exclusion.
+An explicit command-execution prohibition can also match an arbitrary-command signal. Caller-controlled
+approval settings and signals without a matching prohibition remain visible as evidence for review.
+`NO_SIGNAL`, `INCOMPLETE`, and `UNAVAILABLE` all leave enforcement unverified. Older rows without an
+inspection report and servers without declared tools return `null`; resync older rows to inspect their declarations.
 
 For metadata-sparse candidates, an explicitly named integration such as PostgreSQL must also be evidenced by the
 candidate's Registry name, title, or description. Generic semantic similarity such as “query databases” cannot by

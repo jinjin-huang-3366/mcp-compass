@@ -19,7 +19,7 @@ describe("CapabilityCoverage", () => {
 
     expect(screen.getByText("50%")).toBeInTheDocument();
     expect(screen.getByRole("progressbar", { name: "50% capability coverage" })).toHaveValue(50);
-    expect(screen.getByText("1 of 2 required capabilities are covered.")).toBeInTheDocument();
+    expect(screen.getByText("1 of 2 required capabilities match self-described metadata. This does not verify server permissions.")).toBeInTheDocument();
 
     const covered = screen.getByRole("heading", { name: "Covered" }).parentElement;
     const missing = screen.getByRole("heading", { name: "Missing" }).parentElement;
@@ -40,7 +40,7 @@ describe("CapabilityCoverage", () => {
     );
 
     expect(screen.getByText("100%")).toBeInTheDocument();
-    expect(screen.getByText("All required capabilities are covered.")).toBeInTheDocument();
+    expect(screen.getByText("1 of 1 required capabilities match self-described metadata. This does not verify server permissions.")).toBeInTheDocument();
   });
 
   it("explains when structured coverage was not scored", () => {
