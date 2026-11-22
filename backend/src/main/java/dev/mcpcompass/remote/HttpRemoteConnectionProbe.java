@@ -39,7 +39,8 @@ public class HttpRemoteConnectionProbe implements RemoteConnectionProbe {
                 }
                 int status = connection.getResponseCode();
                 if (status == 401 || status == 403) {
-                    return new Result(RemoteConnectionState.AUTH_REQUIRED, "HTTP " + status + " requires authorization");
+                    return new Result(RemoteConnectionState.AUTH_REQUIRED,
+                            RemoteAuthenticationChallenge.reason(status, connection.getHeaderFields()));
                 }
                 if (status >= 300 && status < 400) {
                     return new Result(RemoteConnectionState.PROTOCOL_MISMATCH, "HTTP redirect " + status + " was not followed");

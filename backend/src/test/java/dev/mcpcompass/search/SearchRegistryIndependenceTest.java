@@ -59,6 +59,9 @@ class SearchRegistryIndependenceTest {
         when(persistedServer.getDescription()).thenReturn("Read and update repository issues");
         when(persistedServer.getVersion()).thenReturn("1.0.0");
         when(persistedServer.getStatus()).thenReturn("active");
+        when(persistedServer.getRawMetadata()).thenReturn("""
+                {"remotes":[{"type":"sse","url":"https://fixture.invalid/{team}/sse"}]}
+                """);
         when(lexicalCandidateStore.findCandidates(analysis.keywords(), 100)).thenReturn(List.of(
                 new LexicalCandidateStore.LexicalCandidate(serverId, 1.0)
         ));
@@ -88,6 +91,8 @@ class SearchRegistryIndependenceTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.matches[0].id").value(serverId.toString()))
                 .andExpect(jsonPath("$.matches[0].registryName").value("io.example/github"))
+                .andExpect(jsonPath("$.matches[0].setupReadiness.options[0].protocol").value("UNSUPPORTED_BY_CHECK"))
+                .andExpect(jsonPath("$.matches[0].setupReadiness.options[0].missingInputs[0].name").value("team"))
                 .andExpect(jsonPath("$.matches[0].score").value(0.88))
                 .andExpect(jsonPath("$.matches[0].qualityScore").value(0.2))
                 .andExpect(jsonPath("$.matches[0].rankingExplanation.preAdjustmentScore").value(0.88))

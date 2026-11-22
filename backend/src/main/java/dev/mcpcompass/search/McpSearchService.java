@@ -7,6 +7,7 @@ import dev.mcpcompass.ranking.TrustQualitySignalStore;
 import dev.mcpcompass.ranking.TrustQualitySignals;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
+import dev.mcpcompass.remote.SetupReadiness;
 import dev.mcpcompass.requirement.RequirementAnalysis;
 import dev.mcpcompass.requirement.RequirementAnalyzer;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -137,6 +138,7 @@ public class McpSearchService {
                         ranked.server().getRemoteConnectionState(),
                         ranked.server().getRemoteConnectionCheckedAt(),
                         ranked.server().getRemoteConnectionReason(),
+                        SetupReadiness.from(ranked.server()),
                         rounded(ranked.score()),
                         rounded(ranked.qualityScore()),
                         ranked.capabilityCoverage() == null ? null : rounded(ranked.capabilityCoverage()),

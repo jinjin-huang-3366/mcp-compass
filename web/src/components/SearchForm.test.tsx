@@ -61,6 +61,16 @@ describe("SearchForm", () => {
         remoteConnectionState: "REACHABLE",
         remoteConnectionCheckedAt: "2026-10-25T12:00:00Z",
         remoteConnectionReason: "MCP initialize succeeded",
+        setupReadiness: {
+          options: [{
+            source: "REMOTE",
+            position: 1,
+            transport: "STREAMABLE_HTTP",
+            authentication: "DECLARATION_MISMATCH",
+            protocol: "INITIALIZE_SUCCEEDED",
+            missingInputs: [{ kind: "HEADER", name: "Authorization" }],
+          }],
+        },
         score: 0.9,
         qualityScore: 0.8,
         capabilityCoverage: 1,
@@ -90,6 +100,9 @@ describe("SearchForm", () => {
     expect(screen.getByRole("link", { name: /Source repository/ }))
       .toHaveAttribute("href", "https://github.com/example/github-mcp");
     expect(screen.getByText(/MCP connection reached/)).toHaveTextContent("MCP initialize succeeded");
+    expect(screen.getByText(/Registry declares required credentials/))
+      .toHaveTextContent("the probe initialized without them");
+    expect(screen.getByText(/Setup inputs needed/)).toHaveTextContent("HTTP header Authorization");
     expect(screen.getByRole("heading", { name: "Parsed intent" })).toBeInTheDocument();
     expect(screen.getAllByText("github.issue.read")).toHaveLength(2);
     expect(screen.getByText("postgres.row.write").closest("li"))

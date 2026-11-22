@@ -19,19 +19,30 @@ public class RegistryRemoteConnectionSource implements RemoteConnectionSource {
     public Optional<URI> endpoint(McpServerEntity server) {
         try {
             JsonNode item = mapper.readTree(server.getRawMetadata());
-            JsonNode declaration = item.has("server") ? item.path("server") : item;
-            for (JsonNode remote : declaration.path("remotes")) {
-                if (!remote.path("url").isString() || !remote.path("type").isString()) {
-                    continue;
-                }
-                String type = remote.path("type").stringValue();
-                if ("streamable-http".equalsIgnoreCase(type)) {
-                    return Optional.of(URI.create(remote.path("url").stringValue()));
-                }
+            JsonNode remotes = declaration(item).path("remotes");
+            int selected = selectedRemoteIndex(remotes);
+            if (selected >= 0) {
+                return Optional.of(URI.create(remotes.path(selected).path("url").stringValue()));
             }
         } catch (RuntimeException ignored) {
             // Malformed publisher metadata is uncheckable, not an unavailable server.
         }
         return Optional.empty();
+    }
+
+    static JsonNode declaration(JsonNode item) {
+        return item.has("server") ? item.path("server") : item;
+    }
+
+    static int selectedRemoteIndex(JsonNode remotes) {
+        if (remotes.isArray()) {
+            for (int i = 0; i < remotes.size(); i++) {
+                JsonNode remote = remotes.path(i);
+                if ("streamable-http".equalsIgnoreCase(remote.path("type").asText()) && remote.path("url").isString()) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 }

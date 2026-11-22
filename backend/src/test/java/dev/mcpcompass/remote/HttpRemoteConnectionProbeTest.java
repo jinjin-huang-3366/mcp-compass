@@ -8,11 +8,52 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class HttpRemoteConnectionProbeTest {
     private final HttpRemoteConnectionProbe probe = new HttpRemoteConnectionProbe(new ObjectMapper());
+
+    @Test
+    void observesOAuthHintWithoutFetchingOrPersistingChallengeDetails() throws Exception {
+        var metadataRequests = new AtomicInteger();
+        var authorization = new AtomicReference<String>();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/oauth", exchange -> {
+            authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
+            exchange.getResponseHeaders().set("WWW-Authenticate",
+                    "Bearer realm=\"fixture\", resource_metadata=\"https://fixture.invalid/discovery?sample=synthetic\"");
+            exchange.sendResponseHeaders(401, -1);
+            exchange.close();
+        });
+        server.createContext("/gateway", exchange -> {
+            exchange.getResponseHeaders().set("WWW-Authenticate",
+                    "Basic realm=\"fixture\", resource_metadata=\"https://fixture.invalid/discovery\"");
+            exchange.sendResponseHeaders(403, -1);
+            exchange.close();
+        });
+        server.createContext("/", exchange -> {
+            metadataRequests.incrementAndGet();
+            exchange.sendResponseHeaders(500, -1);
+            exchange.close();
+        });
+        server.start();
+        try {
+            String base = "http://127.0.0.1:" + server.getAddress().getPort();
+            var oauth = probe.check(URI.create(base + "/oauth"));
+            var gateway = probe.check(URI.create(base + "/gateway"));
+            assertThat(oauth.state()).isEqualTo(RemoteConnectionState.AUTH_REQUIRED);
+            assertThat(RemoteAuthenticationChallenge.oauthAdvertised(oauth.reason())).isTrue();
+            assertThat(oauth.reason()).doesNotContain("fixture", "synthetic");
+            assertThat(gateway.state()).isEqualTo(RemoteConnectionState.AUTH_REQUIRED);
+            assertThat(RemoteAuthenticationChallenge.oauthAdvertised(gateway.reason())).isFalse();
+            assertThat(authorization.get()).isNull();
+            assertThat(metadataRequests.get()).isZero();
+        } finally {
+            server.stop(0);
+        }
+    }
 
     @Test
     void classifiesAuthReachabilityAndProtocolUsingInitializeOnly() throws Exception {

@@ -150,6 +150,24 @@ Search matches and detail also expose `remoteConnectionState`, `remoteConnection
 the observation time so developers can judge freshness. `REACHABLE` means only that an MCP `initialize`
 response succeeded at the recorded time; it does not verify tool behavior or permissions.
 
+Both responses expose `setupReadiness.options` derived from persisted Registry declarations and the
+connection observation. Each option identifies its `source` (`REMOTE` or `PACKAGE`), one-based
+`position` in that source's declaration list, `transport`, `authentication`, `protocol`, and
+`missingInputs`. An empty options list means setup details are unknown. Only the selected
+Streamable HTTP remote inherits the observation. HTTP+SSE is outside the remote check's scope,
+and package transports remain unverified. An initialize success applies to that request and leaves
+client-version compatibility, tool authorization, and subsequent calls unverified.
+
+Authentication may be `UNKNOWN`, `DECLARED_REQUIRED`, `REQUIRED` (an observed 401/403 with
+unknown method), `OAUTH_ADVERTISED`, `INITIALIZED_WITHOUT_AUTH`, or `DECLARATION_MISMATCH`
+(initialize succeeded without credentials despite declared required credential headers).
+`OAUTH_ADVERTISED` records a Bearer challenge with an HTTPS protected resource metadata URL.
+The check records a fixed classification and does not follow or retain that URL or the raw challenge.
+`missingInputs` contains input kinds and optional names for required setup values with no declared
+value or default, and authorization expected by the observed gate. Declared input values,
+defaults, and credentials are never returned by this field. The response shows up to ten options per
+source plus the checked endpoint if beyond that limit, and up to twenty declared missing inputs per option.
+
 ## Local Registry sync
 
 Only with Spring `local` profile:

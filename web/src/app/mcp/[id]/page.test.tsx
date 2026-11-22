@@ -30,6 +30,16 @@ describe("McpDetailPage", () => {
       remoteConnectionState: "AUTH_REQUIRED",
       remoteConnectionCheckedAt: "2026-10-25T12:00:00Z",
       remoteConnectionReason: "HTTP 401 requires authorization",
+      setupReadiness: {
+        options: [{
+          source: "REMOTE",
+          position: 1,
+          transport: "STREAMABLE_HTTP",
+          authentication: "OAUTH_ADVERTISED",
+          protocol: "UNVERIFIED",
+          missingInputs: [{ kind: "OAUTH_AUTHORIZATION", name: null }],
+        }],
+      },
       firstSeenAt: "2026-08-01T10:00:00Z",
       lastSeenAt: "2026-08-30T10:00:00Z",
     });
@@ -44,6 +54,8 @@ describe("McpDetailPage", () => {
       .toHaveAttribute("href", "/?q=Read+GitHub+issues&page=2");
     expect(screen.getByRole("link", { name: /Source repository/ }))
       .toHaveAttribute("href", "https://github.com/example/github-mcp");
-    expect(screen.getByText(/Authentication required/)).toHaveTextContent("HTTP 401");
+    expect(screen.getByText(/HTTP 401/)).toHaveTextContent("Authentication required");
+    expect(screen.getByRole("listitem")).toHaveTextContent("OAuth metadata advertised");
+    expect(screen.getByText(/Setup inputs needed/)).toHaveTextContent("OAuth authorization");
   });
 });

@@ -2,6 +2,7 @@ package dev.mcpcompass.server;
 
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.McpServerRepository;
+import dev.mcpcompass.remote.SetupReadiness;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +40,7 @@ public class McpServerDetailController {
             String remoteConnectionState,
             Instant remoteConnectionCheckedAt,
             String remoteConnectionReason,
+            SetupReadiness setupReadiness,
             String toolSchemaStatus,
             Instant toolSchemaInspectedAt,
             Instant firstSeenAt,
@@ -49,7 +51,7 @@ public class McpServerDetailController {
                     entity.getId(), entity.getRegistryName(), entity.getTitle(), entity.getDescription(),
                     entity.getVersion(), entity.getStatus(), entity.getRepositoryUrl(),
                     entity.getRemoteConnectionState(), entity.getRemoteConnectionCheckedAt(),
-                    entity.getRemoteConnectionReason(), entity.getToolSchemaStatus(),
+                    entity.getRemoteConnectionReason(), SetupReadiness.from(entity), entity.getToolSchemaStatus(),
                     entity.getToolSchemaInspectedAt(), entity.getFirstSeenAt(), entity.getLastSeenAt()
             );
         }
