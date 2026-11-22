@@ -58,11 +58,22 @@ describe("SearchForm", () => {
         version: "1.0.0",
         status: "active",
         repositoryUrl: "https://github.com/example/github-mcp",
+        remoteConnectionState: "REACHABLE",
+        remoteConnectionCheckedAt: "2026-10-25T12:00:00Z",
+        remoteConnectionReason: "MCP initialize succeeded",
         score: 0.9,
         qualityScore: 0.8,
         capabilityCoverage: 1,
         matchedCapabilities: ["github.issue.read"],
         missingCapabilities: [],
+        forbiddenCapabilityEvidence: [{
+          capability: "postgres.row.write",
+          status: "UNKNOWN",
+          registryDeclaration: "SELF_DESCRIBED_READ_ONLY",
+          normalizedToolMetadata: "SELF_DESCRIBED_NO_WRITE_PATH",
+          observedToolsList: "NOT_OBSERVED",
+          permissionEnforcement: "NOT_VERIFIED",
+        }],
         rankingExplanation: {
           contributions: [],
           preAdjustmentScore: 0.9,
@@ -78,8 +89,12 @@ describe("SearchForm", () => {
       .toHaveAttribute("href", "/mcp/server-1?q=Read+GitHub+issues&page=2");
     expect(screen.getByRole("link", { name: /Source repository/ }))
       .toHaveAttribute("href", "https://github.com/example/github-mcp");
+    expect(screen.getByText(/MCP connection reached/)).toHaveTextContent("MCP initialize succeeded");
     expect(screen.getByRole("heading", { name: "Parsed intent" })).toBeInTheDocument();
     expect(screen.getAllByText("github.issue.read")).toHaveLength(2);
+    expect(screen.getByText("postgres.row.write").closest("li"))
+      .toHaveTextContent("postgres.row.write: UNKNOWN / NOT_VERIFIED");
+    expect(screen.getByText(/has not observed tools\/list or verified server-enforced permissions/)).toBeInTheDocument();
 
     firstVisit.unmount();
     render(<SearchForm />);

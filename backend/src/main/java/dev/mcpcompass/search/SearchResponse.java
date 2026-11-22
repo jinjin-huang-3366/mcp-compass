@@ -3,6 +3,7 @@ package dev.mcpcompass.search;
 import dev.mcpcompass.requirement.RequirementConstraint;
 
 import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
 public record SearchResponse(
@@ -33,7 +34,8 @@ public record SearchResponse(
             UUID id,
             String registryName,
             String title,
-            List<String> reasons
+            List<String> reasons,
+            List<CandidateEligibilityPolicy.ForbiddenCapabilityEvidence> forbiddenCapabilityEvidence
     ) {
     }
 
@@ -45,11 +47,15 @@ public record SearchResponse(
             String version,
             String status,
             String repositoryUrl,
+            String remoteConnectionState,
+            Instant remoteConnectionCheckedAt,
+            String remoteConnectionReason,
             double score,
             double qualityScore,
             Double capabilityCoverage,
             List<String> matchedCapabilities,
             List<String> missingCapabilities,
+            List<CandidateEligibilityPolicy.ForbiddenCapabilityEvidence> forbiddenCapabilityEvidence,
             RankingExplanation rankingExplanation,
             List<String> reasons
     ) {

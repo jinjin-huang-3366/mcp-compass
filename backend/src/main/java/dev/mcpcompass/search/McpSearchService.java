@@ -94,7 +94,9 @@ public class McpSearchService {
                                 candidate.server().getId(),
                                 candidate.server().getRegistryName(),
                                 candidate.server().getTitle(),
-                                eligibility.reasons()
+                                eligibility.reasons(),
+                                eligibilityPolicy.forbiddenEvidence(analysis.structuredRequirement(),
+                                        candidate.server(), capabilitiesByServer.get(candidate.server().getId()))
                         ));
                     }
                     return eligibility.eligible();
@@ -132,11 +134,16 @@ public class McpSearchService {
                         ranked.server().getVersion(),
                         ranked.server().getStatus(),
                         ranked.server().getRepositoryUrl(),
+                        ranked.server().getRemoteConnectionState(),
+                        ranked.server().getRemoteConnectionCheckedAt(),
+                        ranked.server().getRemoteConnectionReason(),
                         rounded(ranked.score()),
                         rounded(ranked.qualityScore()),
                         ranked.capabilityCoverage() == null ? null : rounded(ranked.capabilityCoverage()),
                         ranked.matchedCapabilities(),
                         ranked.missingCapabilities(),
+                        eligibilityPolicy.forbiddenEvidence(analysis.structuredRequirement(),
+                                ranked.server(), capabilitiesByServer.get(ranked.server().getId())),
                         rankingExplanation(ranked.rankingExplanation()),
                         ranked.reasons()
                 ))
