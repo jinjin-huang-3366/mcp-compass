@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SearchForm } from "./SearchForm";
-import { searchMcps } from "../lib/api";
+import { recordSelectionEvent, searchMcps } from "../lib/api";
 import { clearSearchCache } from "../lib/search-cache";
 
 const navigation = vi.hoisted(() => ({
@@ -20,6 +20,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("../lib/api", () => ({
   searchMcps: vi.fn(),
+  recordSelectionEvent: vi.fn(),
 }));
 
 afterEach(() => {
@@ -137,6 +138,24 @@ describe("SearchForm", () => {
     expect(screen.getByText("postgres.row.delete").closest("li"))
       .toHaveTextContent("postgres.row.delete: SCHEMA_INFERRED_RISK / NOT_VERIFIED");
     expect(screen.getByText(/Caller-supplied SQL/)).toHaveTextContent("publisher-extension-metadata");
+    expect(recordSelectionEvent).not.toHaveBeenCalled();
+
+    const detailLink = screen.getByRole("link", { name: "View MCP details" });
+    detailLink.addEventListener("click", (event) => event.preventDefault());
+    fireEvent.click(detailLink);
+    fireEvent(
+      screen.getByRole("link", { name: /Source repository/ }),
+      new MouseEvent("auxclick", { button: 1, bubbles: true }),
+    );
+    expect(vi.mocked(recordSelectionEvent).mock.calls).toEqual([["DETAIL_OPENED"], ["SOURCE_OPENED"]]);
+
+    vi.mocked(recordSelectionEvent).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    fireEvent.click(screen.getByRole("button", { name: "Yes" }));
+    expect(await screen.findByText("Your answer couldn't be recorded. You can try again.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Yes" }));
+    expect(await screen.findByText("Thanks for sharing your answer.")).toBeInTheDocument();
+    expect(recordSelectionEvent).toHaveBeenLastCalledWith("CHOICE_CHANGED");
+    expect(screen.queryByRole("button", { name: "Yes" })).not.toBeInTheDocument();
 
     firstVisit.unmount();
     render(<SearchForm />);
@@ -159,6 +178,17 @@ describe("SearchForm", () => {
     expect(navigation.push).toHaveBeenCalledWith("/?q=Find+a+read-only+PostgreSQL+MCP");
     expect(vi.mocked(searchMcps).mock.invocationCallOrder[0])
       .toBeLessThan(navigation.push.mock.invocationCallOrder[0]);
+    expect(vi.mocked(recordSelectionEvent).mock.calls).toEqual([["SEARCH_SUBMITTED"]]);
+  });
+
+  it("counts the exact outcome of an explicit search without including the requirement", async () => {
+    navigation.search = "";
+    vi.mocked(searchMcps).mockRejectedValueOnce(new Error("Network error"));
+    render(<SearchForm />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Find MCP" }));
+    await waitFor(() => expect(vi.mocked(recordSelectionEvent).mock.calls)
+      .toEqual([["SEARCH_SUBMITTED"], ["SEARCH_FAILED"]]));
   });
 
   it("shows parsed hard conditions and an explicit abstention", async () => {

@@ -42,6 +42,9 @@ Enable Web Analytics for the frontend project in the Vercel dashboard. The root 
 the frontend is redeployed. The Hobby dashboard supports referrer reporting but not UTM-parameter dimensions; do not
 claim campaign-level UTM attribution unless the project gains a plan that exposes it.
 
+The [selection baseline](SELECTION_BASELINE.md) describes the separate daily action counts stored in PostgreSQL,
+how to verify their collection after deployment, and how to report them alongside referral windows.
+
 ## Validation worker
 
 The existing `validation-worker` is not an HTTP service and must not be folded into the Spring Boot container. It continuously claims PostgreSQL jobs and launches generated code only inside isolated Docker containers. [ADR 0011](DECISIONS/0011-defer-hosted-validation-until-dedicated-worker-review.md) defers production activation until a dedicated host, security boundary, and monthly cost cap have an identified reviewer and owner. The API exposes `workerAvailability` from a database heartbeat; `UNAVAILABLE` means no heartbeat in the last 30 seconds, and a queued job has not executed.

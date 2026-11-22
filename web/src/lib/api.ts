@@ -145,6 +145,33 @@ export type McpToolReview = {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
+export type SelectionEvent =
+  | "SEARCH_SUBMITTED"
+  | "SEARCH_WITH_MATCHES"
+  | "SEARCH_WITHOUT_MATCHES"
+  | "SEARCH_FAILED"
+  | "DETAIL_OPENED"
+  | "SOURCE_OPENED"
+  | "CHOICE_CHANGED"
+  | "CHOICE_UNCHANGED"
+  | "CHOICE_PENDING";
+
+export async function recordSelectionEvent(event: SelectionEvent): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/selection/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(event),
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      keepalive: true,
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function searchMcps(
   requirement: string,
   page = 1,

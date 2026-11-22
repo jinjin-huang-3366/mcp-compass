@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -52,10 +53,12 @@ class RegistrySearchAcceptanceTest {
     private int port;
 
     private final GithubEnrichmentService githubEnrichmentService;
+    private final JdbcTemplate jdbc;
 
     @Autowired
-    RegistrySearchAcceptanceTest(GithubEnrichmentService githubEnrichmentService) {
+    RegistrySearchAcceptanceTest(GithubEnrichmentService githubEnrichmentService, JdbcTemplate jdbc) {
         this.githubEnrichmentService = githubEnrichmentService;
+        this.jdbc = jdbc;
     }
 
     @DynamicPropertySource
@@ -73,6 +76,37 @@ class RegistrySearchAcceptanceTest {
         if (registryServer != null) {
             registryServer.stop(0);
         }
+    }
+
+    @Test
+    void storesOnlyDailySelectionTotalsAndRejectsOtherPayloads() throws Exception {
+        URI endpoint = URI.create("http://localhost:" + port + "/api/v1/selection/events");
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            for (String event : new String[]{"\"SEARCH_SUBMITTED\"", "\"SEARCH_SUBMITTED\"", "\"CHOICE_CHANGED\""}) {
+                assertThat(postSelectionEvent(client, endpoint, event)).isEqualTo(204);
+            }
+            for (String invalid : new String[]{
+                    "{\"event\":\"SEARCH_SUBMITTED\",\"requirement\":\"private\"}",
+                    "\"a private requirement\"", "0", "[\"SOURCE_OPENED\"]", "null", "", "\"unclosed"
+            }) {
+                assertThat(postSelectionEvent(client, endpoint, invalid)).isEqualTo(400);
+            }
+        }
+
+        assertThat(jdbc.queryForList("""
+                SELECT event_name || ':' || total
+                FROM selection_event_daily
+                WHERE event_date = (CURRENT_TIMESTAMP AT TIME ZONE 'UTC')::date
+                ORDER BY event_name
+                """, String.class)).containsExactly("CHOICE_CHANGED:1", "SEARCH_SUBMITTED:2");
+    }
+
+    private static int postSelectionEvent(HttpClient client, URI endpoint, String body) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder(endpoint)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+        return client.send(request, HttpResponse.BodyHandlers.discarding()).statusCode();
     }
 
     @Test

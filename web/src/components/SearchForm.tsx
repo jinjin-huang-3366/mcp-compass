@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { SearchResponse } from "@/lib/api";
+import { recordSelectionEvent, type SearchResponse } from "@/lib/api";
 import { fetchCachedSearch, getCachedSearch, invalidateCachedSearch } from "@/lib/search-cache";
 import { detailUrl, pageFromUrl, searchUrl } from "@/lib/search-navigation";
 import { CapabilityCoverage } from "@/components/CapabilityCoverage";
@@ -11,6 +11,7 @@ import { ForbiddenCapabilityEvidence } from "@/components/ForbiddenCapabilityEvi
 import { RankingExplanation } from "@/components/RankingExplanation";
 import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
 import { RemoteConnectionObservation } from "@/components/RemoteConnectionObservation";
+import { SelectionFeedback } from "@/components/SelectionFeedback";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
 const PAGE_SIZE = 10;
@@ -78,18 +79,23 @@ export function SearchForm() {
       return;
     }
 
-    if (nextRequirement === urlRequirement && urlPage === 1) {
+    const refresh = nextRequirement === urlRequirement && urlPage === 1;
+    if (refresh) {
       invalidateCachedSearch(urlRequirement, urlPage, PAGE_SIZE);
       setResult(null);
-      setLoading(true);
-      setError(null);
-      setRefreshKey((current) => current + 1);
-      return;
     }
     setLoading(true);
     setError(null);
-    void fetchCachedSearch(nextRequirement, 1, PAGE_SIZE).catch(() => undefined);
-    router.push(searchUrl(pathname, nextRequirement, 1));
+    void recordSelectionEvent("SEARCH_SUBMITTED");
+    void fetchCachedSearch(nextRequirement, 1, PAGE_SIZE).then(
+      (response) => recordSelectionEvent(response.matches.length > 0 ? "SEARCH_WITH_MATCHES" : "SEARCH_WITHOUT_MATCHES"),
+      () => recordSelectionEvent("SEARCH_FAILED"),
+    );
+    if (refresh) {
+      setRefreshKey((current) => current + 1);
+    } else {
+      router.push(searchUrl(pathname, nextRequirement, 1));
+    }
   }
 
   function goToPage(page: number) {
@@ -219,7 +225,14 @@ export function SearchForm() {
                 <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
                 <div className="resultActions">
-                  <Link className="detailLink" href={detailUrl(match.id, urlRequirement, urlPage)}>
+                  <Link
+                    className="detailLink"
+                    href={detailUrl(match.id, urlRequirement, urlPage)}
+                    onClick={() => void recordSelectionEvent("DETAIL_OPENED")}
+                    onAuxClick={(event) => {
+                      if (event.button === 1) void recordSelectionEvent("DETAIL_OPENED");
+                    }}
+                  >
                     View MCP details
                   </Link>
                   <SourceRepositoryLink repositoryUrl={match.repositoryUrl} />
@@ -249,6 +262,7 @@ export function SearchForm() {
               </button>
             </nav>
           )}
+          <SelectionFeedback key={searchKey} />
         </div>
       )}
     </section>

@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { recordSelectionEvent } from "@/lib/api";
 
 type SourceRepositoryLinkProps = {
   repositoryUrl: string | null;
@@ -15,7 +18,16 @@ export function SourceRepositoryLink({
   }
 
   return (
-    <a className="sourceLink" href={href} target="_blank" rel="noopener noreferrer">
+    <a
+      className="sourceLink"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => void recordSelectionEvent("SOURCE_OPENED")}
+      onAuxClick={(event) => {
+        if (event.button === 1) void recordSelectionEvent("SOURCE_OPENED");
+      }}
+    >
       Source repository
       <span className="srOnly"> (opens in a new tab)</span>
     </a>

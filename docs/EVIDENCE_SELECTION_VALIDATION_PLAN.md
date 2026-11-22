@@ -22,6 +22,8 @@ Ask active MCP developers for a recent server-selection decision, not an opinion
 
 Measure a small funnel: relevant entry/referral, search, result/detail inspection, source or installation action, and opt-in confirmation that the evidence affected a decision. Existing web analytics establish referral sources, not adoption; add only privacy-conscious aggregate event measurement. Learn repeat use through opt-in follow-up rather than fingerprinting or raw-query logging. Record baseline and measurement gaps before interpreting change.
 
+Use the [selection baseline](SELECTION_BASELINE.md) for the deployed evidence, event definitions, campaign window method, and rollout checks.
+
 ## Share gate
 
 Only prepare an external technical update after `VLD-03` verifies an actual deployed behavior and `VLD-02` yields a useful, consented or public selection example. The update should demonstrate a before/after decision and explicitly say what remains unknown. Prefer a relevant, non-promotional follow-up where the problem was raised, subject to current community rules; then one channel-native X/Bluesky update if the example is useful. Do not recycle the original launch copy or re-launch on Product Hunt for an incremental change. “No discussion worth replying to” is a valid outcome.
