@@ -1,0 +1,13 @@
+package dev.mcpcompass.selection;
+
+enum SelectionEvent {
+    SEARCH_SUBMITTED,
+    SEARCH_WITH_MATCHES,
+    SEARCH_WITHOUT_MATCHES,
+    SEARCH_FAILED,
+    DETAIL_OPENED,
+    SOURCE_OPENED,
+    CHOICE_CHANGED,
+    CHOICE_UNCHANGED,
+    CHOICE_PENDING
+}
