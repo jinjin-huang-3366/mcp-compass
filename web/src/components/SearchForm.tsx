@@ -213,7 +213,9 @@ export function SearchForm() {
                   missingCapabilities={match.missingCapabilities}
                 />
                 <RemoteConnectionObservation observation={match} />
-                <ForbiddenCapabilityEvidence evidence={match.forbiddenCapabilityEvidence} />
+                {match.forbiddenCapabilityEvidence?.length > 0 && (
+                  <ForbiddenCapabilityEvidence evidence={match.forbiddenCapabilityEvidence} />
+                )}
                 <RankingExplanation explanation={match.rankingExplanation} finalScore={match.score} />
                 <ul>{match.reasons.slice(0, 5).map((reason) => <li key={reason}>{reason}</li>)}</ul>
                 <div className="resultActions">
