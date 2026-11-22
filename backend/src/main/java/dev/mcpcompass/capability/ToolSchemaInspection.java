@@ -7,7 +7,8 @@ import java.util.Objects;
 
 public record ToolSchemaInspection(
         Status status,
-        List<RegistryClient.RegistryToolPayload> tools
+        List<RegistryClient.RegistryToolPayload> tools,
+        ToolSchemaRiskReport riskReport
 ) {
     public ToolSchemaInspection {
         Objects.requireNonNull(status, "status must not be null");

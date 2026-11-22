@@ -48,8 +48,33 @@ describe("SearchForm", () => {
       pageSize: 10,
       totalMatches: 11,
       totalPages: 2,
-      totalExcluded: 0,
-      exclusions: [],
+      totalExcluded: 1,
+      exclusions: [{
+        id: "excluded-server",
+        title: "PostgreSQL Report Reader",
+        registryName: "io.example/postgres-report-reader",
+        reasons: ["forbidden capability may be reachable (static tool schema signal: ARBITRARY_SQL)"],
+        forbiddenCapabilityEvidence: [{
+          capability: "postgres.row.delete",
+          status: "SCHEMA_INFERRED_RISK",
+          registryDeclaration: "SELF_DESCRIBED_READ_ONLY",
+          normalizedToolMetadata: "SELF_DESCRIBED_NO_WRITE_PATH",
+          observedToolsList: "NOT_OBSERVED",
+          permissionEnforcement: "NOT_VERIFIED",
+          staticToolSchema: {
+            revision: "2.0.0",
+            inspectorVersion: "1",
+            partial: false,
+            schemas: [{
+              tool: "preview_report",
+              source: "publisher-extension-metadata",
+              sha256: "b".repeat(64),
+              uncertainty: "INFERRED",
+              signals: ["ARBITRARY_SQL"],
+            }],
+          },
+        }],
+      }],
       matches: [{
         id: "server-1",
         registryName: "io.example/github",
@@ -83,6 +108,18 @@ describe("SearchForm", () => {
           normalizedToolMetadata: "SELF_DESCRIBED_NO_WRITE_PATH",
           observedToolsList: "NOT_OBSERVED",
           permissionEnforcement: "NOT_VERIFIED",
+          staticToolSchema: {
+            revision: "1.0.0",
+            inspectorVersion: "1",
+            partial: true,
+            schemas: [{
+              tool: "preview",
+              source: "registry-server-metadata",
+              sha256: "a".repeat(64),
+              uncertainty: "INCOMPLETE",
+              signals: ["CALLER_CONTROLLED_APPROVAL"],
+            }],
+          },
         }],
         rankingExplanation: {
           contributions: [],
@@ -107,7 +144,12 @@ describe("SearchForm", () => {
     expect(screen.getAllByText("github.issue.read")).toHaveLength(2);
     expect(screen.getByText("postgres.row.write").closest("li"))
       .toHaveTextContent("postgres.row.write: UNKNOWN / NOT_VERIFIED");
-    expect(screen.getByText(/has not observed tools\/list or verified server-enforced permissions/)).toBeInTheDocument();
+    expect(screen.getAllByText(/has not observed tools\/list or verified server-enforced permissions/)).toHaveLength(2);
+    expect(screen.getByText("Static schema inspection (partial)")).toBeInTheDocument();
+    expect(screen.getByText(/Caller-controlled approval setting/)).toHaveTextContent("registry-server-metadata");
+    expect(screen.getByText("postgres.row.delete").closest("li"))
+      .toHaveTextContent("postgres.row.delete: SCHEMA_INFERRED_RISK / NOT_VERIFIED");
+    expect(screen.getByText(/Caller-supplied SQL/)).toHaveTextContent("publisher-extension-metadata");
 
     firstVisit.unmount();
     render(<SearchForm />);

@@ -1,5 +1,6 @@
 package dev.mcpcompass.ranking;
 
+import dev.mcpcompass.capability.ToolSchemaInspection;
 import dev.mcpcompass.registry.McpServerEntity;
 import dev.mcpcompass.registry.RegistryClient;
 import dev.mcpcompass.requirement.RequirementAnalysis;
@@ -245,7 +246,8 @@ class RankingServiceTest {
     void calculatesBoundedTrustQualityFromPersistedEnrichmentSignals() {
         RequirementAnalysis requirement = new RequirementAnalysis("github", List.of("github"));
         McpServerEntity server = featureRichServer("io.example/github", "GitHub MCP", "", "active");
-        server.recordToolSchemaInspection("DISCOVERED", Instant.parse("2026-08-10T00:00:00Z"));
+        server.recordToolSchemaInspection(new ToolSchemaInspection(ToolSchemaInspection.Status.DISCOVERED, List.of(), null),
+                Instant.parse("2026-08-10T00:00:00Z"));
         TrustQualitySignals signals = new TrustQualitySignals(
                 false,
                 "Apache-2.0",
