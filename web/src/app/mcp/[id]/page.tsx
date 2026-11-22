@@ -4,6 +4,7 @@ import { getMcpDetail } from "@/lib/api";
 import type { McpServerDetail } from "@/lib/api";
 import { searchReturnUrl } from "@/lib/search-navigation";
 import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
+import { RemoteConnectionObservation } from "@/components/RemoteConnectionObservation";
 
 type McpDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -44,6 +45,12 @@ export default async function McpDetailPage({ params, searchParams }: McpDetailP
         <section className="detailSection" aria-labelledby="description-heading">
           <h2 id="description-heading">About this server</h2>
           <p>{server.description || "No description was provided by the Registry publisher."}</p>
+        </section>
+
+        <section className="detailSection" aria-labelledby="connection-heading">
+          <h2 id="connection-heading">Remote connection</h2>
+          <RemoteConnectionObservation observation={server} />
+          <p>A connection observation only checks MCP initialization. It does not call tools or verify tool safety.</p>
         </section>
 
         <section className="detailSection" aria-labelledby="metadata-heading">

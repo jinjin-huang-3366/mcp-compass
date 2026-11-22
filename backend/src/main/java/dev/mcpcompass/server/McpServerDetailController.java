@@ -36,6 +36,9 @@ public class McpServerDetailController {
             String version,
             String status,
             String repositoryUrl,
+            String remoteConnectionState,
+            Instant remoteConnectionCheckedAt,
+            String remoteConnectionReason,
             String toolSchemaStatus,
             Instant toolSchemaInspectedAt,
             Instant firstSeenAt,
@@ -44,7 +47,9 @@ public class McpServerDetailController {
         static McpServerDetail from(McpServerEntity entity) {
             return new McpServerDetail(
                     entity.getId(), entity.getRegistryName(), entity.getTitle(), entity.getDescription(),
-                    entity.getVersion(), entity.getStatus(), entity.getRepositoryUrl(), entity.getToolSchemaStatus(),
+                    entity.getVersion(), entity.getStatus(), entity.getRepositoryUrl(),
+                    entity.getRemoteConnectionState(), entity.getRemoteConnectionCheckedAt(),
+                    entity.getRemoteConnectionReason(), entity.getToolSchemaStatus(),
                     entity.getToolSchemaInspectedAt(), entity.getFirstSeenAt(), entity.getLastSeenAt()
             );
         }

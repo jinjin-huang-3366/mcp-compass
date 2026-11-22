@@ -27,6 +27,9 @@ describe("McpDetailPage", () => {
       version: "1.0.0",
       status: "active",
       repositoryUrl: "https://github.com/example/github-mcp",
+      remoteConnectionState: "AUTH_REQUIRED",
+      remoteConnectionCheckedAt: "2026-10-25T12:00:00Z",
+      remoteConnectionReason: "HTTP 401 requires authorization",
       firstSeenAt: "2026-08-01T10:00:00Z",
       lastSeenAt: "2026-08-30T10:00:00Z",
     });
@@ -41,5 +44,6 @@ describe("McpDetailPage", () => {
       .toHaveAttribute("href", "/?q=Read+GitHub+issues&page=2");
     expect(screen.getByRole("link", { name: /Source repository/ }))
       .toHaveAttribute("href", "https://github.com/example/github-mcp");
+    expect(screen.getByText(/Authentication required/)).toHaveTextContent("HTTP 401");
   });
 });

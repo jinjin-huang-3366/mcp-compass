@@ -3,6 +3,7 @@ package dev.mcpcompass.search;
 import dev.mcpcompass.requirement.RequirementConstraint;
 
 import java.util.List;
+import java.time.Instant;
 import java.util.UUID;
 
 public record SearchResponse(
@@ -46,6 +47,9 @@ public record SearchResponse(
             String version,
             String status,
             String repositoryUrl,
+            String remoteConnectionState,
+            Instant remoteConnectionCheckedAt,
+            String remoteConnectionReason,
             double score,
             double qualityScore,
             Double capabilityCoverage,

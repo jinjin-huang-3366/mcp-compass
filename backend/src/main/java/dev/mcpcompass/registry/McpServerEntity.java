@@ -42,6 +42,15 @@ public class McpServerEntity {
     @Column(name = "remote_count", nullable = false)
     private int remoteCount;
 
+    @Column(name = "remote_connection_state", nullable = false)
+    private String remoteConnectionState = "NOT_CHECKED";
+
+    @Column(name = "remote_connection_checked_at")
+    private Instant remoteConnectionCheckedAt;
+
+    @Column(name = "remote_connection_reason")
+    private String remoteConnectionReason;
+
     @Column(name = "tool_schema_status", nullable = false)
     private String toolSchemaStatus = "NOT_DISCOVERABLE";
 
@@ -66,6 +75,10 @@ public class McpServerEntity {
     }
 
     public void updateFrom(RegistryClient.RegistryServerPayload payload, Instant now) {
+        if (!java.util.Objects.equals(this.rawMetadata, payload.rawMetadata())) {
+            // A changed declaration may point at a different endpoint.
+            clearRemoteConnection();
+        }
         this.title = payload.title();
         this.description = payload.description();
         this.version = payload.version();
@@ -75,7 +88,22 @@ public class McpServerEntity {
         this.repositoryUrl = payload.repositoryUrl();
         this.packageCount = payload.packageCount();
         this.remoteCount = payload.remoteCount();
+        if (this.remoteCount == 0) {
+            clearRemoteConnection();
+        }
         this.lastSeenAt = now;
+    }
+
+    private void clearRemoteConnection() {
+        remoteConnectionState = "NOT_CHECKED";
+        remoteConnectionCheckedAt = null;
+        remoteConnectionReason = null;
+    }
+
+    public void recordRemoteConnection(String state, Instant checkedAt, String reason) {
+        this.remoteConnectionState = state;
+        this.remoteConnectionCheckedAt = checkedAt;
+        this.remoteConnectionReason = reason;
     }
 
     public void recordToolSchemaInspection(String status, Instant inspectedAt) {
@@ -94,6 +122,9 @@ public class McpServerEntity {
     public String getRepositoryUrl() { return repositoryUrl; }
     public int getPackageCount() { return packageCount; }
     public int getRemoteCount() { return remoteCount; }
+    public String getRemoteConnectionState() { return remoteConnectionState; }
+    public Instant getRemoteConnectionCheckedAt() { return remoteConnectionCheckedAt; }
+    public String getRemoteConnectionReason() { return remoteConnectionReason; }
     public String getToolSchemaStatus() { return toolSchemaStatus; }
     public Instant getToolSchemaInspectedAt() { return toolSchemaInspectedAt; }
     public Instant getFirstSeenAt() { return firstSeenAt; }
