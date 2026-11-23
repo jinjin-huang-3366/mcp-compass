@@ -9,6 +9,7 @@ export type SearchMatch = {
   remoteConnectionState: RemoteConnectionState;
   remoteConnectionCheckedAt: string | null;
   remoteConnectionReason: string | null;
+  setupReadiness?: SetupReadiness;
   score: number;
   qualityScore: number;
   capabilityCoverage: number | null;
@@ -102,12 +103,31 @@ export type McpServerDetail = {
   remoteConnectionState: RemoteConnectionState;
   remoteConnectionCheckedAt: string | null;
   remoteConnectionReason: string | null;
+  setupReadiness?: SetupReadiness;
   firstSeenAt: string;
   lastSeenAt: string;
 };
 
 export type RemoteConnectionState =
   | "REACHABLE" | "AUTH_REQUIRED" | "PROTOCOL_MISMATCH" | "UNREACHABLE" | "NOT_CHECKED";
+
+export type SetupReadiness = {
+  options: SetupOption[];
+};
+
+export type SetupOption = {
+  source: "REMOTE" | "PACKAGE";
+  position: number;
+  transport: "STREAMABLE_HTTP" | "SSE" | "STDIO" | "UNKNOWN";
+  authentication: "UNKNOWN" | "DECLARED_REQUIRED" | "REQUIRED" | "OAUTH_ADVERTISED"
+    | "INITIALIZED_WITHOUT_AUTH" | "DECLARATION_MISMATCH";
+  protocol: "UNKNOWN" | "UNVERIFIED" | "UNSUPPORTED_BY_CHECK" | "INITIALIZE_SUCCEEDED" | "MISMATCH";
+  missingInputs: {
+    kind: "HEADER" | "TEMPLATE_VARIABLE" | "ENVIRONMENT_VARIABLE" | "RUNTIME_ARGUMENT" | "PACKAGE_ARGUMENT"
+      | "AUTHORIZATION" | "OAUTH_AUTHORIZATION";
+    name: string | null;
+  }[];
+};
 
 export type McpToolContract = {
   contractVersion: string;

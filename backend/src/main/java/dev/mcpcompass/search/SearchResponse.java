@@ -1,5 +1,7 @@
 package dev.mcpcompass.search;
 
+import dev.mcpcompass.remote.SetupReadiness;
+
 import dev.mcpcompass.requirement.RequirementConstraint;
 
 import java.util.List;
@@ -50,6 +52,7 @@ public record SearchResponse(
             String remoteConnectionState,
             Instant remoteConnectionCheckedAt,
             String remoteConnectionReason,
+            SetupReadiness setupReadiness,
             double score,
             double qualityScore,
             Double capabilityCoverage,

@@ -44,6 +44,7 @@ class McpServerDetailControllerTest {
 
         mockMvc.perform(get("/api/v1/mcp/{id}", id))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.setupReadiness.options").isEmpty())
                 .andExpect(jsonPath("$.repositoryUrl")
                         .value("https://github.com/example/github-mcp"));
     }

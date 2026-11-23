@@ -5,6 +5,7 @@ import type { McpServerDetail } from "@/lib/api";
 import { searchReturnUrl } from "@/lib/search-navigation";
 import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
 import { RemoteConnectionObservation } from "@/components/RemoteConnectionObservation";
+import { SetupReadiness } from "@/components/SetupReadiness";
 
 type McpDetailPageProps = {
   params: Promise<{ id: string }>;
@@ -50,6 +51,7 @@ export default async function McpDetailPage({ params, searchParams }: McpDetailP
         <section className="detailSection" aria-labelledby="connection-heading">
           <h2 id="connection-heading">Remote connection</h2>
           <RemoteConnectionObservation observation={server} />
+          <SetupReadiness evidence={server.setupReadiness} />
           <p>A connection observation only checks MCP initialization. It does not call tools or verify tool safety.</p>
         </section>
 

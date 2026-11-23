@@ -11,6 +11,7 @@ import { ForbiddenCapabilityEvidence } from "@/components/ForbiddenCapabilityEvi
 import { RankingExplanation } from "@/components/RankingExplanation";
 import { SourceRepositoryLink } from "@/components/SourceRepositoryLink";
 import { RemoteConnectionObservation } from "@/components/RemoteConnectionObservation";
+import { SetupReadiness } from "@/components/SetupReadiness";
 
 const EXAMPLE = "Read GitHub issues, comment on them and create pull requests";
 const PAGE_SIZE = 10;
@@ -213,6 +214,7 @@ export function SearchForm() {
                   missingCapabilities={match.missingCapabilities}
                 />
                 <RemoteConnectionObservation observation={match} />
+                <SetupReadiness evidence={match.setupReadiness} />
                 {match.forbiddenCapabilityEvidence?.length > 0 && (
                   <ForbiddenCapabilityEvidence evidence={match.forbiddenCapabilityEvidence} />
                 )}
